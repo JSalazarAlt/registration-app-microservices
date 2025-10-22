@@ -119,7 +119,7 @@ public class UserService {
     }
 
     /**
-     * Registers a new user's using their account ID and DTO to update.
+     * Creates a new user's using their account ID and DTO to update.
      *
      * @param accountId Account ID associated with the user
      * @param username Username of the new user
@@ -127,7 +127,7 @@ public class UserService {
      * @param userRegistrationDTO DTO to create the user's profile
      * @return User's updated profile DTO
      */
-    public UserProfileDTO registerUser(UUID accountId, String username, 
+    public UserProfileDTO createUser(UUID accountId, String username, 
         String email, UserRegistrationDTO userRegistrationDTO) {
         // Map profile-specific fields for the new user
         User user = userMapper.toEntity(userRegistrationDTO);
