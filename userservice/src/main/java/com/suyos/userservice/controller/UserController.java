@@ -41,7 +41,10 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "User Management", description = "Operations for managing user profiles")
+@Tag(
+    name = "User Management",
+    description = "Operations for managing user profiles"
+)
 public class UserController {
 
     /** Service for handling user profile logic */
