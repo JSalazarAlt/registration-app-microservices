@@ -31,7 +31,8 @@ public interface UserMapper {
      * <p>Ignores fields that are managed internally or belong to other services, 
      * such as identifiers and audit fields.</p>
      *
-     * @param userUpdateDTO {@link UserUpdateDTO} containing user information
+     * @param userRegistrationDTO {@link UserRegistrationDTO} containing user 
+     * information
      * @return {@link User} entity populated with created fields
      */
     @Mapping(target = "id", ignore = true)
