@@ -117,7 +117,7 @@ public class UserService {
         // Return the user's profile DTO
         return userMapper.toProfileDTO(user);
     }
-
+    
     /**
      * Creates a new user's using their account ID and DTO to update.
      *
