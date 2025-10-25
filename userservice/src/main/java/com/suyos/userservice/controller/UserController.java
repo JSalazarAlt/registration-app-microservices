@@ -30,8 +30,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * REST controller for managing user profile operations.
  *
- * <p>This controller exposes endpoints for both end-users (via /me routes) and
- * administrative or internal use (via /{userId} routes).</p>
+ * <p>Exposes endpoints for both end-users (via /me routes) and administrative 
+ * or internal use (via /{userId} routes).</p>
  *
  * <p>Authenticated users are identified by their accountId from the JWT token
  * (simulated here via request parameter for demonstration).</p>
