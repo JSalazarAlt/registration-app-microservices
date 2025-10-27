@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserRegistrationDTO {
 
-    /** User's first name for personalization */
+    /** User's first name */
     @NotBlank(message = "First name is required")
     @Pattern(
         regexp = "^[\\p{L} ]+$", 

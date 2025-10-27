@@ -45,15 +45,15 @@ public class User {
     @Column(name = "id")
     private UUID id;
 
-    /** User's chosen username for display purposes */
+    /** User's username */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
-    
-    /** User's first name for personal identification */
+
+    /** User's first name */
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    /** User's last name for personal identification */
+    /** User's last name */
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
