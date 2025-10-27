@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountUpsertDTO {
 
-    /** Accounts's username for authentication */
+    /** Accounts's username */
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 20, message = "Username must be 3–20 characters")
     @Pattern(
@@ -32,14 +32,46 @@ public class AccountUpsertDTO {
     )
     private String username;
 
-    /** Accounts's email address for authentication */
+    /** Accounts's email address */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
 
-    /** Accounts's password for authentication */
+    /** Accounts's password */
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
+
+    /** User's first name */
+    @NotBlank(message = "First name is required")
+    @Pattern(
+        regexp = "^[\\p{L} ]+$", 
+        message = "First name must contain only letters and spaces"
+    )
+    private String firstName;
+
+    /** User's last name */
+    @NotBlank(message = "Last name is required")
+    @Pattern(
+        regexp = "^[\\p{L} ]+$", 
+        message = "Last name must contain only letters and spaces"
+    )
+    private String lastName;
+
+    /** User's phone number for contact purposes */
+    @Pattern(
+        regexp = "^$|^\\+?[0-9]{7,15}$",
+        message = "Phone must be 7–15 digits, optional + for country code"
+    )
+    private String phone;
+    
+    /** URL to the user's profile picture */
+    private String profilePictureUrl;
+    
+    /** User's preferred language locale */
+    private String locale;
+    
+    /** User's timezone preference */
+    private String timezone;
     
 }

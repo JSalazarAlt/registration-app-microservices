@@ -46,7 +46,7 @@ public class Account {
     @Column(name = "id")
     private UUID id;
 
-    /** User's chosen username for display purposes */
+    /** User's chosen username */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 

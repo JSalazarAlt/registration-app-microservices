@@ -77,8 +77,14 @@ public class AuthService {
         userReq.setAccountId(savedAccount.getId());
         userReq.setUsername(savedAccount.getUsername());
         userReq.setEmail(savedAccount.getEmail());
+        userReq.setFirstName(accountUpsertDTO.getFirstName());
+        userReq.setLastName(accountUpsertDTO.getLastName());
+        userReq.setPhone(accountUpsertDTO.getPhone());
+        userReq.setProfilePictureUrl(accountUpsertDTO.getProfilePictureUrl());
+        userReq.setLocale(accountUpsertDTO.getLocale());
+        userReq.setTimezone(accountUpsertDTO.getTimezone());
         userClient.createUser(userReq).block();
-
+        
         // Return the account's info DTO
         return accountMapper.toAccountInfoDTO(savedAccount);
     }
