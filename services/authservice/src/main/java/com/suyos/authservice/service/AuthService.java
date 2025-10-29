@@ -72,7 +72,7 @@ public class AuthService {
         // Persist the created account
         Account savedAccount = accountRepository.save(account);
         
-        // Step 2: Create user in UserService
+        // Create user in UserService
         UserCreationRequestDTO userReq = new UserCreationRequestDTO();
         userReq.setAccountId(savedAccount.getId());
         userReq.setUsername(savedAccount.getUsername());
@@ -131,7 +131,7 @@ public class AuthService {
         // Persist the updated account
         Account savedAccount = accountRepository.save(account);
         
-        // Generate token for the new successful login
+        // Generate JWT token for the successful login
         AuthenticationResponseDTO tokens = tokenService.issueTokens(savedAccount);
         
         // Log successful login
@@ -178,8 +178,11 @@ public class AuthService {
         account.setLastLoginAt(LocalDateTime.now());
         Account savedAccount = accountRepository.save(account);
 
-        // Generate JWT token (same as traditional authentication)
-        return tokenService.issueTokens(savedAccount);
+        //  Generate JWT token for the successful login (same as traditional authentication)
+        AuthenticationResponseDTO tokens = tokenService.issueTokens(savedAccount);
+        
+        // Return the accounts's authentication response DTO
+        return tokens;
     }
 
     /**

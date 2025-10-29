@@ -61,14 +61,14 @@ public class AuthController {
         @ApiResponse(responseCode = "201", description = "Account registered successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
     })
-    public ResponseEntity<AccountInfoDTO> registerUser(@Valid @RequestBody AccountUpsertDTO accountRegistrationDTO,
+    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody AccountUpsertDTO accountRegistrationDTO,
                                                       HttpServletRequest request) {
         AccountInfoDTO accountInfoDTO = authService.createAccount(accountRegistrationDTO, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(accountInfoDTO);
     }
 
     /**
-     * Authenticates a user login attempt and returns JWT token.
+     * Authenticates a login attempt and returns JWT token.
      * 
      * @param accountLoginDTO Account login credentials
      * @return ResponseEntity containing JWT token and user profile or error message
