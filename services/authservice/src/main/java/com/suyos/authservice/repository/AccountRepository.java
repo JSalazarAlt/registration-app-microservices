@@ -74,6 +74,22 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findActiveAccountByEmail(@Param("email") String email);
 
     /**
+     * Finds an active user by email address.
+     * 
+     * Returns user only if account is enabled, not locked, and email is verified.
+     * Used for login validation to ensure account is in good standing.
+     * 
+     * @param email The email address to search for
+     * @return Optional containing the active user if found, empty otherwise
+     */
+    @Query("""
+        SELECT a FROM Account a 
+        WHERE a.username = :username 
+        AND a.accountEnabled = true AND a.accountLocked = false
+    """)
+    Optional<Account> findActiveAccountByUsername(@Param("email") String email);
+
+    /**
      * Updates the failed login attempts count for a user.
      * 
      * Used for tracking consecutive failed login attempts for security purposes.

@@ -98,7 +98,7 @@ public class AuthService {
      */
     public AuthenticationResponseDTO authenticateAccount(AccountLoginDTO accountLoginDTO,
         HttpServletRequest request) {
-        // Fetch if there is an existing account for the given email
+        // Fetch if there is an active account for the given email
         Account account = accountRepository.findActiveAccountByEmail(accountLoginDTO.getEmail())
             .orElseThrow(() -> new RuntimeException("User not found for email: " + accountLoginDTO.getEmail()));
         
@@ -149,6 +149,38 @@ public class AuthService {
     }
 
     /**
+     * Creates a new user from Google OAuth2 provider information.
+     * 
+     * @param email user's email from Google
+     * @param name user's full name from Google
+     * @param providerId unique identifier from Google
+     * @return newly created user entity
+     */
+    private Account createGoogleOAuth2Account(String email, String name, String providerId) {
+        //String[] nameParts = name != null ? name.split(" ", 2) : new String[]{"User", ""};
+        //String firstName = nameParts[0];
+        //String lastName = nameParts.length > 1 ? nameParts[1] : "";
+        
+        Account account = Account.builder()
+                .email(email)
+                .username(email)
+                .password("") // No password for OAuth2 users
+                .oauth2Provider("google")
+                .oauth2ProviderId(providerId)
+                .emailVerified(true) // Google emails are pre-verified
+                .accountEnabled(true)
+                .accountLocked(false)
+                .failedLoginAttempts(0)
+                .build();
+        
+        // Persist the created account
+        Account savedAccount = accountRepository.save(account);
+
+        // Return the created account
+        return savedAccount;
+    }
+
+    /**
      * Processes Google OAuth2 authentication and creates or updates user account.
      *
      * Handles Google OAuth2 user information. Creates new user if not exists,
@@ -185,36 +217,14 @@ public class AuthService {
         return tokens;
     }
 
-    /**
-     * Creates a new user from Google OAuth2 provider information.
-     * 
-     * @param email user's email from Google
-     * @param name user's full name from Google
-     * @param providerId unique identifier from Google
-     * @return newly created user entity
-     */
-    private Account createGoogleOAuth2Account(String email, String name, String providerId) {
-        //String[] nameParts = name != null ? name.split(" ", 2) : new String[]{"User", ""};
-        //String firstName = nameParts[0];
-        //String lastName = nameParts.length > 1 ? nameParts[1] : "";
+    public AccountInfoDTO getAccount(String username) {
+        // Fetch if there is an active account for the given username
+        Account account = accountRepository.findActiveAccountByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found for username: " + username));;
+        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
         
-        Account account = Account.builder()
-                .email(email)
-                .username(email)
-                .password("") // No password for OAuth2 users
-                .oauth2Provider("google")
-                .oauth2ProviderId(providerId)
-                .emailVerified(true) // Google emails are pre-verified
-                .accountEnabled(true)
-                .accountLocked(false)
-                .failedLoginAttempts(0)
-                .build();
-        
-        // Persist the created account
-        Account savedAccount = accountRepository.save(account);
-
-        // Return the created account
-        return savedAccount;
+        // Return the accounts's info DTO
+        return accountInfoDTO;
     }
 
 }

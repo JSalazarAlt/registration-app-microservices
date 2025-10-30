@@ -2,6 +2,8 @@ package com.suyos.authservice.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +18,7 @@ import com.suyos.authservice.service.AuthService;
 import com.suyos.authservice.service.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -79,7 +82,7 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
         @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
     })
-    public ResponseEntity<AuthenticationResponseDTO> loginUser(@Valid @RequestBody AccountLoginDTO accountLoginDTO,
+    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AccountLoginDTO accountLoginDTO,
                                                               HttpServletRequest request) {
         AuthenticationResponseDTO authResponse = authService.authenticateAccount(accountLoginDTO, request);
         return ResponseEntity.ok(authResponse);
@@ -106,7 +109,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthenticationResponseDTO> refresh(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
+    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
         AuthenticationResponseDTO response = tokenService.refreshToken(refreshTokenRequestDTO.getRefreshToken());
         return ResponseEntity.ok(response);
     }
@@ -119,20 +122,14 @@ public class AuthController {
      * while SecurityConfig likely wires the Authentication. If you prefer SecurityContextHolder,
      * replace token extraction with principal lookup. This example shows header-based extraction.
      */
-    /*
-    @GetMapping("/me")
-    public ResponseEntity<AccountInfoDTO> me(@RequestHeader HttpHeaders headers) {
-         
-        String token = jwtService == null ? null : jwtService.extractTokenFromHeaders(headers);
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        String username = jwtService.extractUsername(token);
+    @GetMapping("/{username}")
+    public ResponseEntity<AccountInfoDTO> getUserById(
+            @Parameter(description = "User's username", required = true)
+            @PathVariable String username) {
         // if your AuthService has getAccountByEmail/use username method, call it; fallback: getAccountById if available.
         // Assuming AuthService has a method to get account by username/email (if not, adapt accordingly)
-        AccountInfoDTO accountInfo = authService.getAccountByEmail(username);
+        AccountInfoDTO accountInfo = authService.getAccount(username);
         return ResponseEntity.ok(accountInfo);
-        
     }
-    */
+    
 }
