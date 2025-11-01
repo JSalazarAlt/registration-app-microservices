@@ -9,15 +9,13 @@ import lombok.NoArgsConstructor;
 
 /**
  * Generic wrapper for paginated API responses.
- * 
- * This class provides a standardized structure for returning paginated data
- * from REST endpoints. It includes both the data content and pagination
- * metadata that clients need to implement pagination controls.
- * 
- * @param <T> The type of objects contained in the paginated response
+ *
+ * <p>Provides standardized structure for returning paginated data from
+ * REST endpoints. Includes data content and pagination metadata for
+ * client pagination controls.</p>
+ *
+ * @param <T> Type of objects contained in the paginated response
  * @author Joel Salazar
- * @version 1.0
- * @since 1.0
  */
 @Data
 @NoArgsConstructor
@@ -25,39 +23,25 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PagedResponseDTO<T> {
     
-    /**
-     * Actual data content for the current page.
-     */
+    /** Actual data content for the current page */
     private List<T> content;
     
-    /**
-     * Zero-based index of the current page.
-     */
+    /** Zero-based index of the current page */
     private int currentPage;
     
-    /**
-     * Total number of pages available.
-     */
+    /** Total number of pages available */
     private int totalPages;
     
-    /**
-     * Total number of elements across all pages.
-     */
+    /** Total number of elements across all pages */
     private long totalElements;
     
-    /**
-     * Number of elements per page (page size).
-     */
+    /** Number of elements per page */
     private int size;
     
-    /**
-     * Indicates if this is the first page.
-     */
+    /** Flag indicating if this is the first page */
     private boolean first;
     
-    /**
-     * Indicates if this is the last page.
-     */
+    /** Flag indicating if this is the last page */
     private boolean last;
     
 }
