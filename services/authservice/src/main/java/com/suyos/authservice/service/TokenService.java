@@ -14,6 +14,14 @@ import com.suyos.authservice.repository.TokenRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Service for JWT and refresh token management operations.
+ *
+ * <p>Handles token generation, refresh, and revocation for authentication
+ * flows. Implements refresh token rotation for enhanced security.</p>
+ *
+ * @author Joel Salazar
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,7 +33,14 @@ public class TokenService {
     /** JWT service for token generation and validation */
     private final JwtService jwtService;
 
+    /**
+     * Issues new JWT and refresh tokens for authenticated account.
+     * 
+     * @param account Authenticated account
+     * @return Authentication response with tokens and expiration info
+     */
     public AuthenticationResponseDTO issueTokens(Account account) {
+        // Create user details for JWT generation
         var userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(account.getEmail())
                 .password(account.getPassword())
@@ -38,7 +53,7 @@ public class TokenService {
         // Generate a new refresh token
         String refreshToken = UUID.randomUUID().toString();
 
-        // Generate a new Token entity
+        // Create and persist refresh token entity
         Token token = new Token();
         token.setToken(refreshToken);
         token.setAccount(account);
@@ -47,7 +62,7 @@ public class TokenService {
         token.setRevoked(false);
         tokenRepository.save(token);
 
-        // Return the authentication's profile DTO
+        // Return authentication response with tokens
         return AuthenticationResponseDTO.builder()
                 .accountId(account.getId())
                 .accessToken(accessToken)
@@ -56,10 +71,16 @@ public class TokenService {
                 .build();
     }
 
-
+    /**
+     * Refreshes JWT token using valid refresh token.
+     * 
+     * @param refreshToken Current refresh token
+     * @return New authentication response with rotated tokens
+     * @throws RuntimeException If refresh token is invalid or expired
+     */
     @Transactional
     public AuthenticationResponseDTO refreshToken(String refreshToken) {
-        // Fetch if there is an existing token for the refresh token
+        // Fetch existing token for the refresh token
         Token token = tokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         
@@ -68,7 +89,7 @@ public class TokenService {
             throw new RuntimeException("Refresh token expired or revoked");
         }
 
-        // Revoke old token
+        // Revoke old token for security
         token.setRevoked(true);
         token.setRevokedAt(LocalDateTime.now());
         tokenRepository.save(token);
@@ -77,16 +98,22 @@ public class TokenService {
         return issueTokens(token.getAccount());
     }
 
+    /**
+     * Revokes a refresh token during logout.
+     * 
+     * @param refreshToken Refresh token to revoke
+     * @throws RuntimeException If refresh token is invalid
+     */
     public void revokeToken(String refreshToken) {
-        // Fetch if there is an existing token for the refresh token
+        // Fetch existing token for the refresh token
         Token token = tokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         
-        // Set the revoked and the revokedAt fields
+        // Mark token as revoked with timestamp
         token.setRevoked(true);
         token.setRevokedAt(LocalDateTime.now());
 
-        // Persist the updated token
+        // Persist the revoked token
         tokenRepository.save(token);
     }
 

@@ -71,7 +71,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         WHERE a.email = :email 
         AND a.accountEnabled = true AND a.accountLocked = false
     """)
-    Optional<Account> findActiveAccountByEmail(@Param("email") String email);
+    Optional<Account> findActiveByEmail(@Param("email") String email);
 
     /**
      * Finds an active user by email address.
@@ -87,7 +87,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         WHERE a.username = :username 
         AND a.accountEnabled = true AND a.accountLocked = false
     """)
-    Optional<Account> findActiveAccountByUsername(@Param("email") String email);
+    Optional<Account> findActiveByUsername(@Param("username") String username);
 
     /**
      * Updates the failed login attempts count for a user.
@@ -148,5 +148,25 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * @return Optional containing the user if found, empty otherwise
      */
     Optional<Account> findByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
+    
+    /**
+     * Finds an active user by OAuth2 provider and provider ID.
+     * 
+     * Returns user only if account is enabled, not locked, and OAuth2 linked.
+     * Recommended for OAuth2 authentication to ensure account security.
+     * 
+     * @param provider The OAuth2 provider name (google)
+     * @param providerId The unique identifier from the OAuth2 provider
+     * @return Optional containing the active user if found, empty otherwise
+     */
+    @Query("""
+        SELECT a FROM Account a 
+        WHERE a.oauth2Provider = :provider 
+        AND a.oauth2ProviderId = :providerId
+        AND a.accountEnabled = true AND a.accountLocked = false
+    """)
+    Optional<Account> findActiveByOauth2ProviderAndOauth2ProviderId(
+        @Param("provider") String provider, 
+        @Param("providerId") String providerId);
     
 }

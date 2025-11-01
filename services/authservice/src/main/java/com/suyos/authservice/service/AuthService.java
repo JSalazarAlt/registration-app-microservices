@@ -11,14 +11,23 @@ import com.suyos.authservice.dto.AccountInfoDTO;
 import com.suyos.authservice.dto.AccountLoginDTO;
 import com.suyos.authservice.dto.AccountUpsertDTO;
 import com.suyos.authservice.dto.AuthenticationResponseDTO;
+import com.suyos.authservice.dto.TokenRequestDTO;
 import com.suyos.authservice.dto.UserCreationRequestDTO;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.repository.AccountRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Service for authentication and account management operations.
+ *
+ * <p>Handles account creation, authentication, OAuth2 integration, and
+ * interservice communication with User Service. Manages JWT token
+ * generation and account security features.</p>
+ *
+ * @author Joel Salazar
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -39,28 +48,23 @@ public class AuthService {
     /** JWT service for token generation and validation */
     private final TokenService tokenService;
 
+    /** Web client for user-related interservice calls */
     private final UserClient userClient;
-
-    /** Security audit service for logging security events */
-    /*
-    private final SecurityAuditService securityAuditService;
-     */
 
     /**
      * Creates a new account.
      * 
-     * @param registrationDTO the registration information
-     * @return the created user's profile information
-     * @throws RuntimeException if email already exists
+     * @param accountUpsertDTO Account's registration data
+     * @return Created account's information
+     * @throws RuntimeException If email already exists
      */
-    public AccountInfoDTO createAccount(AccountUpsertDTO accountUpsertDTO, 
-        HttpServletRequest request) {
+    public AccountInfoDTO createAccount(AccountUpsertDTO accountUpsertDTO) {
         // Fetch if there is an existing account for the given email
         if (accountRepository.existsByEmail(accountUpsertDTO.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
         
-        // Map specific fields for the new account
+        // Map the account from the account upsert DTO
         Account account = accountMapper.toEntity(accountUpsertDTO);
         
         // Set extra account fields
@@ -72,7 +76,7 @@ public class AuthService {
         // Persist the created account
         Account savedAccount = accountRepository.save(account);
         
-        // Create user in UserService
+        // Call the User service to create a new user
         UserCreationRequestDTO userReq = new UserCreationRequestDTO();
         userReq.setAccountId(savedAccount.getId());
         userReq.setUsername(savedAccount.getUsername());
@@ -84,23 +88,25 @@ public class AuthService {
         userReq.setLocale(accountUpsertDTO.getLocale());
         userReq.setTimezone(accountUpsertDTO.getTimezone());
         userClient.createUser(userReq).block();
-        
-        // Return the account's info DTO
-        return accountMapper.toAccountInfoDTO(savedAccount);
+
+        // Map the account's info DTO from the created account
+        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(savedAccount);
+    
+        // Return the created account's info DTO
+        return accountInfoDTO;
     }
 
     /**
-     * Authenticates a user login attempt and generates JWT token.
+     * Authenticates an account during login attempt and generates JWT token.
      * 
-     * @param userLoginDTO the login credentials
-     * @return authentication response with JWT token and user profile
-     * @throws RuntimeException if authentication fails
+     * @param accountLoginDTO Login credentials
+     * @return Authentication response with JWT token and account ID
+     * @throws RuntimeException If authentication fails
      */
-    public AuthenticationResponseDTO authenticateAccount(AccountLoginDTO accountLoginDTO,
-        HttpServletRequest request) {
+    public AuthenticationResponseDTO authenticateAccount(AccountLoginDTO accountLoginDTO) {
         // Fetch if there is an active account for the given email
-        Account account = accountRepository.findActiveAccountByEmail(accountLoginDTO.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found for email: " + accountLoginDTO.getEmail()));
+        Account account = accountRepository.findActiveByEmail(accountLoginDTO.getEmail())
+            .orElseThrow(() -> new RuntimeException("Account not found for email: " + accountLoginDTO.getEmail()));
         
         // Check if the account is not locked
         if (account.getAccountLocked() && account.getLockedUntil() != null 
@@ -111,14 +117,6 @@ public class AuthService {
         // Check if the entered password matches the account's password
         if (!passwordEncoder.matches(accountLoginDTO.getPassword(), account.getPassword())) {
             loginAttemptService.recordFailedAttempt(account);
-            /*
-            securityAuditService.logLoginAttempt(
-                userLoginDTO.getEmail(),
-                securityAuditService.getClientIp(request),
-                securityAuditService.getUserAgent(request),
-                false
-            );
-             */
             throw new RuntimeException("Invalid email or password");
         }
         
@@ -133,28 +131,30 @@ public class AuthService {
         
         // Generate JWT token for the successful login
         AuthenticationResponseDTO tokens = tokenService.issueTokens(savedAccount);
-        
-        // Log successful login
-        /*
-        securityAuditService.logLoginAttempt(
-            user.getEmail(),
-            securityAuditService.getClientIp(request),
-            securityAuditService.getUserAgent(request),
-            true
-        );
-        */
-        
-        // Return the accounts's authentication response DTO
+
+        // Return the authentication response DTO
         return tokens;
     }
 
     /**
-     * Creates a new user from Google OAuth2 provider information.
+     * Authenticates an account during login attempt and generates JWT token.
      * 
-     * @param email user's email from Google
-     * @param name user's full name from Google
-     * @param providerId unique identifier from Google
-     * @return newly created user entity
+     * @param tokenRequestDTO Token request
+     * @return Authentication response with JWT token and account ID
+     * @throws RuntimeException If authentication fails
+     */
+    public void deauthenticateAccount(TokenRequestDTO tokenRequestDTO) {
+        // Revoke the refresh token
+        tokenService.revokeToken(tokenRequestDTO.getRefreshToken());
+    }
+
+    /**
+     * Creates a new account from Google OAuth2 provider information.
+     * 
+     * @param email Account's email from Google
+     * @param name User's full name from Google
+     * @param providerId Unique identifier from Google
+     * @return Created account entity
      */
     private Account createGoogleOAuth2Account(String email, String name, String providerId) {
         //String[] nameParts = name != null ? name.split(" ", 2) : new String[]{"User", ""};
@@ -181,19 +181,19 @@ public class AuthService {
     }
 
     /**
-     * Processes Google OAuth2 authentication and creates or updates user account.
+     * Processes Google OAuth2 authentication and creates or updates account.
      *
-     * Handles Google OAuth2 user information. Creates new user if not exists,
-     * or updates existing OAuth2 user. Generates JWT token for API access.
+     * <p>Handles Google OAuth2 account information. Creates new account if not exists,
+     * or updates existing OAuth2 account. Generates JWT token for API access.</p>
      *
-     * @param email user's email from Google
-     * @param name user's full name from Google
-     * @param providerId unique identifier from Google
-     * @return authentication response with JWT token and user profile
+     * @param email Account's email from Google
+     * @param name User's full name from Google
+     * @param providerId Unique identifier from Google
+     * @return Authentication response with JWT token and account ID
      */
     public AuthenticationResponseDTO processGoogleOAuth2Account(String email, String name, String providerId) {
         // Find user either by OAuth2 credentials or fallback by email
-        Account account = accountRepository.findByOauth2ProviderAndOauth2ProviderId("google", providerId)
+        Account account = accountRepository.findActiveByOauth2ProviderAndOauth2ProviderId("google", providerId)
             .or(() -> accountRepository.findByEmail(email)
                 .map(existingAccount -> {
                     // Link existing account with Google
@@ -213,17 +213,26 @@ public class AuthService {
         //  Generate JWT token for the successful login (same as traditional authentication)
         AuthenticationResponseDTO tokens = tokenService.issueTokens(savedAccount);
         
-        // Return the accounts's authentication response DTO
+        // Return the authentication response DTO
         return tokens;
     }
 
-    public AccountInfoDTO getAccount(String username) {
+    /**
+     * Finds an active account by username.
+     * 
+     * @param username Username to search for
+     * @return Active account's information
+     * @throws RuntimeException If active account is not found
+     */
+    public AccountInfoDTO findAccountByUsername(String username) {
         // Fetch if there is an active account for the given username
-        Account account = accountRepository.findActiveAccountByUsername(username)
-            .orElseThrow(() -> new RuntimeException("User not found for username: " + username));;
+        Account account = accountRepository.findActiveByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));;
+        
+        // Map the account's info DTO from the active account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
         
-        // Return the accounts's info DTO
+        // Return the active account's info DTO
         return accountInfoDTO;
     }
 

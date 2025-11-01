@@ -13,11 +13,11 @@ import com.suyos.authservice.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Custom UserDetailsService implementation for Spring Security authentication.
- * 
- * Loads user details from the database for authentication and authorization.
- * Integrates with Spring Security's authentication mechanism.
- * 
+ * Custom UserDetailsService for Spring Security authentication.
+ *
+ * <p>Loads user details from database for authentication and authorization.
+ * Integrates with Spring Security's authentication mechanism.</p>
+ *
  * @author Joel Salazar
  */
 @Service
@@ -30,13 +30,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     /**
      * Loads user details by email for authentication.
      * 
-     * @param email the user's email address
+     * @param email User's email address
      * @return UserDetails object for Spring Security
-     * @throws UsernameNotFoundException if user not found
+     * @throws UsernameNotFoundException If user not found
      */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Account account = accountRepository.findActiveAccountByEmail(email)
+        Account account = accountRepository.findActiveByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
         return org.springframework.security.core.userdetails.User.builder()

@@ -23,8 +23,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 public class SwaggerConfig {
 
     /**
-     * Configures OpenAPI documentation with authentication microservice 
-     * information and JWT security.
+     * Configures OpenAPI documentation with JWT security.
      * 
      * @return OpenAPI configuration object
      */

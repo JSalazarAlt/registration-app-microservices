@@ -2,8 +2,6 @@ package com.suyos.authservice.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,16 +11,14 @@ import com.suyos.authservice.dto.AccountInfoDTO;
 import com.suyos.authservice.dto.AccountLoginDTO;
 import com.suyos.authservice.dto.AccountUpsertDTO;
 import com.suyos.authservice.dto.AuthenticationResponseDTO;
-import com.suyos.authservice.dto.RefreshTokenRequestDTO;
+import com.suyos.authservice.dto.TokenRequestDTO;
 import com.suyos.authservice.service.AuthService;
 import com.suyos.authservice.service.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -38,8 +34,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Tag(
-    name = "Authentication and Account Management", 
-    description = "Operations for managing authentication and accounts"
+    name = "Authentication Management", 
+    description = "Operations for managing authentication"
 )
 public class AuthController {
     
@@ -52,84 +48,86 @@ public class AuthController {
     /**
      * Registers a new user account.
      * 
-     * @param accountRegistrationDTO Account registration data
-     * @return ResponseEntity containing the created account's info or error message
+     * @param accountUpsertDTO Account's registration data
+     * @return ResponseEntity containing the created account info or error message
      */
     @PostMapping("/register")
     @Operation(
         summary = "Register new account", 
-        description = "Creates a new user account with the provided information"
+        description = "Creates a new account with the provided information"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Account registered successfully"),
+        @ApiResponse(responseCode = "201", description = "Registration successful"),
         @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
     })
-    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody AccountUpsertDTO accountRegistrationDTO,
-                                                      HttpServletRequest request) {
-        AccountInfoDTO accountInfoDTO = authService.createAccount(accountRegistrationDTO, request);
+    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody AccountUpsertDTO accountUpsertDTO) {
+        // Create a new account using the registration data
+        AccountInfoDTO accountInfoDTO = authService.createAccount(accountUpsertDTO);
+        // Return the created account info with "201 Created" status
         return ResponseEntity.status(HttpStatus.CREATED).body(accountInfoDTO);
     }
 
     /**
-     * Authenticates a login attempt and returns JWT token.
+     * Authenticates an account during a login attempt and returns JWT token.
      * 
-     * @param accountLoginDTO Account login credentials
-     * @return ResponseEntity containing JWT token and user profile or error message
+     * @param accountLoginDTO Account's login credentials
+     * @return ResponseEntity containing JWT token and account ID or error message
      */
     @PostMapping("/login")
-    @Operation(summary = "Account login", description = "Authenticates account credentials and returns JWT token")
+    @Operation(
+        summary = "Account login", 
+        description = "Authenticates account credentials and returns JWT token"
+    )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
         @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
     })
-    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AccountLoginDTO accountLoginDTO,
-                                                              HttpServletRequest request) {
-        AuthenticationResponseDTO authResponse = authService.authenticateAccount(accountLoginDTO, request);
+    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AccountLoginDTO accountLoginDTO) {
+        // Authenticate an account using the login credentials
+        AuthenticationResponseDTO authResponse = authService.authenticateAccount(accountLoginDTO);
+        // Return the authentication response with "200 OK" status
         return ResponseEntity.ok(authResponse);
     }
 
     /**
-     * Logs out a user by blacklisting their JWT token.
+     * Deauthenticates an account during a logout attempt.
      * 
-     * @param request the HTTP request containing the Authorization header
-     * @return ResponseEntity indicating logout success
+     * @param tokenRequestDTO Logout token request
+     * @return ResponseEntity indicating logout success or error message
      */
     @PostMapping("/logout")
-    @Operation(summary = "User logout", description = "Invalidates the user's JWT token")
+    @Operation(summary = "Account logout", description = "Invalidates the account's JWT token and refresh token")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Logout successful"),
+        @ApiResponse(responseCode = "204", description = "Logout successful"),
         @ApiResponse(responseCode = "400", description = "Invalid or missing token")
     })
-    public ResponseEntity<String> logoutUser(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.ok("Logout successful");
-        }
-        return ResponseEntity.badRequest().body("No valid token found");
+    public ResponseEntity<Void> logoutAccount(@RequestBody TokenRequestDTO tokenRequestDTO) {
+        // Deauthenticate an account revoking the refresh token
+        authService.deauthenticateAccount(tokenRequestDTO);
+        // Return the logout response with "204 No Content" status
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        AuthenticationResponseDTO response = tokenService.refreshToken(refreshTokenRequestDTO.getRefreshToken());
-        return ResponseEntity.ok(response);
-    }
-    
     /**
-     * Example "me" endpoint to return account info for current authenticated user.
-     * GET /api/v1/auth/me
-     *
-     * Implementation note: Your JwtService exposes methods to validate/extract tokens,
-     * while SecurityConfig likely wires the Authentication. If you prefer SecurityContextHolder,
-     * replace token extraction with principal lookup. This example shows header-based extraction.
+     * Refreshes JWT token using refresh token.
+     * 
+     * @param tokenRequestDTO Refresh token request
+     * @return ResponseEntity containing new JWT token or error message
      */
-    @GetMapping("/{username}")
-    public ResponseEntity<AccountInfoDTO> getUserById(
-            @Parameter(description = "User's username", required = true)
-            @PathVariable String username) {
-        // if your AuthService has getAccountByEmail/use username method, call it; fallback: getAccountById if available.
-        // Assuming AuthService has a method to get account by username/email (if not, adapt accordingly)
-        AccountInfoDTO accountInfo = authService.getAccount(username);
-        return ResponseEntity.ok(accountInfo);
+    @PostMapping("/refresh")
+    @Operation(
+        summary = "Refresh JWT token",
+        description = "Generates new JWT token using valid refresh token"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+    })
+    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@RequestBody TokenRequestDTO tokenRequestDTO) {
+        // Refresh the JWT token using the refresh token
+        AuthenticationResponseDTO response = tokenService.refreshToken(tokenRequestDTO.getRefreshToken());
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(response);
     }
     
 }

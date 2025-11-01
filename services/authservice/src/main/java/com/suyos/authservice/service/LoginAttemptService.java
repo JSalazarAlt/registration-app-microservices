@@ -35,23 +35,20 @@ public class LoginAttemptService {
     private static final int LOCK_DURATION_HOURS = 24;
 
     /**
-     * Records a failed login attempt and implements account locking security.
+     * Records a failed login attempt and implements account locking.
      * 
-     * <p>Increments the failed login attempt counter for the {@link Account} and 
-     * automatically locks the account if the maximum number of failed attempts is 
-     * reached. Uses REQUIRES_NEW transaction propagation to ensure failed attempts
-     * are saved even if the calling transaction rolls back.</p>
+     * Increments failed attempt counter and locks account if maximum
+     * attempts reached. Uses separate transaction for security.
      * 
-     * @param user the user who had a failed login attempt
-     * @throws IllegalArgumentException if user is null
+     * @param account Account that had a failed login attempt
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordFailedAttempt(Account account) {
-        // Increase the failed login attemps counter by 1
+        // Increment failed login attempts counter
         int attempts = account.getFailedLoginAttempts() + 1;
         account.setFailedLoginAttempts(attempts);
 
-        // Lock the account if the number of attemps is greater than the maximum
+        // Lock account if maximum attempts exceeded
         if (attempts >= MAX_FAILED_ATTEMPTS) {
             account.setAccountLocked(true);
             account.setLockedUntil(LocalDateTime.now().plusHours(LOCK_DURATION_HOURS));

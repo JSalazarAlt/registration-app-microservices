@@ -18,10 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handles successful Google OAuth2 authentication.
- * 
- * Processes Google OAuth2 user information, creates or updates user,
- * generates JWT token, and redirects to frontend with token.
- * 
+ *
+ * <p>Processes Google OAuth2 user information, creates or updates user,
+ * generates JWT token, and redirects to frontend with authentication
+ * details for session initialization.</p>
+ *
  * @author Joel Salazar
  */
 @Component

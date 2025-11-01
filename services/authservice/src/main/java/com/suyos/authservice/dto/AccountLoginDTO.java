@@ -22,14 +22,14 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AccountLoginDTO {
 
-    /** Accounts's username for authentication */
+    /** Account's username for authentication */
     private String username;
 
-    /** Accounts's email address for authentication */
+    /** Account's email address for authentication */
     @Email(message = "Invalid email format")
     private String email;
 
-    /** Accounts's password for authentication */
+    /** Account's password for authentication */
     @NotBlank(message = "Password is required")
     private String password;
 

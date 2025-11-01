@@ -23,11 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * JWT authentication filter for processing JWT tokens in HTTP requests.
- * 
- * Intercepts incoming requests to extract and validate JWT tokens from
+ *
+ * <p>Intercepts incoming requests to extract and validate JWT tokens from
  * Authorization headers. Sets Spring Security context for valid tokens
- * and handles token blacklisting for logout functionality.
- * 
+ * and handles authentication for protected endpoints.</p>
+ *
  * @author Joel Salazar
  */
 @Component

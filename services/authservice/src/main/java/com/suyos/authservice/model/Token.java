@@ -47,22 +47,25 @@ public class Token {
     @Column(name = "id")
     private UUID id;
 
+    /** Account associated with this token */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
+    /** Token value for authentication */
     @Column(name = "token", nullable = false, unique = true, length = 512)
     private String token;
 
+    /** Flag indicating if token has been revoked */
     @Builder.Default
     @Column(name = "revoked", nullable = false)
     private boolean revoked = false;
 
-    /** Timestamp when the user record was issued */
+    /** Timestamp when the token was issued */
     @Column(name = "issued_at", nullable = false)
     private LocalDateTime issuedAt;
 
-    /** Timestamp when the token expires */
+    /** Timestamp when the token was revoked */
     @Column(name = "revoked_at")
     private LocalDateTime revokedAt;
 

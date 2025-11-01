@@ -9,12 +9,27 @@ import com.suyos.authservice.dto.UserProfileDTO;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+/**
+ * Web client for interservice communication with User Service.
+ *
+ * <p>Handles HTTP requests to User Service endpoints for user-related
+ * operations during authentication flows.</p>
+ *
+ * @author Joel Salazar
+ */
 @Component
 @RequiredArgsConstructor
 public class UserClient {
 
+    /** WebClient configured for User Service communication */
     private final WebClient userServiceWebClient;
 
+    /**
+     * Creates a new user in the User Service.
+     * 
+     * @param request User creation request with account and profile data
+     * @return Mono containing created user profile information
+     */
     public Mono<UserProfileDTO> createUser(UserCreationRequestDTO request) {
         return userServiceWebClient
                 .post()

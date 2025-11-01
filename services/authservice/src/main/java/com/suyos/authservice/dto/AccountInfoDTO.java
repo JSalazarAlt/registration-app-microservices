@@ -6,18 +6,26 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+/**
+ * Data Transfer Object for account information.
+ *
+ * <p>Contains basic account details for public display and API responses.
+ * Used when returning account information without sensitive data.</p>
+ *
+ * @author Joel Salazar
+ */
 @Getter
 @AllArgsConstructor
 @Builder
 public class AccountInfoDTO {
 
-    /** Accounts's ID */
+    /** Account's ID */
     private UUID id;
 
-    /** Accounts's username */
+    /** Account's username */
     private String username;
 
-    /** Accounts's email address */
+    /** Account's email address */
     private String email;
 
 }
