@@ -1,7 +1,6 @@
 package com.suyos.authservice.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -40,15 +39,8 @@ public class TokenService {
      * @return Authentication response with tokens and expiration info
      */
     public AuthenticationResponseDTO issueTokens(Account account) {
-        // Create user details for JWT generation
-        var userDetails = org.springframework.security.core.userdetails.User.builder()
-                .username(account.getEmail())
-                .password(account.getPassword())
-                .authorities(new ArrayList<>())
-                .build();
-
         // Generate a new access token
-        String accessToken = jwtService.generateToken(userDetails);
+        String accessToken = jwtService.generateToken(account);
 
         // Generate a new refresh token
         String refreshToken = UUID.randomUUID().toString();
@@ -78,7 +70,6 @@ public class TokenService {
      * @return New authentication response with rotated tokens
      * @throws RuntimeException If refresh token is invalid or expired
      */
-    @Transactional
     public AuthenticationResponseDTO refreshToken(String refreshToken) {
         // Fetch existing token for the refresh token
         Token token = tokenRepository.findByToken(refreshToken)
@@ -115,6 +106,24 @@ public class TokenService {
 
         // Persist the revoked token
         tokenRepository.save(token);
+    }
+    
+    /**
+     * Extracts account ID from the Authorization header containing JWT.
+     * 
+     * @param authHeader Authorization header with Bearer token
+     * @return Account ID extracted from the token
+     */
+    public UUID getAccountIdFromAccessToken(String authHeader) {
+        // Strip "Bearer " prefix
+        String token = authHeader.replace("Bearer ", "").trim();
+
+        // Extract the account ID from the JWT
+        String accountIdStr = jwtService.extractSubject(token);
+        UUID accountId = UUID.fromString(accountIdStr);
+
+        // Return the account ID
+        return accountId;
     }
 
 }

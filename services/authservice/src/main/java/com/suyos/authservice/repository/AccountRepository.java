@@ -26,45 +26,80 @@ import com.suyos.authservice.model.Account;
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     
     /**
-     * Finds an account by their email address.
-     * 
-     * @param email The email address to search for
-     * @return Optional containing the user if found, empty otherwise
-     */
-    Optional<Account> findByEmail(String email);
-
-    /**
-     * Finds an account by their username.
-     * 
-     * @param username The username to search for
-     * @return Optional containing the user if found, empty otherwise
-     */
-    Optional<Account> findByUsername(String username);
-
-    /**
      * Checks if an email address is already registered.
      * 
-     * @param email The email address to check
-     * @return true if email exists, false otherwise
+     * @param email Email address to check
+     * @return True if email exists, false otherwise
      */
     boolean existsByEmail(String email);
     
     /**
      * Checks if a username is already taken.
      * 
-     * @param username The username to check
-     * @return true if username exists, false otherwise
+     * @param username Username to check
+     * @return True if username exists, false otherwise
      */
     boolean existsByUsername(String username);
 
     /**
-     * Finds an active user by email address.
+     * Finds an account by ID.
      * 
-     * Returns user only if account is enabled, not locked, and email is verified.
-     * Used for login validation to ensure account is in good standing.
+     * @param id ID of account to search for
+     * @return Optional containing user if found, empty otherwise
+     */
+    Optional<Account> findByID(UUID id);
+
+    /**
+     * Finds an account by email address.
      * 
-     * @param email The email address to search for
+     * @param email Email address to search for
+     * @return Optional containing the user if found, empty otherwise
+     */
+    Optional<Account> findByEmail(String email);
+
+    /**
+     * Finds an account by username.
+     * 
+     * @param username Username to search for
+     * @return Optional containing the user if found, empty otherwise
+     */
+    Optional<Account> findByUsername(String username);
+
+    /**
+     * Finds a user by OAuth2 provider and provider ID.
+     * 
+     * Used to locate existing OAuth2 users during Google authentication flow.
+     * 
+     * @param provider The OAuth2 provider name (google)
+     * @param providerId The unique identifier from the OAuth2 provider
+     * @return Optional containing the user if found, empty otherwise
+     */
+    Optional<Account> findByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
+
+    /**
+     * Finds an active account by ID.
+     * 
+     * <p>Returns user only if account is enabled, not locked, and email is verified.
+     * Used for login validation to ensure account is in good standing.</p>
+     * 
+     * @param id ID of the account to search for
      * @return Optional containing the active user if found, empty otherwise
+     */
+    @Query("""
+        SELECT a FROM Account a 
+        WHERE a.id = :id 
+        AND a.accountEnabled = true AND a.accountLocked = false
+    """)
+    Optional<Account> findActiveById(@Param("id") UUID id);
+
+    /**
+     * Finds an active account by email address.
+     * 
+     * <p>Returns account only if account is enabled and not locked. Used for login validation
+     * to ensure account is in good standing.</p>
+     * 
+     * @param email Email address to search for
+     * @return Optional containing the active account if found, empty otherwise
      */
     @Query("""
         SELECT a FROM Account a 
@@ -74,12 +109,11 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findActiveByEmail(@Param("email") String email);
 
     /**
-     * Finds an active user by email address.
+     * Finds an active account by username.
      * 
-     * Returns user only if account is enabled, not locked, and email is verified.
-     * Used for login validation to ensure account is in good standing.
+     * <p>Returns user only if account is enabled and not locked.</p>
      * 
-     * @param email The email address to search for
+     * @param email Email address to search for
      * @return Optional containing the active user if found, empty otherwise
      */
     @Query("""
@@ -88,6 +122,24 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         AND a.accountEnabled = true AND a.accountLocked = false
     """)
     Optional<Account> findActiveByUsername(@Param("username") String username);
+
+    /**
+     * Finds an active user by OAuth2 provider and provider ID.
+     * 
+     * <p>Returns user only if account is enabled, not locked, and OAuth2 linked.
+     * Recommended for OAuth2 authentication to ensure account security.</p>
+     * 
+     * @param provider The OAuth2 provider name (google)
+     * @param providerId The unique identifier from the OAuth2 provider
+     * @return Optional containing the active user if found, empty otherwise
+     */
+    @Query("""
+        SELECT a FROM Account a 
+        WHERE a.oauth2Provider = :provider 
+        AND a.oauth2ProviderId = :providerId
+        AND a.accountEnabled = true AND a.accountLocked = false
+    """)
+    Optional<Account> findActiveByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
 
     /**
      * Updates the failed login attempts count for a user.
@@ -137,36 +189,5 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         WHERE a.email = :email
     """)
     void unlockAccount(@Param("email") String email);
-    
-    /**
-     * Finds a user by OAuth2 provider and provider ID.
-     * 
-     * Used to locate existing OAuth2 users during Google authentication flow.
-     * 
-     * @param provider The OAuth2 provider name (google)
-     * @param providerId The unique identifier from the OAuth2 provider
-     * @return Optional containing the user if found, empty otherwise
-     */
-    Optional<Account> findByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
-    
-    /**
-     * Finds an active user by OAuth2 provider and provider ID.
-     * 
-     * Returns user only if account is enabled, not locked, and OAuth2 linked.
-     * Recommended for OAuth2 authentication to ensure account security.
-     * 
-     * @param provider The OAuth2 provider name (google)
-     * @param providerId The unique identifier from the OAuth2 provider
-     * @return Optional containing the active user if found, empty otherwise
-     */
-    @Query("""
-        SELECT a FROM Account a 
-        WHERE a.oauth2Provider = :provider 
-        AND a.oauth2ProviderId = :providerId
-        AND a.accountEnabled = true AND a.accountLocked = false
-    """)
-    Optional<Account> findActiveByOauth2ProviderAndOauth2ProviderId(
-        @Param("provider") String provider, 
-        @Param("providerId") String providerId);
     
 }

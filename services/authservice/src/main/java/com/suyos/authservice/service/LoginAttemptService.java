@@ -37,9 +37,6 @@ public class LoginAttemptService {
     /**
      * Records a failed login attempt and implements account locking.
      * 
-     * Increments failed attempt counter and locks account if maximum
-     * attempts reached. Uses separate transaction for security.
-     * 
      * @param account Account that had a failed login attempt
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)

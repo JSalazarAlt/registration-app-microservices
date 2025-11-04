@@ -2,15 +2,15 @@ package com.suyos.authservice.service;
 
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.suyos.authservice.model.Account;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -41,119 +41,24 @@ public class JwtService {
     private Long jwtExpiration;
 
     /**
-     * Extracts username from JWT token.
+     * Builds JWT token with specified claims and expiration.
      * 
-     * @param token the JWT token
-     * @return the username (subject) from the token
-     * @throws JwtException if token is invalid or expired
+     * @param account Authenticated account
+     * @return Generated JWT token
      */
-    public String extractUsername(String token) {
-        try {
-            return extractClaim(token, Claims::getSubject);
-        } catch (ExpiredJwtException e) {
-            log.warn("JWT token expired: {}", e.getMessage());
-            throw e;
-        } catch (MalformedJwtException e) {
-            log.warn("Malformed JWT token: {}", e.getMessage());
-            throw e;
-        } catch (SignatureException e) {
-            log.warn("JWT signature validation failed: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Error extracting username from JWT: {}", e.getMessage());
-            throw new JwtException("Invalid JWT token", e);
-        }
-    }
+    public String generateToken(Account account) {
+        Map<String, Object> claims = Map.of(
+            "username", account.getUsername(),
+            "email", account.getEmail()
+        );
 
-    /**
-     * Extracts expiration date from JWT token.
-     * 
-     * @param token the JWT token
-     * @return the expiration date
-     */
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    /**
-     * Extracts a specific claim from JWT token.
-     * 
-     * @param <T> the type of the claim
-     * @param token the JWT token
-     * @param claimsResolver function to extract the specific claim
-     * @return the extracted claim
-     * @throws JwtException if token is invalid
-     */
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        try {
-            final Claims claims = extractAllClaims(token);
-            return claimsResolver.apply(claims);
-        } catch (JwtException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error extracting claim from JWT: {}", e.getMessage());
-            throw new JwtException("Failed to extract claim from token", e);
-        }
-    }
-
-    /**
-     * Generates JWT token for user authentication.
-     * 
-     * @param userDetails the authenticated user details
-     * @return the generated JWT token
-     */
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
-    }
-
-    /**
-     * Generates JWT token with additional claims.
-     * 
-     * @param extraClaims additional claims to include in the token
-     * @param userDetails the authenticated user details
-     * @return the generated JWT token
-     */
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, jwtExpiration);
-    }
-
-    /**
-     * Gets JWT token expiration time in seconds.
-     * 
-     * @return expiration time in seconds
-     */
-    public Long getExpirationTime() {
-        return jwtExpiration / 1000;
-    }
-
-    /**
-     * Validates JWT token against user details.
-     * 
-     * @param token the JWT token to validate
-     * @param userDetails the user details to validate against
-     * @return true if token is valid, false otherwise
-     */
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        try {
-            final String username = extractUsername(token);
-            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-        } catch (JwtException e) {
-            log.warn("Token validation failed: {}", e.getMessage());
-            return false;
-        } catch (Exception e) {
-            log.error("Unexpected error during token validation: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Checks if JWT token is expired.
-     * 
-     * @param token the JWT token
-     * @return true if token is expired, false otherwise
-     */
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        return Jwts.builder()
+                .claims(claims)
+                .subject(account.getId().toString())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSignInKey())
+                .compact();
     }
 
     /**
@@ -186,21 +91,84 @@ public class JwtService {
     }
 
     /**
-     * Builds JWT token with specified claims and expiration.
+     * Extracts a specific claim from JWT token.
      * 
-     * @param extraClaims additional claims to include
-     * @param userDetails the user details
-     * @param expiration token expiration time in milliseconds
-     * @return the built JWT token
+     * @param <T> the type of the claim
+     * @param token the JWT token
+     * @param claimsResolver function to extract the specific claim
+     * @return the extracted claim
+     * @throws JwtException if token is invalid
      */
-    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
-        return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey())
-                .compact();
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        try {
+            final Claims claims = extractAllClaims(token);
+            return claimsResolver.apply(claims);
+        } catch (JwtException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error extracting claim from JWT: {}", e.getMessage());
+            throw new JwtException("Failed to extract claim from token", e);
+        }
+    }
+
+    /**
+     * Extracts username from JWT token.
+     * 
+     * @param token the JWT token
+     * @return Account ID (subject) from the token
+     * @throws JwtException if token is invalid or expired
+     */
+    public String extractSubject(String token) {
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT token expired: {}", e.getMessage());
+            throw e;
+        } catch (MalformedJwtException e) {
+            log.warn("Malformed JWT token: {}", e.getMessage());
+            throw e;
+        } catch (SignatureException e) {
+            log.warn("JWT signature validation failed: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error extracting username from JWT: {}", e.getMessage());
+            throw new JwtException("Invalid JWT token", e);
+        }
+    }
+
+    /**
+     * Extracts expiration date from JWT token.
+     * 
+     * @param token the JWT token
+     * @return the expiration date
+     */
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    /**
+     * Validates JWT token against user details.
+     * 
+     * @param token JWT token to validate
+     * @param expectedAccountId Expected account ID in the token
+     * @return True if token is valid, false otherwise
+     */
+    public boolean isTokenValid(String token, String expectedAccountId) {
+        try {
+            return extractSubject(token).equals(expectedAccountId) && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks if JWT token is expired.
+     * 
+     * @param token the JWT token
+     * @return true if token is expired, false otherwise
+     */
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 
     /**
@@ -227,6 +195,15 @@ public class JwtService {
             log.error("Failed to create signing key: {}", e.getMessage());
             throw new RuntimeException("JWT configuration error", e);
         }
+    }
+
+    /**
+     * Gets JWT token expiration time in seconds.
+     * 
+     * @return Expiration time in seconds
+     */
+    public Long getExpirationTime() {
+        return jwtExpiration / 1000;
     }
     
 }

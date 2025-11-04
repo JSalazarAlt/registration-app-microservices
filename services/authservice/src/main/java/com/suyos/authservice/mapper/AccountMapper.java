@@ -6,7 +6,8 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
 import com.suyos.authservice.dto.AccountInfoDTO;
-import com.suyos.authservice.dto.AccountUpsertDTO;
+import com.suyos.authservice.dto.AccountRegistrationDTO;
+import com.suyos.authservice.dto.AccountUpdateDTO;
 import com.suyos.authservice.model.Account;
 
 /**
@@ -47,7 +48,7 @@ public interface AccountMapper {
     @Mapping(target = "oauth2ProviderId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Account toEntity(AccountUpsertDTO accountUpsertDTO);
+    Account toEntity(AccountRegistrationDTO accountRegistrationDTO);
 
     /**
      * Updates an existing {@link Account} entity with fields from 
@@ -57,6 +58,7 @@ public interface AccountMapper {
      * @param account Existing {@link Account} entity to update
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "password", ignore = true)
     @Mapping(target = "emailVerified", ignore = true)
     @Mapping(target = "mustChangePassword", ignore = true)
     @Mapping(target = "passwordChangedAt", ignore = true)
@@ -69,7 +71,7 @@ public interface AccountMapper {
     @Mapping(target = "oauth2ProviderId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Account updateAccountFromDTO(AccountUpsertDTO accountUpsertDTO, @MappingTarget Account account);
+    Account updateAccountFromDTO(AccountUpdateDTO accountUpdateDTO, @MappingTarget Account account);
 
     /**
      * Converts a {@link Account} entity to a {@link AccountInfoDTO}.

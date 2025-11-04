@@ -18,10 +18,9 @@ import lombok.NoArgsConstructor;
  * @author Joel Salazar
  */
 @Data
-
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountUpsertDTO {
+public class AccountRegistrationDTO {
 
     /** Account's username */
     @NotBlank(message = "Username is required")

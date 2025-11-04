@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.authservice.dto.AccountInfoDTO;
 import com.suyos.authservice.dto.AccountLoginDTO;
-import com.suyos.authservice.dto.AccountUpsertDTO;
+import com.suyos.authservice.dto.AccountRegistrationDTO;
 import com.suyos.authservice.dto.AuthenticationResponseDTO;
 import com.suyos.authservice.dto.TokenRequestDTO;
 import com.suyos.authservice.service.AuthService;
@@ -48,7 +48,7 @@ public class AuthController {
     /**
      * Registers a new user account.
      * 
-     * @param accountUpsertDTO Account's registration data
+     * @param accountRegistrationDTO Account's registration data
      * @return ResponseEntity containing the created account info or error message
      */
     @PostMapping("/register")
@@ -60,9 +60,9 @@ public class AuthController {
         @ApiResponse(responseCode = "201", description = "Registration successful"),
         @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
     })
-    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody AccountUpsertDTO accountUpsertDTO) {
+    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody AccountRegistrationDTO accountRegistrationDTO) {
         // Create a new account using the registration data
-        AccountInfoDTO accountInfoDTO = authService.createAccount(accountUpsertDTO);
+        AccountInfoDTO accountInfoDTO = authService.createAccount(accountRegistrationDTO);
         // Return the created account info with "201 Created" status
         return ResponseEntity.status(HttpStatus.CREATED).body(accountInfoDTO);
     }

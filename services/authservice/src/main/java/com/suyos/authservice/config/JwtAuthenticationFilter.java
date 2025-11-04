@@ -1,12 +1,11 @@
 package com.suyos.authservice.config;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -37,12 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /** Service for JWT token generation, validation, and extraction operations */
     private final JwtService jwtService;
-    
-    /** Service for loading user details from the database */
-    private final UserDetailsService userDetailsService;
-    
-    /** Service for managing blacklisted JWT tokens */
-    //private final TokenBlacklistService tokenBlacklistService;
 
     /**
      * Processes each HTTP request to extract, validate, and apply authentication 
@@ -52,12 +45,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * <ol>
      *   <li>Extracts the JWT token from the <code>Authorization</code> header 
      *       if present.</li>
-     *   <li>Checks whether the token is blacklisted (e.g., after a logout) using 
-     *       the {@code tokenBlacklistService}.</li>
-     *   <li>Validates the token's integrity and extracts the associated user email 
-     *       via the {@code jwtService}.</li>
-     *   <li>Loads user details from the {@code UserDetailsService} and sets the 
-     *       authentication in the {@link SecurityContextHolder} if the token is valid.</li>
+     *   <li>Validates the token's integrity and extracts the associated account ID 
+     *       via {@code jwtService}.</li>
+     *   <li>If valid, creates an authenticated {@code UsernamePasswordAuthenticationToken}
+     *       and sets it in the {@link SecurityContextHolder}.</li>
      *   <li>Continues the filter chain by passing the request to the next filter 
      *       regardless of authentication outcome.</li>
      * </ol>
@@ -66,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * <ul>
      *   <li>Authenticates incoming requests by verifying JWT tokens issued to 
      *       valid users.</li>
-     *   <li>Prevents the use of expired, invalid, or blacklisted tokens to access 
+     *   <li>Prevents the use of expired or invalid tokens to access 
      *       protected endpoints.</li>
      *   <li>Ensures that valid users are recognized by Spring Security and 
      *       granted the appropriate authorities.</li>
@@ -91,7 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
          // Get the Authorization header from the request
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String userEmail;
+        final String accountIdStr;
 
         // Skip JWT processing if there is no Authorization header or it doesn't start with "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -103,29 +94,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         jwt = authHeader.substring(7);
         
         try {
-            // Check if the token is blacklisted (e.g., after logout)
-            /*/
-            if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
-                log.debug("Blacklisted token attempted to be used");
-                filterChain.doFilter(request, response);
-                return;
-            }
-            */
+            // Extract the account ID from the JWT token
+            accountIdStr = jwtService.extractSubject(jwt);
 
-            // Extract the user email (username) from the JWT token
-            userEmail = jwtService.extractUsername(jwt);
-
-            // Proceed with validation if userEmail is found and no authentication is set in the context
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // Load user details from the database
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                // Validate the JWT token against the user details (checks signature, expiration, etc.)
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+            // Proceed with validation if account ID is found and no authentication is set in the context
+            if (accountIdStr != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (jwtService.isTokenValid(jwt, accountIdStr)) {
                     // Create an authenticated UsernamePasswordAuthenticationToken
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
+                            accountIdStr,
                             null,
-                            userDetails.getAuthorities()
+                            Collections.emptyList()
                     );
                     // Attach request details (IP, session, etc.) to the authentication token
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
