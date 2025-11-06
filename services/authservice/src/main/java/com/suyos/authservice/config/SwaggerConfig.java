@@ -32,7 +32,7 @@ public class SwaggerConfig {
         return new OpenAPI()
             .info(new Info()
                 .title("Registration API")
-                .description("REST API for the Authentication microservice of the registration application")
+                .description("REST API for the Authentication microservice of the application")
                 .version("1.0.0")
                 .contact(new Contact()
                     .name("Joel Salazar")

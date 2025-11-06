@@ -14,10 +14,10 @@ import lombok.RequiredArgsConstructor;
 /**
  * Service for handling login attempt tracking and account security.
  * 
- * <p>Manages failed login attempts, implements account locking mechanisms, and 
- * provides security features to prevent brute force attacks. Uses separate 
- * transactions to ensure failed attempts are recorded even when authentication 
- * fails.</p>
+ * <p>Manages failed login attempts, implements account locking mechanisms,
+ * and provides security features to prevent brute force attacks. Uses
+ * separate transactions to ensure failed attempts are recorded even when
+ * authentication fails.</p>
  * 
  * @author Joel Salazar
  */
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LoginAttemptService {
     
-    /** Repository for user data access operations */
+    /** Repository for account data access operations */
     private final AccountRepository accountRepository;
 
     /** Maximum allowed failed login attempts before account lock */
@@ -35,7 +35,7 @@ public class LoginAttemptService {
     private static final int LOCK_DURATION_HOURS = 24;
 
     /**
-     * Records a failed login attempt and implements account locking.
+     * Records a failed login attempt and locks account if threshold reached.
      * 
      * @param account Account that had a failed login attempt
      */

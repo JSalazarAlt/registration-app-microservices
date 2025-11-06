@@ -1,4 +1,4 @@
-package com.suyos.authservice.dto.request;
+package com.suyos.authservice.dto.internal;
 
 import java.util.UUID;
 

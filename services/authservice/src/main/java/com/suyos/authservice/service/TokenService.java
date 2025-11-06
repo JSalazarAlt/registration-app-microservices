@@ -33,10 +33,10 @@ public class TokenService {
     private final JwtService jwtService;
 
     /**
-     * Issues new JWT and refresh tokens for authenticated account.
+     * Issues new JWT and refresh tokens for an authenticated account.
      * 
      * @param account Authenticated account
-     * @return Authentication response with tokens and expiration info
+     * @return Authentication response with tokens and expiration
      */
     public AuthenticationResponseDTO issueTokens(Account account) {
         // Generate a new access token
@@ -64,7 +64,7 @@ public class TokenService {
     }
 
     /**
-     * Refreshes JWT token using valid refresh token.
+     * Refreshes JWT token using a valid refresh token (token rotation).
      * 
      * @param refreshToken Current refresh token
      * @return New authentication response with rotated tokens
@@ -90,10 +90,10 @@ public class TokenService {
     }
 
     /**
-     * Extracts account ID from the Authorization header containing JWT.
+     * Extracts account ID from Authorization header containing JWT.
      * 
      * @param authHeader Authorization header with Bearer token
-     * @return Account ID extracted from the token
+     * @return Account ID extracted from JWT
      */
     public UUID getAccountIdFromAccessToken(String authHeader) {
         // Strip "Bearer " prefix
@@ -108,7 +108,7 @@ public class TokenService {
     }
 
     /**
-     * Gets account from refresh token.
+     * Gets account associated with a refresh token.
      * 
      * @param refreshToken Refresh token
      * @return Account associated with the token
@@ -121,7 +121,7 @@ public class TokenService {
     }
 
     /**
-     * Revokes a refresh token during logout.
+     * Revokes a refresh token (used during logout).
      * 
      * @param refreshToken Refresh token to revoke
      * @throws RuntimeException If refresh token is invalid

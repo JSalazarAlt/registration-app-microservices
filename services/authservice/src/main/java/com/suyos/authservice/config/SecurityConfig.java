@@ -41,9 +41,6 @@ public class SecurityConfig {
     
     /** OAuth2 success handler for processing successful Google OAuth2 authentication */
     private final OAuth2AuthenticationSuccessHandler oauth2SuccessHandler;
-    
-    /** Rate limiting filter for auth endpoints */
-    //private final RateLimitingFilter rateLimitingFilter;
 
     /**
      * Configures the main security rules and authentication mechanisms 
@@ -126,8 +123,6 @@ public class SecurityConfig {
                 .redirectionEndpoint(redirection -> redirection
                     .baseUri("/oauth2/callback/*"))
                 .successHandler(oauth2SuccessHandler))
-            // Add rate limiting filter before authentication filter
-            //.addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             // Add JWT authentication filter before authentication filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .build();

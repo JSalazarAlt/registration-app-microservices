@@ -13,8 +13,8 @@ import com.suyos.authservice.model.Token;
 /**
  * Repository interface for Token entity data access operations.
  *
- * <p>Handles refresh token storage, validation, and cleanup operations
- * for JWT authentication flows.</p>
+ * <p>Handles refresh token storage, validation, and cleanup operations for
+ * JWT authentication flows.</p>
  *
  * @author Joel Salazar
  */
@@ -23,17 +23,13 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     /**
      * Finds a token by its value.
      * 
-     * <p>Used for validating refresh tokens during token refresh flow.</p>
-     * 
      * @param token Token value to search for
      * @return Optional containing token if found, empty otherwise
      */
     Optional<Token> findByToken(String token);
 
     /**
-     * Finds all valid refresh tokens for an account.
-     * 
-     * <p>Used for token cleanup.</p>
+     * Finds all valid (non-revoked, non-expired) tokens for an account.
      * 
      * @param accountId Account ID to search tokens for
      * @return List of valid tokens for the account
@@ -46,9 +42,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     List<Token> findAllValidByAccountId(UUID accountId);
 
     /**
-     * Revokes all valid tokens for an account.
-     * 
-     * <p>Marks all non-revoked tokens as revoked for security purposes.</p>
+     * Revokes all valid tokens for an account (e.g., password change).
      * 
      * @param accountId Account ID to revoke tokens for
      */
@@ -62,9 +56,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     void revokeAllByAccountId(UUID accountId);
 
     /**
-     * Deletes all refresh tokens for an account.
-     * 
-     * <p>Used during account deletion for cleanup.</p>
+     * Deletes all tokens for an account (used during account deletion).
      * 
      * @param accountId Account ID to delete tokens for
      */
