@@ -47,27 +47,56 @@ public class Token {
     @Column(name = "id")
     private UUID id;
 
-    /** Account associated with this token */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
+    // IDENTITY
 
     /** Token value for authentication */
     @Column(name = "token", nullable = false, unique = true, length = 512)
     private String token;
+
+    /** Token value for authentication */
+    @Column(name = "type", nullable = false)
+    private TokenType type;
+
+    // TOKEN ROTATION
+
+    /** Root token ID for tracking token rotation chains */
+    @Column(name = "root_token_id")
+    private UUID rootTokenId;
+
+    /** Parent token ID for tracking token rotation chains */
+    @Column(name = "parent_token_id")
+    private UUID parentTokenId;
+
+    /** Flag indicating if token has been reused */
+    @Builder.Default
+    @Column(name = "reused", nullable = false)
+    private boolean reused = false;
 
     /** Flag indicating if token has been revoked */
     @Builder.Default
     @Column(name = "revoked", nullable = false)
     private boolean revoked = false;
 
-    /** Timestamp when the token was issued */
-    @Column(name = "issued_at", nullable = false)
-    private LocalDateTime issuedAt;
-
     /** Timestamp when the token was revoked */
     @Column(name = "revoked_at")
     private LocalDateTime revokedAt;
+
+    // RELATIONSHIPS
+
+    /** Account associated with this token */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
+
+    /** Session ID associated with this token */
+    @JoinColumn(name = "session_id", nullable = false)
+    private UUID sessionId;
+
+    // LIFECYCLE
+
+    /** Timestamp when the token was issued */
+    @Column(name = "issued_at", nullable = false)
+    private LocalDateTime issuedAt;
 
     /** Timestamp when the token expires */
     @Column(name = "expires_at", nullable = false)

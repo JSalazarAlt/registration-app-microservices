@@ -1,20 +1,23 @@
 package com.suyos.authservice.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.client.UserClient;
-import com.suyos.authservice.dto.AccountInfoDTO;
-import com.suyos.authservice.dto.AccountLoginDTO;
-import com.suyos.authservice.dto.AccountRegistrationDTO;
-import com.suyos.authservice.dto.AuthenticationResponseDTO;
-import com.suyos.authservice.dto.TokenRequestDTO;
-import com.suyos.authservice.dto.UserCreationRequestDTO;
+import com.suyos.authservice.dto.request.AccountLoginDTO;
+import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.TokenRequestDTO;
+import com.suyos.authservice.dto.request.UserCreationRequestDTO;
+import com.suyos.authservice.dto.response.AccountInfoDTO;
+import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
+import com.suyos.authservice.model.Role;
 import com.suyos.authservice.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -64,12 +67,18 @@ public class AuthService {
             throw new RuntimeException("Email already registered");
         }
 
+        // Fetch if there is an existing account for the given username
+        if (accountRepository.existsByUsername(accountRegistrationDTO.getUsername())) {
+            throw new RuntimeException("Username already registered");
+        }
+
         // Map the account from the account registration DTO
         Account account = accountMapper.toEntity(accountRegistrationDTO);
         
         // Set extra account fields
         account.setPassword(passwordEncoder.encode(accountRegistrationDTO.getPassword()));
-        account.setAccountEnabled(true);
+        account.setRole(Role.USER);
+        account.setEnabled(true);
         account.setEmailVerified(false);
         account.setFailedLoginAttempts(0);
         
@@ -108,10 +117,23 @@ public class AuthService {
         Account account = accountRepository.findActiveByEmail(accountLoginDTO.getEmail())
             .orElseThrow(() -> new RuntimeException("Account not found for email: " + accountLoginDTO.getEmail()));
         
+        // Check if the account is not deleted
+        if (account.getDeleted()) {
+            throw new RuntimeException("Account is deleted. Please reactivate your account.");
+        }
+
         // Check if the account is not locked
-        if (account.getAccountLocked() && account.getLockedUntil() != null 
-            && account.getLockedUntil().isAfter(LocalDateTime.now())) {
-            throw new RuntimeException("Account is locked. Try again later.");
+        if (account.getLocked()) {
+            if (account.getLockedUntil() != null && account.getLockedUntil().isBefore(LocalDateTime.now())) {
+                // Auto-unlock expired locks
+                account.setLocked(false);
+                account.setLockedUntil(null);
+                account.setFailedLoginAttempts(0);
+                accountRepository.save(account);
+            } else {
+                Duration remaining = Duration.between(LocalDateTime.now(), account.getLockedUntil());
+                throw new RuntimeException(String.format("Account locked. Try again in %d minutes", remaining.toMinutes()));
+            }
         }
         
         // Check if the entered password matches the account's password
@@ -123,7 +145,7 @@ public class AuthService {
         // If login is performed successfully, update login related fields
         account.setFailedLoginAttempts(0);
         account.setLastLoginAt(LocalDateTime.now());
-        account.setAccountLocked(false);
+        account.setLocked(false);
         account.setLockedUntil(null);
         
         // Persist the updated account
@@ -143,6 +165,13 @@ public class AuthService {
      * @throws RuntimeException If token is invalid
      */
     public void deauthenticateAccount(TokenRequestDTO tokenRequestDTO) {
+        // Get account from refresh token
+        Account account = tokenService.getAccountFromRefreshToken(tokenRequestDTO.getRefreshToken());
+        
+        // Update last logout timestamp
+        account.setLastLogoutAt(LocalDateTime.now());
+        accountRepository.save(account);
+        
         // Revoke the refresh token
         tokenService.revokeToken(tokenRequestDTO.getRefreshToken());
     }
@@ -163,12 +192,13 @@ public class AuthService {
         Account account = Account.builder()
                 .email(email)
                 .username(email)
-                .password("") // No password for OAuth2 users
+                .password(passwordEncoder.encode(UUID.randomUUID().toString())) // Secure random password for OAuth2
+                .role(Role.USER)
                 .oauth2Provider("google")
                 .oauth2ProviderId(providerId)
                 .emailVerified(true) // Google emails are pre-verified
-                .accountEnabled(true)
-                .accountLocked(false)
+                .enabled(true)
+                .locked(false)
                 .failedLoginAttempts(0)
                 .build();
         

@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
@@ -46,6 +48,8 @@ public class Account {
     @Column(name = "id")
     private UUID id;
 
+    // IDENTITY
+
     /** User's chosen username */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
@@ -63,38 +67,62 @@ public class Account {
     @Column(name = "password", nullable = false)
     private String password;
 
+    // AUTHORIZATION
+
+    /** Encrypted password hash for user authentication */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
+
+    // STATUS
+
+    /** Flag indicating if the user account is enabled */
+    @Builder.Default
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
+
+    /** Flag indicating if the user account is temporarily locked */
+    @Builder.Default
+    @Column(name = "locked", nullable = false)
+    private Boolean locked = false;
+
+    /** Timestamp when the account lock expires */
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
+    /** Flag indicating if the user account was deactivated */
+    @Builder.Default
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
+
+    // PASSWORD MANAGEMENT
+
     /** Flag indicating if user must change password on next login */
     @Builder.Default
     @Column(name = "must_change_password", nullable = false)
     private Boolean mustChangePassword = false;
 
     /** Timestamp when the user's password was last changed */
-    @Column(name = "password_changed_at")
-    private LocalDateTime passwordChangedAt;
+    @Column(name = "last_password_changed_at")
+    private LocalDateTime lastPasswordChangedAt;
 
-    /** Flag indicating if the user account is enabled */
-    @Builder.Default
-    @Column(name = "account_enabled", nullable = false)
-    private Boolean accountEnabled = true;
-
-    /** Flag indicating if the user account is temporarily locked */
-    @Builder.Default
-    @Column(name = "account_locked", nullable = false)
-    private Boolean accountLocked = false;
-
-    /** Timestamp when the account lock expires */
-    @Column(name = "locked_until")
-    private LocalDateTime lockedUntil;
+    // LOGIN AND LOGOUT TRACKING
 
     /** Timestamp of the user's last successful login */
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    /** Timestamp of the user's last successful login */
+    @Column(name = "last_logout_at")
+    private LocalDateTime lastLogoutAt;
+
     /** Counter for consecutive failed login attempts */
     @Builder.Default
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
-    
+
+    // OAUTH2 INTEGRATION
+
     /** OAuth2 provider name (google) - null for traditional login */
     @Column(name = "oauth2_provider")
     private String oauth2Provider;
@@ -102,6 +130,19 @@ public class Account {
     /** Unique identifier from OAuth2 provider - null for traditional login */
     @Column(name = "oauth2_provider_id")
     private String oauth2ProviderId;
+
+    // MULTI-FACTOR INTEGRATION
+
+    /** Flag indicating if multi-factor authentication is enabled */
+    @Builder.Default
+    @Column(name = "mfa_enabled", nullable = false)
+    private Boolean mfaEnabled = false;
+
+    /** Timestamp when multi-factor authentication was last enabled */
+    @Column(name = "mfa_enabled_at")
+    private LocalDateTime mfaEnabledAt;
+    
+    // LIFECYCLE
 
     /** Timestamp when the account record was first created in the system */
     @CreatedDate
@@ -112,5 +153,9 @@ public class Account {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /** Timestamp when the account record was deleted */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
     
 }

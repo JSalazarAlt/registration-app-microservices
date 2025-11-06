@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.authservice.dto.AuthenticationResponseDTO;
+import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.repository.TokenRepository;
@@ -90,25 +90,6 @@ public class TokenService {
     }
 
     /**
-     * Revokes a refresh token during logout.
-     * 
-     * @param refreshToken Refresh token to revoke
-     * @throws RuntimeException If refresh token is invalid
-     */
-    public void revokeToken(String refreshToken) {
-        // Fetch existing token for the refresh token
-        Token token = tokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-        
-        // Mark token as revoked with timestamp
-        token.setRevoked(true);
-        token.setRevokedAt(LocalDateTime.now());
-
-        // Persist the revoked token
-        tokenRepository.save(token);
-    }
-    
-    /**
      * Extracts account ID from the Authorization header containing JWT.
      * 
      * @param authHeader Authorization header with Bearer token
@@ -126,4 +107,45 @@ public class TokenService {
         return accountId;
     }
 
+    /**
+     * Gets account from refresh token.
+     * 
+     * @param refreshToken Refresh token
+     * @return Account associated with the token
+     * @throws RuntimeException If refresh token is invalid
+     */
+    public Account getAccountFromRefreshToken(String refreshToken) {
+        Token token = tokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+        return token.getAccount();
+    }
+
+    /**
+     * Revokes a refresh token during logout.
+     * 
+     * @param refreshToken Refresh token to revoke
+     * @throws RuntimeException If refresh token is invalid
+     */
+    public void revokeToken(String refreshToken) {
+        // Fetch existing token for the refresh token
+        Token token = tokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+        
+        // Mark token as revoked with timestamp
+        token.setRevoked(true);
+        token.setRevokedAt(LocalDateTime.now());
+
+        // Persist the revoked token
+        tokenRepository.save(token);
+    }
+
+    /**
+     * Revokes all tokens for an account (e.g., on password change).
+     * 
+     * @param accountId Account ID
+     */
+    public void revokeAllTokensByAccountId(UUID accountId) {
+        tokenRepository.revokeAllByAccountId(accountId);
+    }
+    
 }

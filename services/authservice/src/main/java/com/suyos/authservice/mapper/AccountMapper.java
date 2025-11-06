@@ -5,9 +5,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
-import com.suyos.authservice.dto.AccountInfoDTO;
-import com.suyos.authservice.dto.AccountRegistrationDTO;
-import com.suyos.authservice.dto.AccountUpdateDTO;
+import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.AccountUpdateDTO;
+import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.model.Account;
 
 /**
@@ -37,17 +37,23 @@ public interface AccountMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "emailVerified", ignore = true)
-    @Mapping(target = "mustChangePassword", ignore = true)
-    @Mapping(target = "passwordChangedAt", ignore = true)
-    @Mapping(target = "accountEnabled", ignore = true)
-    @Mapping(target = "accountLocked", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
+    @Mapping(target = "locked", ignore = true)
     @Mapping(target = "lockedUntil", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "mustChangePassword", ignore = true)
+    @Mapping(target = "lastPasswordChangedAt", ignore = true)
     @Mapping(target = "lastLoginAt", ignore = true)
+    @Mapping(target = "lastLogoutAt", ignore = true)
     @Mapping(target = "failedLoginAttempts", ignore = true)
     @Mapping(target = "oauth2Provider", ignore = true)
     @Mapping(target = "oauth2ProviderId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "mfaEnabled", ignore = true)
+    @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     Account toEntity(AccountRegistrationDTO accountRegistrationDTO);
 
     /**
@@ -60,17 +66,23 @@ public interface AccountMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "emailVerified", ignore = true)
-    @Mapping(target = "mustChangePassword", ignore = true)
-    @Mapping(target = "passwordChangedAt", ignore = true)
-    @Mapping(target = "accountEnabled", ignore = true)
-    @Mapping(target = "accountLocked", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
+    @Mapping(target = "locked", ignore = true)
     @Mapping(target = "lockedUntil", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "mustChangePassword", ignore = true)
+    @Mapping(target = "lastPasswordChangedAt", ignore = true)
     @Mapping(target = "lastLoginAt", ignore = true)
+    @Mapping(target = "lastLogoutAt", ignore = true)
     @Mapping(target = "failedLoginAttempts", ignore = true)
     @Mapping(target = "oauth2Provider", ignore = true)
     @Mapping(target = "oauth2ProviderId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "mfaEnabled", ignore = true)
+    @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     Account updateAccountFromDTO(AccountUpdateDTO accountUpdateDTO, @MappingTarget Account account);
 
     /**

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.authservice.dto.AccountInfoDTO;
-import com.suyos.authservice.dto.AccountUpdateDTO;
+import com.suyos.authservice.dto.request.AccountUpdateDTO;
+import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.service.AccountService;
 
 import io.swagger.v3.oas.annotations.Operation;

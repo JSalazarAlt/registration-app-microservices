@@ -21,34 +21,34 @@ import com.suyos.authservice.model.Token;
 public interface TokenRepository extends JpaRepository<Token, UUID> {
 
     /**
+     * Finds a token by its value.
+     * 
+     * <p>Used for validating refresh tokens during token refresh flow.</p>
+     * 
+     * @param token Token value to search for
+     * @return Optional containing token if found, empty otherwise
+     */
+    Optional<Token> findByToken(String token);
+
+    /**
      * Finds all valid refresh tokens for an account.
      * 
-     * Returns non-expired and non-revoked tokens for token cleanup.
+     * <p>Used for token cleanup.</p>
      * 
      * @param accountId Account ID to search tokens for
      * @return List of valid tokens for the account
      */
     @Query("""
         SELECT t FROM Token t 
-        WHERE t.account.id = :accountId 
-        AND t.revoked = false
+        WHERE t.account.id = :accountId
+        AND t.revoked = false AND t.expiresAt > CURRENT_TIMESTAMP
     """)
-    List<Token> findAllValidTokensByAccountId(UUID accountId);
+    List<Token> findAllValidByAccountId(UUID accountId);
 
     /**
-     * Finds a refresh token by its value.
+     * Revokes all valid tokens for an account.
      * 
-     * Used for validating refresh tokens during token refresh flow.
-     * 
-     * @param refreshToken Token value to search for
-     * @return Optional containing token if found, empty otherwise
-     */
-    Optional<Token> findByToken(String refreshToken);
-
-    /**
-     * Revokes all active tokens for an account.
-     * 
-     * Marks all non-revoked tokens as revoked for security purposes.
+     * <p>Marks all non-revoked tokens as revoked for security purposes.</p>
      * 
      * @param accountId Account ID to revoke tokens for
      */
@@ -56,19 +56,23 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     @Query("""
         UPDATE Token t 
         SET t.revoked = true
-        WHERE t.account.id = :accountId AND t.revoked = false
+        WHERE t.account.id = :accountId 
+        AND t.revoked = false AND t.expiresAt > CURRENT_TIMESTAMP
     """)
-    void revokeAllTokensByAccountId(UUID accountId);
+    void revokeAllByAccountId(UUID accountId);
 
     /**
      * Deletes all refresh tokens for an account.
      * 
-     * Used during account deletion for cleanup.
+     * <p>Used during account deletion for cleanup.</p>
      * 
      * @param accountId Account ID to delete tokens for
      */
     @Modifying
-    @Query("DELETE FROM Token t WHERE t.account.id = :accountId")
+    @Query("""
+        DELETE FROM Token t 
+        WHERE t.account.id = :accountId
+    """)
     void deleteAllByAccountId(UUID accountId);
     
 }

@@ -12,7 +12,7 @@
 	<artifactId>authservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>authservice</name>
-	<description>Authentication service of the application</description>
+	<description>Authentication microservice of the application</description>
 	<url/>
 	<licenses>
 		<license/>

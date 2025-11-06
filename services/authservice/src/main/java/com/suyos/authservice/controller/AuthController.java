@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.authservice.dto.AccountInfoDTO;
-import com.suyos.authservice.dto.AccountLoginDTO;
-import com.suyos.authservice.dto.AccountRegistrationDTO;
-import com.suyos.authservice.dto.AuthenticationResponseDTO;
-import com.suyos.authservice.dto.TokenRequestDTO;
+import com.suyos.authservice.dto.request.AccountLoginDTO;
+import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.TokenRequestDTO;
+import com.suyos.authservice.dto.response.AccountInfoDTO;
+import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.service.AuthService;
 import com.suyos.authservice.service.TokenService;
 

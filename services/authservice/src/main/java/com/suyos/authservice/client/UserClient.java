@@ -3,8 +3,8 @@ package com.suyos.authservice.client;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.suyos.authservice.dto.UserCreationRequestDTO;
-import com.suyos.authservice.dto.UserProfileDTO;
+import com.suyos.authservice.dto.request.UserCreationRequestDTO;
+import com.suyos.authservice.dto.response.UserProfileDTO;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;

@@ -47,7 +47,7 @@ public class LoginAttemptService {
 
         // Lock account if maximum attempts exceeded
         if (attempts >= MAX_FAILED_ATTEMPTS) {
-            account.setAccountLocked(true);
+            account.setLocked(true);
             account.setLockedUntil(LocalDateTime.now().plusHours(LOCK_DURATION_HOURS));
         }
 

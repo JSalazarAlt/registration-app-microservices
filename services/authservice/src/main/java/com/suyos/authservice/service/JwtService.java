@@ -49,7 +49,8 @@ public class JwtService {
     public String generateToken(Account account) {
         Map<String, Object> claims = Map.of(
             "username", account.getUsername(),
-            "email", account.getEmail()
+            "email", account.getEmail(),
+            "role", account.getRole().name()
         );
 
         return Jwts.builder()

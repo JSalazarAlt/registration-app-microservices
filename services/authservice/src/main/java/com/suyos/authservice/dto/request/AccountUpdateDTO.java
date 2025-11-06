@@ -1,4 +1,4 @@
-package com.suyos.authservice.dto;
+package com.suyos.authservice.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

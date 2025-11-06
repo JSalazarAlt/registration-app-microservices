@@ -88,7 +88,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
         SELECT a FROM Account a 
         WHERE a.id = :id 
-        AND a.accountEnabled = true AND a.accountLocked = false
+        AND a.enabled = true AND a.locked = false AND a.deleted = false
     """)
     Optional<Account> findActiveById(@Param("id") UUID id);
 
@@ -104,7 +104,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
         SELECT a FROM Account a 
         WHERE a.email = :email 
-        AND a.accountEnabled = true AND a.accountLocked = false
+        AND a.enabled = true AND a.locked = false AND a.deleted = false
     """)
     Optional<Account> findActiveByEmail(@Param("email") String email);
 
@@ -119,7 +119,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
         SELECT a FROM Account a 
         WHERE a.username = :username 
-        AND a.accountEnabled = true AND a.accountLocked = false
+        AND a.enabled = true AND a.locked = false AND a.deleted = false
     """)
     Optional<Account> findActiveByUsername(@Param("username") String username);
 
@@ -135,9 +135,8 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      */
     @Query("""
         SELECT a FROM Account a 
-        WHERE a.oauth2Provider = :provider 
-        AND a.oauth2ProviderId = :providerId
-        AND a.accountEnabled = true AND a.accountLocked = false
+        WHERE a.oauth2Provider = :provider AND a.oauth2ProviderId = :providerId
+        AND a.enabled = true AND a.locked = false AND a.deleted = false
     """)
     Optional<Account> findActiveByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
 
@@ -149,6 +148,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * @param email The email of the user to update
      * @param attempts The new failed attempts count
      */
+    /* 
     @Modifying
     @Query("""
         UPDATE Account a
@@ -156,7 +156,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         WHERE a.email = :email
     """)
     void updateFailedLoginAttempts(@Param("email") String email, @Param("attempts") Integer attempts);
-    
+    */
     /**
      * Locks a user account until the specified time.
      * 
@@ -166,14 +166,15 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * @param email The email of the user to lock
      * @param lockedUntil The timestamp when the lock expires
      */
+    /*
     @Modifying
     @Query("""
         UPDATE Account a
-        SET a.accountLocked = true, a.lockedUntil = :lockedUntil
+        SET a.locked = true, a.lockedUntil = :lockedUntil
         WHERE a.email = :email
     """)
     void lockAccount(@Param("email") String email, @Param("lockedUntil") LocalDateTime lockedUntil);
-    
+     */
     /**
      * Unlocks a user account and resets failed login attempts.
      * 
@@ -182,12 +183,14 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * 
      * @param email The email of the user to unlock
      */
+    /*
     @Modifying
     @Query("""
         UPDATE Account a
-        SET a.accountLocked = false, a.lockedUntil = null, a.failedLoginAttempts = 0
+        SET a.locked = false, a.lockedUntil = null, a.failedLoginAttempts = 0
         WHERE a.email = :email
     """)
     void unlockAccount(@Param("email") String email);
+    */
     
 }

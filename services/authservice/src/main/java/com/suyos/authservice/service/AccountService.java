@@ -1,13 +1,14 @@
 package com.suyos.authservice.service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.authservice.dto.AccountInfoDTO;
-import com.suyos.authservice.dto.AccountUpdateDTO;
+import com.suyos.authservice.dto.request.AccountUpdateDTO;
+import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.repository.AccountRepository;
@@ -41,29 +42,10 @@ public class AccountService {
     private final TokenService tokenService;
 
     /**
-     * Finds an active account by username.
-     * 
-     * @param username Username to search for
-     * @return Active account's information
-     * @throws RuntimeException If active account is not found
-     */
-    public AccountInfoDTO findAccountByUsername(String username) {
-        // Fetch if there is an active account for the given username
-        Account account = accountRepository.findActiveByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));;
-        
-        // Map the account's info DTO from the active account
-        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
-        
-        // Return the active account's info DTO
-        return accountInfoDTO;
-    }
-
-    /**
      * Finds an active account by ID.
      * 
      * @param accountId ID of the account to search for
-     * @return Active account's information
+     * @return Active account information
      * @throws RuntimeException If active account is not found
      */
     public AccountInfoDTO findAccountById(UUID accountId) {
@@ -71,18 +53,56 @@ public class AccountService {
         Account account = accountRepository.findActiveById(accountId)
             .orElseThrow(() -> new RuntimeException("Account not found for ID: " + accountId));
         
-        // Map the account's info DTO from the active account
+        // Map the account info DTO from the active account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
         
-        // Return the active account's info DTO
+        // Return the active account info DTO
+        return accountInfoDTO;
+    }
+
+    /**
+     * Finds an active account by email.
+     * 
+     * @param email Email to search for
+     * @return Active account information
+     * @throws RuntimeException If active account is not found
+     */
+    public AccountInfoDTO findAccountByEmail(String email) {
+        // Fetch if there is an active account for the given email
+        Account account = accountRepository.findActiveByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Account not found for email: " + email));
+        
+        // Map the account info DTO from the active account
+        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
+        
+        // Return the active account info DTO
+        return accountInfoDTO;
+    }
+
+    /**
+     * Finds an active account by username.
+     * 
+     * @param username Username to search for
+     * @return Active account information
+     * @throws RuntimeException If active account is not found
+     */
+    public AccountInfoDTO findAccountByUsername(String username) {
+        // Fetch if there is an active account for the given username
+        Account account = accountRepository.findActiveByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));;
+        
+        // Map the account info DTO from the active account
+        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
+        
+        // Return the active account info DTO
         return accountInfoDTO;
     }
 
     /**
      * Finds the logged-in account using its ID.
      * 
-     * @param loggedInAccountId ID of the logged-in account
-     * @return Active account's information
+     * @param authHeader Authentication header containing the access token
+     * @return Active account information
      * @throws RuntimeException If active account is not found
      */
     public AccountInfoDTO findLoggedInAccount(String authHeader) {
@@ -90,21 +110,22 @@ public class AccountService {
         UUID loggedInAccountId = tokenService.getAccountIdFromAccessToken(authHeader);
 
         // Fetch if there is an active account for the logged-in ID
-        Account account = accountRepository.findById(loggedInAccountId)
+        Account account = accountRepository.findActiveById(loggedInAccountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        // Map the account's info DTO from the logged-in account
+        // Map the account info DTO from the logged-in account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
 
-        // Return the logged-in account's info DTO
+        // Return the logged-in account info DTO
         return accountInfoDTO;
     }
 
     /**
      * Updates the logged-in account using its ID.
      * 
-     * @param loggedInAccountId ID of the logged-in account
-     * @return Active account's information
+     * @param authHeader Authentication header containing the access token
+     * @param accountUpdateDTO Account registration data
+     * @return Updated account information
      * @throws RuntimeException If active account is not found
      */
     public AccountInfoDTO updateLoggedInAccount(String authHeader, AccountUpdateDTO accountUpdateDTO) {
@@ -112,27 +133,61 @@ public class AccountService {
         UUID loggedInAccountId = tokenService.getAccountIdFromAccessToken(authHeader);
 
         // Fetch if there is an active account for the logged-in ID
-        Account account = accountRepository.findById(loggedInAccountId)
+        Account account = accountRepository.findActiveById(loggedInAccountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        // Map the account's info DTO from the logged-in account
-        // Validate that username is never empty after update
-        if (account.getUsername() == null || account.getUsername().isBlank()) {
-            throw new IllegalArgumentException("Username cannot be blank");
-        }
-
-        // Handle password encoding if provided
+        // Handle password change separately (security-sensitive)
+        boolean passwordChanged = false;
         if (accountUpdateDTO.getPassword() != null && !accountUpdateDTO.getPassword().isBlank()) {
             account.setPassword(passwordEncoder.encode(accountUpdateDTO.getPassword()));
+            account.setLastPasswordChangedAt(LocalDateTime.now());
+            passwordChanged = true;
         }
+
+        // Update other fields using mapper
+        accountMapper.updateAccountFromDTO(accountUpdateDTO, account);
 
         // Persist the updated account
         Account savedAccount = accountRepository.save(account);
 
-        // Map the account's info DTO from the logged-in account
+        // Revoke all tokens if password changed (security measure)
+        if (passwordChanged) {
+            tokenService.revokeAllTokensByAccountId(loggedInAccountId);
+        }
+
+        // Map the account info DTO from the logged-in account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(savedAccount);
 
-        // Return the updated logged-in account's info DTO
+        // Return the updated logged-in account info DTO
+        return accountInfoDTO;
+    }
+
+    /**
+     * Deletes the logged-in account using its ID.
+     * 
+     * @param loggedInAccountId ID of the logged-in account
+     * @return Deleted account information
+     * @throws RuntimeException If active account is not found
+     */
+    public AccountInfoDTO deleteLoggedInAccount(String authHeader) {
+        // Extract account ID from the token
+        UUID loggedInAccountId = tokenService.getAccountIdFromAccessToken(authHeader);
+
+        // Fetch if there is an active account for the logged-in ID
+        Account account = accountRepository.findActiveById(loggedInAccountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        
+        // Soft delete the account
+        account.setDeleted(true);
+        account.setDeletedAt(LocalDateTime.now());
+
+        // Persist the updated account
+        Account savedAccount = accountRepository.save(account);
+
+        // Map the account info DTO from the logged-in account
+        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(savedAccount);
+
+        // Return the updated logged-in account info DTO
         return accountInfoDTO;
     }
     
