@@ -1,5 +1,6 @@
 package com.suyos.authservice.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -79,5 +80,17 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
         WHERE t.account.id = :accountId
     """)
     void deleteAllByAccountId(UUID accountId);
+
+    /**
+     * Deletes all expired or revoked tokens.
+     * 
+     * @param now Current timestamp
+     */
+    @Modifying
+    @Query("""
+        DELETE FROM Token t
+        WHERE t.expiresAt < :now OR t.revoked = true
+    """)
+    void deleteExpiredOrRevoked(LocalDateTime now);
     
 }
