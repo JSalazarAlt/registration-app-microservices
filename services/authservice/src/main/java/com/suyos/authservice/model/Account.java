@@ -22,10 +22,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing an account in the registration and authentication system.
+ * Entity representing an account in the authentication system.
  * 
- * <p>This class maps to the <b>accounts</b> table in the database and contains 
- * all the necessary fields for account management and authentication.</p>
+ * <p>Maps to the <b>accounts</b> table and contains all fields for account
+ * management and authentication.</p>
  * 
  * @author Joel Salazar
  */

@@ -63,7 +63,7 @@ class AuthControllerTest {
                 .build();
                 
         tokenRequestDTO = TokenRequestDTO.builder()
-                .refreshToken("refresh-token")
+                .value("refresh-token")
                 .build();
                 
         accountInfoDTO = AccountInfoDTO.builder()

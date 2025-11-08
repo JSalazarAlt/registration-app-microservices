@@ -118,15 +118,46 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * 
      * @param provider OAuth2 provider name (e.g., "google")
      * @param providerId Unique identifier from OAuth2 provider
-     * @return Optional containing active account if found, empty otherwise
+     * @return Optional containing active account if found, empty
+     * otherwise
      */
     @Query("""
         SELECT a FROM Account a 
         WHERE a.oauth2Provider = :provider AND a.oauth2ProviderId = :providerId
         AND a.enabled = true AND a.locked = false AND a.deleted = false
     """)
-    Optional<Account> findActiveByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
+    Optional<Account> findActiveByOauth2ProviderAndOauth2ProviderId(
+        String provider, String providerId);
 
+    /**
+     * Locks a user account until the specified time.
+     * 
+     * @param email Email of the user to lock
+     * @param lockedUntil Timestamp when the lock expires
+     */
+    /*
+    @Modifying
+    @Query("""
+        UPDATE Account a
+        SET a.locked = true, a.lockedUntil = :lockedUntil
+        WHERE a.email = :email
+    """)
+    void lockAccount(@Param("email") String email, @Param("lockedUntil") LocalDateTime lockedUntil);
+    */
 
+    /**
+     * Unlocks a user account and resets failed login attempts.
+     * 
+     * @param email Email of the user to unlock
+     */
+    /*
+    @Modifying
+    @Query("""
+        UPDATE Account a
+        SET a.locked = false, a.lockedUntil = null, a.failedLoginAttempts = 0
+        WHERE a.email = :email
+    """)
+    void unlockAccount(@Param("email") String email);
+    */
     
 }

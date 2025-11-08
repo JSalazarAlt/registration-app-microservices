@@ -11,15 +11,16 @@ import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.model.Account;
 
 /**
- * MapStruct mapper interface for converting between {@link Account} entities and 
- * DTOs.
+ * MapStruct mapper interface for converting between {@link Account}
+ * entities and DTOs.
  * 
- * <p>This interface defines the mapping contract between the internal Account entity
- * and various user-related DTOs. MapStruct generates the implementation at compile 
- * time, providing type-safe and efficient object mapping without reflection.</p>
+ * <p>This interface defines the mapping contract between the internal
+ * Account entity and various user-related DTOs. MapStruct generates
+ * the implementation at compile time, providing type-safe and
+ * efficient object mapping without reflection.</p>
  * 
- * <p>The Spring component model integration allows this mapper to be injected as a 
- * Spring bean into other components.</p>
+ * <p>The Spring component model integration allows this mapper to be
+ * injected as a Spring bean into other components.</p>
  * 
  * @author Joel Salazar
  */
@@ -29,10 +30,11 @@ public interface AccountMapper {
     /**
      * Converts a {@link AccountUpsertDTO} to a {@link Account} entity.
      * 
-     * <p>Ignores fields that are managed internally or belong to other services, 
-     * such as identifiers and audit fields.</p>
+     * <p>Ignores fields that are managed internally or belong to other
+     * services, such as identifiers and audit fields.</p>
      *
-     * @param accountUpsertDTO {@link AccountUpsertDTO} containing user information
+     * @param accountUpsertDTO {@link AccountUpsertDTO} containing user
+     * information
      * @return {@link Account} entity populated with created fields
      */
     @Mapping(target = "id", ignore = true)
@@ -57,10 +59,12 @@ public interface AccountMapper {
     Account toEntity(AccountRegistrationDTO accountRegistrationDTO);
 
     /**
-     * Updates an existing {@link Account} entity with fields from 
-     * {@link AccountUpdateDTO}. Null values and sensitive fields are ignored.
+     * Updates an existing {@link Account} entity with fields from
+     * {@link AccountUpdateDTO}. Null values and sensitive fields are
+     * ignored.
      * 
-     * @param accountUpdateDTO {@link AccountUpdateDTO} containing updated values
+     * @param accountUpdateDTO {@link AccountUpdateDTO} containing updated
+     * values
      * @param account Existing {@link Account} entity to update
      */
     @Mapping(target = "id", ignore = true)

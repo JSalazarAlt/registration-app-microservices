@@ -18,15 +18,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing an authentication or session token associated with an 
+ * Entity representing an authentication token associated with an
  * {@link Account}.
  * 
- * <p>This entity maps to the <b>tokens</b> table in the database and stores 
- * metadata for token lifecycle management (e.g., issue and expiration 
- * timestamps.</p>
+ * <p>Maps to the <b>tokens</b> table and stores metadata for token
+ * lifecycle management (issue and expiration timestamps).</p>
  * 
- * <p>Tokens are uniquely associated with an account and used to validate 
- * authentication requests within the system.</p>
+ * <p>Tokens are uniquely associated with an account and used to validate
+ * authentication requests.</p>
  * 
  * @author Joel Salazar
  */
@@ -50,10 +49,10 @@ public class Token {
     // IDENTITY
 
     /** Token value for authentication */
-    @Column(name = "token", nullable = false, unique = true, length = 512)
-    private String token;
+    @Column(name = "value", nullable = false, unique = true, length = 512)
+    private String value;
 
-    /** Token value for authentication */
+    /** Type of the token (e.g., refresh, email verification) */
     @Column(name = "type", nullable = false)
     private TokenType type;
 

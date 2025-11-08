@@ -125,7 +125,7 @@ class AuthServiceTest {
         when(accountRepository.findActiveByEmail(anyString())).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(accountRepository.save(any())).thenReturn(testAccount);
-        when(tokenService.issueTokens(any())).thenReturn(
+        when(tokenService.issueRefreshAndAccessTokens(any())).thenReturn(
             AuthenticationResponseDTO.builder()
                 .accountId(testAccount.getId())
                 .accessToken("accessToken")

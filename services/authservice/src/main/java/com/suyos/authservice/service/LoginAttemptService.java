@@ -37,7 +37,7 @@ public class LoginAttemptService {
     /**
      * Records a failed login attempt and locks account if threshold reached.
      * 
-     * @param account Account that had a failed login attempt
+     * @param account Account that had failed login attempt
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordFailedAttempt(Account account) {
@@ -51,7 +51,7 @@ public class LoginAttemptService {
             account.setLockedUntil(LocalDateTime.now().plusHours(LOCK_DURATION_HOURS));
         }
 
-        // Persist the updated account
+        // Persist updated account
         accountRepository.save(account);
     }
 

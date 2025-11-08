@@ -23,10 +23,23 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     /**
      * Finds a token by its value.
      * 
-     * @param token Token value to search for
+     * @param value Token value to search for
      * @return Optional containing token if found, empty otherwise
      */
-    Optional<Token> findByToken(String token);
+    Optional<Token> findByValue(String value);
+
+    /**
+     * Finds a valid token by its value.
+     * 
+     * @param value Token value to search for
+     * @return Optional containing token if found, empty otherwise
+     */
+    @Query("""
+        SELECT t FROM Token t 
+        WHERE t.value = :value 
+        AND t.revoked = false AND t.expiresAt > CURRENT_TIMESTAMP
+    """)
+    Optional<Token> findValidByValue(String value);
 
     /**
      * Finds all valid (non-revoked, non-expired) tokens for an account.

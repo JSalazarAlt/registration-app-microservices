@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TokenRequestDTO {
 
-    /** Refresh token used for obtaining new access tokens */
-    private String refreshToken;
+    /** Token value used for the request */
+    private String value;
 
 }

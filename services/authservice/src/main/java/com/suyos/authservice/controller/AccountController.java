@@ -24,8 +24,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * REST controller for account management operations.
  *
- * <p>Handles account retrieval endpoints and provides account information
- * access for the application.</p>
+ * <p>Handles account retrieval and update endpoints.</p>
  *
  * @author Joel Salazar
  */
@@ -68,9 +67,9 @@ public class AccountController {
     }
 
     /**
-     * Retrieves account information by username.
+     * Retrieves current logged-in account information.
      * 
-     * @param username Username to search for
+     * @param authHeader Authorization header with Bearer token
      * @return ResponseEntity containing account information
      * @throws RuntimeException If account not found
      */

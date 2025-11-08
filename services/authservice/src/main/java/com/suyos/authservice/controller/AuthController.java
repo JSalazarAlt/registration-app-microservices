@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * REST controller for authentication operations.
  *
- * <p>Handles user registration and login endpoints and provides JWT-based 
+ * <p>Handles user registration and login endpoints and provides JWT-based
  * authentication for the application.</p>
  *
  * @author Joel Salazar
@@ -49,7 +49,7 @@ public class AuthController {
      * Registers a new user account.
      * 
      * @param accountRegistrationDTO Account's registration data
-     * @return ResponseEntity containing the created account info or error message
+     * @return ResponseEntity containing created account's information
      */
     @PostMapping("/register")
     @Operation(
@@ -63,15 +63,16 @@ public class AuthController {
     public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody AccountRegistrationDTO accountRegistrationDTO) {
         // Create a new account using the registration data
         AccountInfoDTO accountInfoDTO = authService.createAccount(accountRegistrationDTO);
+        
         // Return the created account info with "201 Created" status
         return ResponseEntity.status(HttpStatus.CREATED).body(accountInfoDTO);
     }
 
     /**
-     * Authenticates an account during a login attempt and returns JWT token.
+     * Authenticates account and returns refresh and access tokens.
      * 
      * @param accountLoginDTO Account's login credentials
-     * @return ResponseEntity containing JWT token and account ID or error message
+     * @return ResponseEntity containing refresh and access tokens
      */
     @PostMapping("/login")
     @Operation(
@@ -84,35 +85,63 @@ public class AuthController {
     })
     public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AccountLoginDTO accountLoginDTO) {
         // Authenticate an account using the login credentials
-        AuthenticationResponseDTO authResponse = authService.authenticateAccount(accountLoginDTO);
+        AuthenticationResponseDTO authenticationResponseDTO = authService.authenticateAccount(accountLoginDTO);
+        
         // Return the authentication response with "200 OK" status
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(authenticationResponseDTO);
     }
 
     /**
-     * Deauthenticates an account during a logout attempt.
+     * Verifies email address and deletes email verification token.
      * 
-     * @param tokenRequestDTO Logout token request
-     * @return ResponseEntity indicating logout success or error message
+     * @param emailVerificationTokenRequestDTO Email verification token request
+     * @return ResponseEntity containing JWT tokens
+     */
+    @PostMapping("/verify-email")
+    @Operation(
+        summary = "Verify email",
+        description = "Verifies the email address of an account"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Verify email successful"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
+    })
+    public ResponseEntity<AccountInfoDTO> verifyEmail(@Valid @RequestBody TokenRequestDTO tokenRequestDTO) {
+        // Authenticate an email using the email vefication token
+        AccountInfoDTO accountInfo = authService.verifyEmail(tokenRequestDTO);
+
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(accountInfo);
+    }
+
+    /**
+     * Deauthenticates account and revokes refresh token.
+     * 
+     * @param refreshTokenRequestDTO Refresh token request
+     * @return ResponseEntity indicating logout success
      */
     @PostMapping("/logout")
-    @Operation(summary = "Account logout", description = "Invalidates the account's JWT token and refresh token")
+    @Operation(
+        summary = "Account logout",
+        description = "Invalidates account's JWT and refresh tokens"
+    )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Logout successful"),
         @ApiResponse(responseCode = "400", description = "Invalid or missing token")
     })
-    public ResponseEntity<Void> logoutAccount(@RequestBody TokenRequestDTO tokenRequestDTO) {
+    public ResponseEntity<Void> logoutAccount(@RequestBody TokenRequestDTO refreshTokenRequestDTO) {
         // Deauthenticate an account revoking the refresh token
-        authService.deauthenticateAccount(tokenRequestDTO);
+        authService.deauthenticateAccount(refreshTokenRequestDTO);
+        
         // Return the logout response with "204 No Content" status
         return ResponseEntity.noContent().build();
     }
 
     /**
-     * Refreshes JWT token using refresh token.
+     * Refreshes access token using the refresh token.
      * 
-     * @param tokenRequestDTO Refresh token request
-     * @return ResponseEntity containing new JWT token or error message
+     * @param refreshTokenRequestDTO Refresh token request
+     * @return ResponseEntity containing new refresh and access tokens
      */
     @PostMapping("/refresh")
     @Operation(
@@ -123,9 +152,10 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
         @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
     })
-    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@RequestBody TokenRequestDTO tokenRequestDTO) {
-        // Refresh the JWT token using the refresh token
-        AuthenticationResponseDTO response = tokenService.refreshToken(tokenRequestDTO.getRefreshToken());
+    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@Valid @RequestBody TokenRequestDTO refreshTokenRequestDTO) {
+        // Refresh access token using the refresh token
+        AuthenticationResponseDTO response = tokenService.refreshToken(refreshTokenRequestDTO.getValue());
+        
         // Return the authentication response with "200 OK" status
         return ResponseEntity.ok(response);
     }
