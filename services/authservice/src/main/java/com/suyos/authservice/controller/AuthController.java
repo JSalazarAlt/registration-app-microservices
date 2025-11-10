@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.authservice.dto.request.AccountLoginDTO;
 import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.EmailResendRequestDTO;
 import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
 import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
+import com.suyos.authservice.dto.response.EmailResendResponseDTO;
 import com.suyos.authservice.service.AuthService;
 import com.suyos.authservice.service.TokenService;
 
@@ -123,7 +125,7 @@ public class AuthController {
      * Verifies email address and deletes email verification token.
      * 
      * @param emailVerificationTokenRequestDTO Email verification token request
-     * @return ResponseEntity containing JWT tokens
+     * @return ResponseEntity containing account's information
      */
     @PostMapping("/verify-email")
     @Operation(
@@ -140,6 +142,28 @@ public class AuthController {
 
         // Return the authentication response with "200 OK" status
         return ResponseEntity.ok(accountInfo);
+    }
+
+    /**
+     * Verifies email address and deletes email verification token.
+     * 
+     * @param emailResendRequestDTO Email verification token request
+     * @return ResponseEntity containing message of verification link sent
+     */
+    @PostMapping("/resend-verification")
+    @Operation(
+        summary = "Resend verification email",
+        description = "Resends the verification link to the email address of an account"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Verify email successful"),
+    })
+    public ResponseEntity<EmailResendResponseDTO> verifyEmail(@Valid @RequestBody EmailResendRequestDTO emailResendRequestDTO) {
+        // Resend verification link to authenticate an email
+        EmailResendResponseDTO emailResendResponseDTO = authService.resendEmailVerification(emailResendRequestDTO);
+
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(emailResendResponseDTO);
     }
 
     // TOKEN MANAGEMENT
