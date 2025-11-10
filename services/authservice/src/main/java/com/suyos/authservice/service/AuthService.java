@@ -12,12 +12,16 @@ import com.suyos.authservice.client.UserClient;
 import com.suyos.authservice.dto.internal.UserCreationRequestDTO;
 import com.suyos.authservice.dto.request.AccountLoginDTO;
 import com.suyos.authservice.dto.request.AccountRegistrationDTO;
-import com.suyos.authservice.dto.request.TokenRequestDTO;
+import com.suyos.authservice.dto.request.EmailResendRequestDTO;
+import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
+import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
+import com.suyos.authservice.dto.response.EmailResendResponseDTO;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Role;
+import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,14 +39,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {
+
+    /** Mapper for converting between account entities and DTOs */
+    private final AccountMapper accountMapper;
     
     /** Repository for account data access operations */
     private final AccountRepository accountRepository;
-    
-    /** Mapper for converting between account entities and DTOs */
-    private final AccountMapper accountMapper;
 
-    /** Service for token generation and validation */
+    /** Service for token management */
     private final TokenService tokenService;
 
     /** Service for handling failed login attempts and account locking */
@@ -54,7 +58,7 @@ public class AuthService {
     /** Web client for user-related interservice calls */
     private final UserClient userClient;
 
-    // TRADITIONAL LOGIN AND REGISTRATION
+    // TRADITIONAL REGISTRATION AND LOGIN
 
     /**
      * Creates a new account with the provided registration data.
@@ -84,9 +88,6 @@ public class AuthService {
         // Persist created account
         Account createdAccount = accountRepository.save(account);
 
-        // Issue email verification token
-        tokenService.issueEmailVerificationToken(createdAccount);
-        
         // Call User service to create a new user
         UserCreationRequestDTO userReq = new UserCreationRequestDTO();
         userReq.setAccountId(createdAccount.getId());
@@ -99,6 +100,12 @@ public class AuthService {
         userReq.setLocale(accountRegistrationDTO.getLocale());
         userReq.setTimezone(accountRegistrationDTO.getTimezone());
         userClient.createUser(userReq).block();
+
+        // Issue email verification token
+        tokenService.issueEmailVerificationToken(createdAccount);
+
+        // Call Email service to send verification link
+
 
         // Map account's information DTO from created account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(createdAccount);
@@ -165,30 +172,7 @@ public class AuthService {
         return authenticationResponseDTO;
     }
 
-    /**
-     * Deauthenticates account and revokes refresh token.
-     * 
-     * @param refreshTokenRequestDTO Refresh token request containing its value
-     * @throws RuntimeException If token is invalid
-     */
-    public void deauthenticateAccount(TokenRequestDTO refreshTokenRequestDTO) {
-        // Extract refresh token value from request
-        String value = refreshTokenRequestDTO.getValue();
-
-        // Find if there is an account for the refresh token
-        Account account = tokenService.findAccountByToken(value);
-
-        // Update last logout timestamp
-        account.setLastLogoutAt(LocalDateTime.now());
-
-        // Persist updated account
-        accountRepository.save(account);
-        
-        // Revoke the refresh token
-        tokenService.revokeToken(value);
-    }
-
-    // OAUTH2 LOGIN AND REGISTRATION
+    // OAUTH2 REGISTRATION AND LOGIN
 
     /**
      * Creates a new account from Google OAuth2 authentication.
@@ -257,6 +241,31 @@ public class AuthService {
         return authenticationResponseDTO;
     }
 
+    // LOGOUT
+
+    /**
+     * Deauthenticates account and revokes refresh token.
+     * 
+     * @param refreshTokenRequestDTO Refresh token value
+     * @throws RuntimeException If token is invalid
+     */
+    public void deauthenticateAccount(RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        // Extract refresh token value from request
+        String value = refreshTokenRequestDTO.getValue();
+
+        // Find if there is an account for the refresh token
+        Account account = tokenService.findAccountByToken(value);
+
+        // Update last logout timestamp
+        account.setLastLogoutAt(LocalDateTime.now());
+
+        // Persist updated account
+        accountRepository.save(account);
+        
+        // Revoke the refresh token
+        tokenService.revokeTokenByValue(value);
+    }
+
     // EMAIL MANAGEMENT
 
     /**
@@ -264,13 +273,12 @@ public class AuthService {
      *
      * <p>Checks if the token is valid and associates it with the account.</p>
      *
-     * @param emailVerificationTokenRequestDTO Email Verification token request 
-     * containing its value
+     * @param emailVerificationRequestDTO Email verification token value
      * @return Authentication response DTO with refresh and access tokens
      */
-    public AccountInfoDTO verifyEmail(TokenRequestDTO emailVerificationTokenRequestDTO) {
+    public AccountInfoDTO verifyEmail(EmailVerificationRequestDTO emailVerificationRequestDTO) {
         // Extract email verification token value from request
-        String value = emailVerificationTokenRequestDTO.getValue();
+        String value = emailVerificationRequestDTO.getValue();
 
         // Check if token is valid
         if(tokenService.isTokenValid(value) == false) {
@@ -294,6 +302,40 @@ public class AuthService {
 
         // Return account's information DTO
         return accountInfoDTO;
+    }
+
+    /**
+     * Resends email verification link.
+     *
+     * <p>Revokes old email verification tokens and issues a new one.</p>
+     *
+     * @param emailResendRequestDTO Email
+     * @return Authentication response DTO with refresh and access tokens
+     */
+    public EmailResendResponseDTO resendEmailVerification(EmailResendRequestDTO emailResendRequestDTO) {
+        // Find if there is an account for the email
+        Account account = accountRepository.findByEmail(emailResendRequestDTO.getEmail())
+            .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        // Check if email is already registered and not verified 
+        if (accountRepository.existsByEmail(emailResendRequestDTO.getEmail()) && !account.getEmailVerified()) {
+            // Revoke any old email verification tokens
+            tokenService.revokeAllTokensByAccountIdAndType(account.getId(), TokenType.EMAIL_VERIFICATION);
+
+            // Issue new email verification token
+            tokenService.issueEmailVerificationToken(account);
+
+            // Call Email service to send verification link
+
+        }
+
+        // Build email resend response DTO
+        EmailResendResponseDTO emailResendResponseDTO = EmailResendResponseDTO.builder()
+                .message("If your email is registered, a verification link has been sent.")
+                .build();
+
+        // Return email resend response DTO
+        return emailResendResponseDTO;
     }
 
 }

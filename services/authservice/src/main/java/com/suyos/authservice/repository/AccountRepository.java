@@ -1,11 +1,11 @@
 package com.suyos.authservice.repository;
 
-import java.time.LocalDateTime;
+//import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
+//import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -83,7 +83,9 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
         SELECT a FROM Account a 
         WHERE a.id = :id 
-        AND a.enabled = true AND a.locked = false AND a.deleted = false
+        AND a.enabled = true
+        AND a.locked = false
+        AND a.deleted = false
     """)
     Optional<Account> findActiveById(@Param("id") UUID id);
 
@@ -96,7 +98,9 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
         SELECT a FROM Account a 
         WHERE a.email = :email 
-        AND a.enabled = true AND a.locked = false AND a.deleted = false
+        AND a.enabled = true
+        AND a.locked = false
+        AND a.deleted = false
     """)
     Optional<Account> findActiveByEmail(@Param("email") String email);
 
@@ -109,7 +113,9 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
         SELECT a FROM Account a 
         WHERE a.username = :username 
-        AND a.enabled = true AND a.locked = false AND a.deleted = false
+        AND a.enabled = true
+        AND a.locked = false
+        AND a.deleted = false
     """)
     Optional<Account> findActiveByUsername(@Param("username") String username);
 
@@ -124,7 +130,9 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
         SELECT a FROM Account a 
         WHERE a.oauth2Provider = :provider AND a.oauth2ProviderId = :providerId
-        AND a.enabled = true AND a.locked = false AND a.deleted = false
+        AND a.enabled = true
+        AND a.locked = false
+        AND a.deleted = false
     """)
     Optional<Account> findActiveByOauth2ProviderAndOauth2ProviderId(
         String provider, String providerId);

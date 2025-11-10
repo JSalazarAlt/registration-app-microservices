@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.suyos.authservice.model.Token;
+import com.suyos.authservice.model.TokenType;
 
 /**
  * Repository interface for Token entity data access operations.
@@ -38,7 +39,8 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     @Query("""
         SELECT t FROM Token t 
         WHERE t.value = :value 
-        AND t.revoked = false AND t.expiresAt > CURRENT_TIMESTAMP
+        AND t.revoked = false 
+        AND t.expiresAt > CURRENT_TIMESTAMP
     """)
     Optional<Token> findValidByValue(String value);
 
@@ -51,7 +53,8 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     @Query("""
         SELECT t FROM Token t 
         WHERE t.account.id = :accountId
-        AND t.revoked = false AND t.expiresAt > CURRENT_TIMESTAMP
+        AND t.revoked = false 
+        AND t.expiresAt > CURRENT_TIMESTAMP
     """)
     List<Token> findAllValidByAccountId(UUID accountId);
 
@@ -65,7 +68,8 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
         UPDATE Token t 
         SET t.revoked = true
         WHERE t.account.id = :accountId 
-        AND t.revoked = false AND t.expiresAt > CURRENT_TIMESTAMP
+        AND t.revoked = false 
+        AND t.expiresAt > CURRENT_TIMESTAMP
     """)
     void revokeAllByAccountId(UUID accountId);
 
@@ -80,6 +84,21 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
         WHERE t.account.id = :accountId
     """)
     void deleteAllByAccountId(UUID accountId);
+
+    /**
+     * Deletes all tokens for an account (used during account deletion).
+     * 
+     * @param account Account to delete tokens for
+     */
+    @Modifying
+    @Query("""
+        UPDATE Token t 
+        SET t.revoked = true
+        WHERE t.account.id = :accountId
+        AND t.type = :type
+        AND t.revoked = false
+    """)
+    void revokeAllByAccountAndType(UUID accountId, TokenType type);
 
     /**
      * Deletes all expired or revoked tokens.

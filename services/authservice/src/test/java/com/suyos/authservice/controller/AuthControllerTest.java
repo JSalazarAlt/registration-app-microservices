@@ -18,7 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.suyos.authservice.dto.request.AccountLoginDTO;
 import com.suyos.authservice.dto.request.AccountRegistrationDTO;
-import com.suyos.authservice.dto.request.TokenRequestDTO;
+import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
+import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.service.AuthService;
@@ -41,7 +42,8 @@ class AuthControllerTest {
     
     private AccountRegistrationDTO registrationDTO;
     private AccountLoginDTO loginDTO;
-    private TokenRequestDTO tokenRequestDTO;
+    private RefreshTokenRequestDTO refreshTokenRequestDTO;
+    private EmailVerificationRequestDTO emailVerificationTokenRequestDTO;
     private AccountInfoDTO accountInfoDTO;
     private AuthenticationResponseDTO authResponseDTO;
 
@@ -62,8 +64,12 @@ class AuthControllerTest {
                 .password("password123")
                 .build();
                 
-        tokenRequestDTO = TokenRequestDTO.builder()
+        refreshTokenRequestDTO = RefreshTokenRequestDTO.builder()
                 .value("refresh-token")
+                .build();
+        
+        emailVerificationTokenRequestDTO = EmailVerificationRequestDTO.builder()
+                .value("email-verification-token")
                 .build();
                 
         accountInfoDTO = AccountInfoDTO.builder()
@@ -114,7 +120,7 @@ class AuthControllerTest {
 
         mockMvc.perform(post("/api/v1/auth/logout")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(tokenRequestDTO)))
+                .content(objectMapper.writeValueAsString(refreshTokenRequestDTO)))
                 .andExpect(status().isNoContent());
                 
         verify(authService).deauthenticateAccount(any());
@@ -122,15 +128,15 @@ class AuthControllerTest {
 
     @Test
     void refreshToken_Success() throws Exception {
-        when(tokenService.refreshToken(anyString())).thenReturn(authResponseDTO);
+        when(tokenService.refreshToken(refreshTokenRequestDTO)).thenReturn(authResponseDTO);
 
         mockMvc.perform(post("/api/v1/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(tokenRequestDTO)))
+                .content(objectMapper.writeValueAsString(refreshTokenRequestDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("access-token"));
                 
-        verify(tokenService).refreshToken("refresh-token");
+        verify(tokenService).refreshToken(refreshTokenRequestDTO);
     }
     
 }

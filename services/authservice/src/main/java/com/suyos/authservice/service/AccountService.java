@@ -29,23 +29,23 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class AccountService {
 
+    /** Mapper for converting between account entities and DTOs */
+    private final AccountMapper accountMapper;
+
     /** Repository for account data access operations */
     private final AccountRepository accountRepository;
-    
-    /** Mapper for converting between entities and DTOs */
-    private final AccountMapper accountMapper;
+
+    /** Service for token management */
+    private final TokenService tokenService;
 
     /** Password encoder for secure password hashing */
     private final PasswordEncoder passwordEncoder;
-
-    /** JWT service for token generation and validation */
-    private final TokenService tokenService;
 
     /**
      * Finds an active account by ID.
      * 
      * @param id ID of the account to search for
-     * @return Active account information
+     * @return Active account's information DTO
      * @throws RuntimeException If active account is not found
      */
     public AccountInfoDTO findAccountById(UUID id) {
@@ -53,7 +53,7 @@ public class AccountService {
         Account account = accountRepository.findActiveById(id)
             .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
 
-        // Map the account's information DTO from the active account
+        // Map account's information DTO from active account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
 
         // Return the active account's information DTO
@@ -64,7 +64,7 @@ public class AccountService {
      * Finds an active account by email.
      * 
      * @param email Email to search for
-     * @return Active account's information
+     * @return Active account's information DTO
      * @throws RuntimeException If active account is not found
      */
     public AccountInfoDTO findAccountByEmail(String email) {
@@ -72,7 +72,7 @@ public class AccountService {
         Account account = accountRepository.findActiveByEmail(email)
             .orElseThrow(() -> new RuntimeException("Account not found for email: " + email));
 
-        // Map the account's information DTO from the active account
+        // Map account's information DTO from active account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
 
         // Return the active account's information DTO
@@ -83,7 +83,7 @@ public class AccountService {
      * Finds an active account by username.
      * 
      * @param username Username to search for
-     * @return Active account information
+     * @return Active account's information DTO
      * @throws RuntimeException If active account is not found
      */
     public AccountInfoDTO findAccountByUsername(String username) {
@@ -91,7 +91,7 @@ public class AccountService {
         Account account = accountRepository.findActiveByUsername(username)
             .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));;
         
-        // Map the account info DTO from the active account
+        // Map account's information DTO from active account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
         
         // Return the active account's information DTO

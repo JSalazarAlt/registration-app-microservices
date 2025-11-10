@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 )
 public class AccountController {
 
-    /** Service layer for account business logic */
+    /** Service for account business logic */
     private final AccountService accountService;
 
     /**

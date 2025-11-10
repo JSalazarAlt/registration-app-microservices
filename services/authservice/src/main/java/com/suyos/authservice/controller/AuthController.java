@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.authservice.dto.request.AccountLoginDTO;
 import com.suyos.authservice.dto.request.AccountRegistrationDTO;
-import com.suyos.authservice.dto.request.TokenRequestDTO;
+import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
+import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.service.AuthService;
@@ -39,11 +40,13 @@ import lombok.RequiredArgsConstructor;
 )
 public class AuthController {
     
-    /** Service layer for authentication business logic */
+    /** Service for authentication business logic */
     private final AuthService authService;
     
-    /** Service for managing JWT tokens */
+    /** Service for token management */
     private final TokenService tokenService;
+
+    // REGISTRATION AND LOGIN
 
     /**
      * Registers a new user account.
@@ -92,29 +95,6 @@ public class AuthController {
     }
 
     /**
-     * Verifies email address and deletes email verification token.
-     * 
-     * @param emailVerificationTokenRequestDTO Email verification token request
-     * @return ResponseEntity containing JWT tokens
-     */
-    @PostMapping("/verify-email")
-    @Operation(
-        summary = "Verify email",
-        description = "Verifies the email address of an account"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Verify email successful"),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
-    })
-    public ResponseEntity<AccountInfoDTO> verifyEmail(@Valid @RequestBody TokenRequestDTO tokenRequestDTO) {
-        // Authenticate an email using the email vefication token
-        AccountInfoDTO accountInfo = authService.verifyEmail(tokenRequestDTO);
-
-        // Return the authentication response with "200 OK" status
-        return ResponseEntity.ok(accountInfo);
-    }
-
-    /**
      * Deauthenticates account and revokes refresh token.
      * 
      * @param refreshTokenRequestDTO Refresh token request
@@ -129,13 +109,40 @@ public class AuthController {
         @ApiResponse(responseCode = "204", description = "Logout successful"),
         @ApiResponse(responseCode = "400", description = "Invalid or missing token")
     })
-    public ResponseEntity<Void> logoutAccount(@RequestBody TokenRequestDTO refreshTokenRequestDTO) {
+    public ResponseEntity<Void> logoutAccount(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
         // Deauthenticate an account revoking the refresh token
         authService.deauthenticateAccount(refreshTokenRequestDTO);
         
         // Return the logout response with "204 No Content" status
         return ResponseEntity.noContent().build();
     }
+
+    // EMAIL 
+
+    /**
+     * Verifies email address and deletes email verification token.
+     * 
+     * @param emailVerificationTokenRequestDTO Email verification token request
+     * @return ResponseEntity containing JWT tokens
+     */
+    @PostMapping("/verify-email")
+    @Operation(
+        summary = "Verify email",
+        description = "Verifies the email address of an account"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Verify email successful"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
+    })
+    public ResponseEntity<AccountInfoDTO> verifyEmail(@Valid @RequestBody EmailVerificationRequestDTO emailVerificationTokenRequestDTO) {
+        // Authenticate an email using the email vefication token
+        AccountInfoDTO accountInfo = authService.verifyEmail(emailVerificationTokenRequestDTO);
+
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(accountInfo);
+    }
+
+    // TOKEN MANAGEMENT
 
     /**
      * Refreshes access token using the refresh token.
@@ -152,9 +159,9 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
         @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
     })
-    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@Valid @RequestBody TokenRequestDTO refreshTokenRequestDTO) {
+    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
         // Refresh access token using the refresh token
-        AuthenticationResponseDTO response = tokenService.refreshToken(refreshTokenRequestDTO.getValue());
+        AuthenticationResponseDTO response = tokenService.refreshToken(refreshTokenRequestDTO);
         
         // Return the authentication response with "200 OK" status
         return ResponseEntity.ok(response);

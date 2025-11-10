@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Token;
@@ -27,11 +28,13 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class TokenService {
     
-    /** Repository for refresh token operations */
+    /** Repository for token operations */
     private final TokenRepository tokenRepository;
 
     /** Service for JWT token generation and validation */
     private final JwtService jwtService;
+
+    // TOKEN GENERATION
 
     /**
      * Issues new email verification token for authenticating an email.
@@ -82,14 +85,26 @@ public class TokenService {
         // Persist created refresh token
         tokenRepository.save(refreshToken);
 
-        // Return authentication response DTO with refresh and access tokens
-        return AuthenticationResponseDTO.builder()
+        // Build authentication response DTO with refresh and access tokens
+        AuthenticationResponseDTO authenticationResponseDTO = AuthenticationResponseDTO.builder()
                 .accountId(account.getId())
                 .accessToken(accessToken)
                 .refreshToken(value)
                 .expiresIn(jwtService.getExpirationTime())
                 .build();
+
+        // Return authentication response DTO
+        return authenticationResponseDTO;
     }
+
+    // TOKEN VALIDATION
+
+    public boolean isTokenValid(String value) {
+        // Return true if token is not revoked and not expired
+        return tokenRepository.findValidByValue(value).isPresent();
+    }
+
+    // TOKEN REFRESH
 
     /**
      * Refreshes access token using a valid refresh token (token rotation).
@@ -98,9 +113,9 @@ public class TokenService {
      * @return New authentication response with rotated refresh and access tokens
      * @throws RuntimeException If refresh token is invalid or expired
      */
-    public AuthenticationResponseDTO refreshToken(String value) {
+    public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO) {
         // Find if there is an existing refresh token for the value
-        Token refreshToken = tokenRepository.findByValue(value)
+        Token refreshToken = tokenRepository.findByValue(refreshTokenRequestDTO.getValue())
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         
         // Check if refresh token is revoked or expired
@@ -121,6 +136,8 @@ public class TokenService {
         // Return authentication response DTO with new refresh and access tokens
         return authenticationResponseDTO;
     }
+
+    // TOKEN HELPER METHODS
 
     /**
      * Extracts account ID from Authorization header containing access token.
@@ -162,7 +179,7 @@ public class TokenService {
      * @param value Token value to revoke
      * @throws RuntimeException If token is invalid
      */
-    public void revokeToken(String value) {
+    public void revokeTokenByValue(String value) {
         // Find if there is an existing token by value
         Token refreshToken = tokenRepository.findByValue(value)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));
@@ -185,6 +202,16 @@ public class TokenService {
     }
 
     /**
+     * Revokes all tokens of a specific type for an account (e.g., on email
+     * verification resend).
+     * 
+     * @param accountId Account ID
+     */
+    public void revokeAllTokensByAccountIdAndType(UUID accountId, TokenType type) {
+        tokenRepository.revokeAllByAccountAndType(accountId, type);
+    }
+
+    /**
      * Deletes a token.
      * 
      * @param value Token value to delete
@@ -197,11 +224,6 @@ public class TokenService {
         
         // Delete token
         tokenRepository.delete(token);
-    }
-
-    public boolean isTokenValid(String value) {
-        // Return true if token is not revoked and not expired
-        return tokenRepository.findValidByValue(value).isPresent();
     }
     
 }

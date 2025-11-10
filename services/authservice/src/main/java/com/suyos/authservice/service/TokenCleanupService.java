@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class TokenCleanupService {
 
-    /** Repository for refresh token operations */
+    /** Repository for token operations */
     private final TokenRepository tokenRepository;
 
     /**
