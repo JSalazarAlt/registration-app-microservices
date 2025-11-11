@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AccountRegistrationDTO {
+public class RegistrationRequestDTO {
 
     /** Account's username */
     @NotBlank(message = "Username is required")
@@ -41,6 +41,10 @@ public class AccountRegistrationDTO {
     /** Account's password */
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+        message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+    )
     private String password;
 
     /** User's first name */
@@ -66,7 +70,7 @@ public class AccountRegistrationDTO {
     )
     private String phone;
     
-    /** URL to the user's profile picture */
+    /** User's profile picture URL */
     private String profilePictureUrl;
     
     /** User's preferred language locale */

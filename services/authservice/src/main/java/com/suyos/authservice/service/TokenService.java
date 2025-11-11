@@ -173,6 +173,8 @@ public class TokenService {
         return token.getAccount();
     }
 
+    // TOKEN REVOCATION
+
     /**
      * Revokes a token.
      * 
@@ -193,23 +195,25 @@ public class TokenService {
     }
 
     /**
-     * Revokes all tokens for an account (e.g., on password change).
+     * Revokes all valid tokens for an account (e.g., on password change).
      * 
      * @param accountId Account ID
      */
     public void revokeAllTokensByAccountId(UUID accountId) {
-        tokenRepository.revokeAllByAccountId(accountId);
+        tokenRepository.revokeAllValidByAccountId(accountId);
     }
 
     /**
-     * Revokes all tokens of a specific type for an account (e.g., on email
-     * verification resend).
+     * Revokes all valid tokens of a specific type for an account (e.g., on 
+     * email verification resend).
      * 
      * @param accountId Account ID
      */
     public void revokeAllTokensByAccountIdAndType(UUID accountId, TokenType type) {
-        tokenRepository.revokeAllByAccountAndType(accountId, type);
+        tokenRepository.revokeAllValidByAccountAndType(accountId, type);
     }
+
+    // TOKEN DELETION
 
     /**
      * Deletes a token.

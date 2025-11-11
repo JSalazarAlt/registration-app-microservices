@@ -14,8 +14,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.suyos.authservice.dto.request.AccountLoginDTO;
-import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
+import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 
 @SpringBootTest
 @AutoConfigureWebMvc
@@ -32,7 +32,7 @@ class AuthControllerIntegrationTest {
 
     @Test
     void registerAccount_Success() throws Exception {
-        AccountRegistrationDTO registrationDTO = AccountRegistrationDTO.builder()
+        RegistrationRequestDTO registrationDTO = RegistrationRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -50,7 +50,7 @@ class AuthControllerIntegrationTest {
 
     @Test
     void registerAccount_InvalidEmail() throws Exception {
-        AccountRegistrationDTO registrationDTO = AccountRegistrationDTO.builder()
+        RegistrationRequestDTO registrationDTO = RegistrationRequestDTO.builder()
                 .username("testuser")
                 .email("invalid-email")
                 .password("password123")
@@ -67,7 +67,7 @@ class AuthControllerIntegrationTest {
     @Test
     void loginAccount_Success() throws Exception {
         // First register a user
-        AccountRegistrationDTO registrationDTO = AccountRegistrationDTO.builder()
+        RegistrationRequestDTO registrationDTO = RegistrationRequestDTO.builder()
                 .username("logintest")
                 .email("login@example.com")
                 .password("password123")
@@ -80,7 +80,7 @@ class AuthControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(registrationDTO)));
 
         // Then login
-        AccountLoginDTO loginDTO = AccountLoginDTO.builder()
+        AuthenticationRequestDTO loginDTO = AuthenticationRequestDTO.builder()
                 .email("login@example.com")
                 .password("password123")
                 .build();
@@ -96,7 +96,7 @@ class AuthControllerIntegrationTest {
 
     @Test
     void loginAccount_InvalidCredentials() throws Exception {
-        AccountLoginDTO loginDTO = AccountLoginDTO.builder()
+        AuthenticationRequestDTO loginDTO = AuthenticationRequestDTO.builder()
                 .email("nonexistent@example.com")
                 .password("wrongpassword")
                 .build();

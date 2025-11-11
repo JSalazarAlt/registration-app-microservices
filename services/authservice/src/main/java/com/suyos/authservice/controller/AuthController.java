@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.authservice.dto.request.AccountLoginDTO;
-import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
+import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.request.EmailResendRequestDTO;
 import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
 import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
@@ -65,7 +65,7 @@ public class AuthController {
         @ApiResponse(responseCode = "201", description = "Registration successful"),
         @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
     })
-    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody AccountRegistrationDTO accountRegistrationDTO) {
+    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody RegistrationRequestDTO accountRegistrationDTO) {
         // Create a new account using the registration data
         AccountInfoDTO accountInfoDTO = authService.createAccount(accountRegistrationDTO);
         
@@ -88,7 +88,7 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
         @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
     })
-    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AccountLoginDTO accountLoginDTO) {
+    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AuthenticationRequestDTO accountLoginDTO) {
         // Authenticate an account using the login credentials
         AuthenticationResponseDTO authenticationResponseDTO = authService.authenticateAccount(accountLoginDTO);
         

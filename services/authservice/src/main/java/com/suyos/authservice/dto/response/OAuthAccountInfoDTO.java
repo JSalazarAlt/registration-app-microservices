@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for OAuth2 user information from Google.
+ * Data Transfer Object for OAuth2 account information from Google.
  * 
  * Standardizes user information received from Google OAuth2 provider
  * into a common format for processing.
@@ -15,7 +15,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class OAuth2UserInfoDTO {
+public class OAuthAccountInfoDTO {
 
     /** User's email address from OAuth2 provider */
     private String email;

@@ -16,8 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.suyos.authservice.client.UserClient;
-import com.suyos.authservice.dto.request.AccountLoginDTO;
-import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
+import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.mapper.AccountMapper;
@@ -51,8 +51,8 @@ class AuthServiceTest {
     private AuthService authService;
     
     private Account testAccount;
-    private AccountRegistrationDTO registrationDTO;
-    private AccountLoginDTO loginDTO;
+    private RegistrationRequestDTO registrationDTO;
+    private AuthenticationRequestDTO loginDTO;
 
     @BeforeEach
     void setUp() {
@@ -66,7 +66,7 @@ class AuthServiceTest {
                 .failedLoginAttempts(0)
                 .build();
                 
-        registrationDTO = AccountRegistrationDTO.builder()
+        registrationDTO = RegistrationRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -74,7 +74,7 @@ class AuthServiceTest {
                 .lastName("User")
                 .build();
                 
-        loginDTO = AccountLoginDTO.builder()
+        loginDTO = AuthenticationRequestDTO.builder()
                 .email("test@example.com")
                 .password("password123")
                 .build();

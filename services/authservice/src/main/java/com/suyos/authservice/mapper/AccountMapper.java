@@ -5,8 +5,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
-import com.suyos.authservice.dto.request.AccountRegistrationDTO;
-import com.suyos.authservice.dto.request.AccountUpdateDTO;
+import com.suyos.authservice.dto.request.RegistrationRequestDTO;
+import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.model.Account;
 
@@ -56,14 +56,14 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    Account toEntity(AccountRegistrationDTO accountRegistrationDTO);
+    Account toEntity(RegistrationRequestDTO accountRegistrationDTO);
 
     /**
      * Updates an existing {@link Account} entity with fields from
-     * {@link AccountUpdateDTO}. Null values and sensitive fields are
+     * {@link AccountUpdateRequestDTO}. Null values and sensitive fields are
      * ignored.
      * 
-     * @param accountUpdateDTO {@link AccountUpdateDTO} containing updated
+     * @param accountUpdateDTO {@link AccountUpdateRequestDTO} containing updated
      * values
      * @param account Existing {@link Account} entity to update
      */
@@ -87,7 +87,7 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    Account updateAccountFromDTO(AccountUpdateDTO accountUpdateDTO, @MappingTarget Account account);
+    Account updateAccountFromDTO(AccountUpdateRequestDTO accountUpdateDTO, @MappingTarget Account account);
 
     /**
      * Converts a {@link Account} entity to a {@link AccountInfoDTO}.

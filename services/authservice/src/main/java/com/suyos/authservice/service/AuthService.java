@@ -10,10 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.client.UserClient;
 import com.suyos.authservice.dto.internal.UserCreationRequestDTO;
-import com.suyos.authservice.dto.request.AccountLoginDTO;
-import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
+import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.request.EmailResendRequestDTO;
 import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
+import com.suyos.authservice.dto.request.OAuthAuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
@@ -27,11 +28,11 @@ import com.suyos.authservice.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service for authentication and account management operations.
+ * Service for authentication operations.
  *
  * <p>Handles account creation, authentication, OAuth2 integration, and
- * interservice communication with User Service. Manages JWT token
- * generation and account security features.</p>
+ * interservice communication with User Service. Manages token generation
+ * and account security features.</p>
  *
  * @author Joel Salazar
  */
@@ -63,77 +64,79 @@ public class AuthService {
     /**
      * Creates a new account with the provided registration data.
      * 
-     * @param accountRegistrationDTO Account's registration data
-     * @return Created account's information DTO
+     * @param request Registration data
+     * @return Created account's information
      * @throws RuntimeException If email or username already exists
      */
-    public AccountInfoDTO createAccount(AccountRegistrationDTO accountRegistrationDTO) {
+    public AccountInfoDTO createAccount(RegistrationRequestDTO request) {
         // Check if email is already registered
-        if (accountRepository.existsByEmail(accountRegistrationDTO.getEmail())) {
+        if (accountRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
 
         // Check if username is already taken
-        if (accountRepository.existsByUsername(accountRegistrationDTO.getUsername())) {
+        if (accountRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already registered");
         }
 
         // Map account from account's registration DTO
-        Account account = accountMapper.toEntity(accountRegistrationDTO);
+        Account account = accountMapper.toEntity(request);
 
         // Set password and default role
-        account.setPassword(passwordEncoder.encode(accountRegistrationDTO.getPassword()));
+        account.setPassword(passwordEncoder.encode(request.getPassword()));
         account.setRole(Role.USER);
         
         // Persist created account
         Account createdAccount = accountRepository.save(account);
 
-        // Call User service to create a new user
+        // Create request to create a new user
         UserCreationRequestDTO userReq = new UserCreationRequestDTO();
         userReq.setAccountId(createdAccount.getId());
         userReq.setUsername(createdAccount.getUsername());
         userReq.setEmail(createdAccount.getEmail());
-        userReq.setFirstName(accountRegistrationDTO.getFirstName());
-        userReq.setLastName(accountRegistrationDTO.getLastName());
-        userReq.setPhone(accountRegistrationDTO.getPhone());
-        userReq.setProfilePictureUrl(accountRegistrationDTO.getProfilePictureUrl());
-        userReq.setLocale(accountRegistrationDTO.getLocale());
-        userReq.setTimezone(accountRegistrationDTO.getTimezone());
+        userReq.setFirstName(request.getFirstName());
+        userReq.setLastName(request.getLastName());
+        userReq.setPhone(request.getPhone());
+        userReq.setProfilePictureUrl(request.getProfilePictureUrl());
+        userReq.setLocale(request.getLocale());
+        userReq.setTimezone(request.getTimezone());
+
+        // Call User microservice passing the request to create a new user
         userClient.createUser(userReq).block();
 
         // Issue email verification token
         tokenService.issueEmailVerificationToken(createdAccount);
 
-        // Call Email service to send verification link
+        // Call Email microservice to send verification link
+        //emailClient.sendEmail(emailReq).block();
 
-
-        // Map account's information DTO from created account
-        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(createdAccount);
+        // Map account's information from created account
+        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(createdAccount);
     
-        // Return created account's information DTO
-        return accountInfoDTO;
+        // Return created account's information
+        return accountInfo;
     }
 
     /**
      * Authenticates account credentials and generates tokens.
      * 
-     * @param accountLoginDTO Login credentials
-     * @return Authentication response DTO with refresh and access tokens
+     * @param request Login credentials
+     * @return Refresh and access tokens
      * @throws RuntimeException If authentication fails
      */
-    public AuthenticationResponseDTO authenticateAccount(AccountLoginDTO accountLoginDTO) {
+    public AuthenticationResponseDTO authenticateAccount(AuthenticationRequestDTO request) {
         // Find if there is an active account for the email
-        Account account = accountRepository.findActiveByEmail(accountLoginDTO.getEmail())
-            .orElseThrow(() -> new RuntimeException("Account not found for email: " + accountLoginDTO.getEmail()));
+        Account account = accountRepository.findActiveByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("Account not found for email: " + request.getEmail()));
         
         // Check if account is not deleted
         if (!account.getEmailVerified()) {
-            throw new RuntimeException("Email is not verified. Please check your inbox for the verification email");
+            throw new RuntimeException("Email not verified. Please check your inbox for the verification email");
         }
 
         // Check if account is not deleted
         if (account.getDeleted()) {
-            throw new RuntimeException("Account is deleted. Please reactivate your account if still possible");
+            throw new RuntimeException("Account deleted. Please reactivate your account if still possible");
         }
 
         // Check account's lock status
@@ -150,8 +153,8 @@ public class AuthService {
             }
         }
         
-        // Verify password
-        if (!passwordEncoder.matches(accountLoginDTO.getPassword(), account.getPassword())) {
+        // Verify password match
+        if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
             loginAttemptService.recordFailedAttempt(account);
             throw new RuntimeException("Invalid email or password");
         }
@@ -165,11 +168,11 @@ public class AuthService {
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
         
-        // Generate refresh and access tokens for the successful login
-        AuthenticationResponseDTO authenticationResponseDTO = tokenService.issueRefreshAndAccessTokens(updatedAccount);
+        // Issue refresh and access tokens for successful login
+        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(updatedAccount);
 
-        // Return authentication response DTO
-        return authenticationResponseDTO;
+        // Return refresh and access tokens
+        return response;
     }
 
     // OAUTH2 REGISTRATION AND LOGIN
@@ -177,20 +180,18 @@ public class AuthService {
     /**
      * Creates a new account from Google OAuth2 authentication.
      * 
-     * @param email Account email from Google
-     * @param name User full name from Google
-     * @param providerId Unique identifier from Google
+     * @param request Registration data from Google
      * @return Created account entity
      */
-    private Account createGoogleOAuth2Account(String email, String name, String providerId) {
+    private Account createGoogleOAuth2Account(OAuthAuthenticationRequestDTO request) {
         // Create a new account with Google OAuth2 details
         Account account = Account.builder()
-                .email(email)
-                .username(email)
+                .email(request.getEmail())
+                .username(request.getEmail())
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .role(Role.USER)
                 .oauth2Provider("google")
-                .oauth2ProviderId(providerId)
+                .oauth2ProviderId(request.getProviderId())
                 .emailVerified(true)
                 .enabled(true)
                 .locked(false)
@@ -210,35 +211,33 @@ public class AuthService {
      * <p>Creates new account if not exists, or links existing account with
      * Google OAuth2. Generates JWT tokens for API access.</p>
      *
-     * @param email Account email from Google
-     * @param name User full name from Google
-     * @param providerId Unique identifier from Google
-     * @return Authentication response DTO with refresh and access tokens
+     * @param request Login credentials from Google
+     * @return Refresh and access tokens
      */
-    public AuthenticationResponseDTO processGoogleOAuth2Account(String email, String name, String providerId) {
+    public AuthenticationResponseDTO processGoogleOAuth2Account(OAuthAuthenticationRequestDTO request) {
         // Find if there is an active account for the OAuth2 credentials or email
-        Account account = accountRepository.findActiveByOauth2ProviderAndOauth2ProviderId("google", providerId)
-            .or(() -> accountRepository.findByEmail(email)
+        Account account = accountRepository.findActiveByOauth2ProviderAndOauth2ProviderId("google", request.getProviderId())
+            .or(() -> accountRepository.findByEmail(request.getEmail())
                 .map(existingAccount -> {
                     // Link existing account with Google
                     existingAccount.setOauth2Provider("google");
-                    existingAccount.setOauth2ProviderId(providerId);
+                    existingAccount.setOauth2ProviderId(request.getProviderId());
                     existingAccount.setEmailVerified(true);
                     return accountRepository.save(existingAccount);
                 })
             )
             // Create new account if not found
-            .orElseGet(() -> createGoogleOAuth2Account(email, name, providerId));
+            .orElseGet(() -> createGoogleOAuth2Account(request));
 
         // Update last login time
         account.setLastLoginAt(LocalDateTime.now());
         Account savedAccount = accountRepository.save(account);
 
-        // Generate refresh and access tokens for the OAuth2 login
-        AuthenticationResponseDTO authenticationResponseDTO = tokenService.issueRefreshAndAccessTokens(savedAccount);
+        // Issue refresh and access tokens for successful Google OAuth2 login
+        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(savedAccount);
 
-        // Return authentication response DTO
-        return authenticationResponseDTO;
+        // Return refresh and access tokens
+        return response;
     }
 
     // LOGOUT
@@ -246,12 +245,12 @@ public class AuthService {
     /**
      * Deauthenticates account and revokes refresh token.
      * 
-     * @param refreshTokenRequestDTO Refresh token value
+     * @param request Refresh token value
      * @throws RuntimeException If token is invalid
      */
-    public void deauthenticateAccount(RefreshTokenRequestDTO refreshTokenRequestDTO) {
+    public void deauthenticateAccount(RefreshTokenRequestDTO request) {
         // Extract refresh token value from request
-        String value = refreshTokenRequestDTO.getValue();
+        String value = request.getValue();
 
         // Find if there is an account for the refresh token
         Account account = tokenService.findAccountByToken(value);
@@ -271,14 +270,13 @@ public class AuthService {
     /**
      * Verifies email using the email verification token.
      *
-     * <p>Checks if the token is valid and associates it with the account.</p>
-     *
-     * @param emailVerificationRequestDTO Email verification token value
-     * @return Authentication response DTO with refresh and access tokens
+     * @param request Email verification token value
+     * @return Verified account's information
+     * @throws RuntimeException If invalid token
      */
-    public AccountInfoDTO verifyEmail(EmailVerificationRequestDTO emailVerificationRequestDTO) {
+    public AccountInfoDTO verifyEmail(EmailVerificationRequestDTO request) {
         // Extract email verification token value from request
-        String value = emailVerificationRequestDTO.getValue();
+        String value = request.getValue();
 
         // Check if token is valid
         if(tokenService.isTokenValid(value) == false) {
@@ -297,45 +295,41 @@ public class AuthService {
         // Delete the used email verification token for cleanup
         tokenService.deleteToken(value);
 
-        // Map account's information DTO from updated account
-        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(account);
+        // Map account's information from verified account
+        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
 
-        // Return account's information DTO
-        return accountInfoDTO;
+        // Return verified account's information
+        return accountInfo;
     }
 
     /**
      * Resends email verification link.
      *
-     * <p>Revokes old email verification tokens and issues a new one.</p>
-     *
-     * @param emailResendRequestDTO Email
-     * @return Authentication response DTO with refresh and access tokens
+     * @param request Email
+     * @return Message indicating if email verification link has been sent
      */
-    public EmailResendResponseDTO resendEmailVerification(EmailResendRequestDTO emailResendRequestDTO) {
+    public EmailResendResponseDTO resendEmailVerification(EmailResendRequestDTO request) {
         // Find if there is an account for the email
-        Account account = accountRepository.findByEmail(emailResendRequestDTO.getEmail())
-            .orElseThrow(() -> new RuntimeException("Account not found"));
+        accountRepository.findByEmail(request.getEmail()).ifPresent(account -> {
+            if (!account.getEmailVerified()) {
+                // Revoke old email verification tokens
+                tokenService.revokeAllTokensByAccountIdAndType(account.getId(), TokenType.EMAIL_VERIFICATION);
+                
+                // Issue new token
+                tokenService.issueEmailVerificationToken(account);
+                
+                // Call Email service to send verification link
+                //
+            }
+        });
 
-        // Check if email is already registered and not verified 
-        if (accountRepository.existsByEmail(emailResendRequestDTO.getEmail()) && !account.getEmailVerified()) {
-            // Revoke any old email verification tokens
-            tokenService.revokeAllTokensByAccountIdAndType(account.getId(), TokenType.EMAIL_VERIFICATION);
-
-            // Issue new email verification token
-            tokenService.issueEmailVerificationToken(account);
-
-            // Call Email service to send verification link
-
-        }
-
-        // Build email resend response DTO
-        EmailResendResponseDTO emailResendResponseDTO = EmailResendResponseDTO.builder()
+        // Build response
+        EmailResendResponseDTO response = EmailResendResponseDTO.builder()
                 .message("If your email is registered, a verification link has been sent.")
                 .build();
 
-        // Return email resend response DTO
-        return emailResendResponseDTO;
+        // Return message indicating if email verification link has been sent
+        return response;
     }
 
 }

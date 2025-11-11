@@ -9,6 +9,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.suyos.authservice.dto.request.OAuthAuthenticationRequestDTO;
 import com.suyos.authservice.service.AuthService;
 
 import jakarta.servlet.ServletException;
@@ -81,9 +82,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             String email = oauth2User.getAttribute("email");
             String name = oauth2User.getAttribute("name");
             String providerId = oauth2User.getAttribute("sub"); // Google uses 'sub'
+
+            OAuthAuthenticationRequestDTO dto = OAuthAuthenticationRequestDTO.builder()
+                    .email(email)
+                    .name(name)
+                    .providerId(providerId)
+                    .build();
             
             // Process Google OAuth2 user
-            var authResponse = authService.processGoogleOAuth2Account(email, name, providerId);
+            var authResponse = authService.processGoogleOAuth2Account(dto);
             String token = authResponse.getAccessToken();
             
             // Redirect to frontend with token and account data

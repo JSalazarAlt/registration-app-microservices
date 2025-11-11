@@ -71,19 +71,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
         AND t.revoked = false 
         AND t.expiresAt > CURRENT_TIMESTAMP
     """)
-    void revokeAllByAccountId(UUID accountId);
-
-    /**
-     * Deletes all tokens for an account (used during account deletion).
-     * 
-     * @param accountId Account ID to delete tokens for
-     */
-    @Modifying
-    @Query("""
-        DELETE FROM Token t 
-        WHERE t.account.id = :accountId
-    """)
-    void deleteAllByAccountId(UUID accountId);
+    void revokeAllValidByAccountId(UUID accountId);
 
     /**
      * Deletes all tokens for an account (used during account deletion).
@@ -98,7 +86,19 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
         AND t.type = :type
         AND t.revoked = false
     """)
-    void revokeAllByAccountAndType(UUID accountId, TokenType type);
+    void revokeAllValidByAccountAndType(UUID accountId, TokenType type);
+
+    /**
+     * Deletes all tokens for an account (used during account deletion).
+     * 
+     * @param accountId Account ID to delete tokens for
+     */
+    @Modifying
+    @Query("""
+        DELETE FROM Token t 
+        WHERE t.account.id = :accountId
+    """)
+    void deleteAllByAccountId(UUID accountId);
 
     /**
      * Deletes all expired or revoked tokens.

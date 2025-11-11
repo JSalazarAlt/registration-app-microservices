@@ -16,8 +16,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.suyos.authservice.dto.request.AccountLoginDTO;
-import com.suyos.authservice.dto.request.AccountRegistrationDTO;
+import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
+import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
 import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
@@ -40,8 +40,8 @@ class AuthControllerTest {
     @MockitoBean
     private TokenService tokenService;
     
-    private AccountRegistrationDTO registrationDTO;
-    private AccountLoginDTO loginDTO;
+    private RegistrationRequestDTO registrationDTO;
+    private AuthenticationRequestDTO loginDTO;
     private RefreshTokenRequestDTO refreshTokenRequestDTO;
     private EmailVerificationRequestDTO emailVerificationTokenRequestDTO;
     private AccountInfoDTO accountInfoDTO;
@@ -51,7 +51,7 @@ class AuthControllerTest {
     void setUp() {
         UUID accountId = UUID.randomUUID();
         
-        registrationDTO = AccountRegistrationDTO.builder()
+        registrationDTO = RegistrationRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -59,7 +59,7 @@ class AuthControllerTest {
                 .lastName("User")
                 .build();
                 
-        loginDTO = AccountLoginDTO.builder()
+        loginDTO = AuthenticationRequestDTO.builder()
                 .email("test@example.com")
                 .password("password123")
                 .build();
