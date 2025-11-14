@@ -6,8 +6,8 @@ import lombok.Getter;
 /**
  * Enumeration of account roles within the authentication system.
  * 
- * <p>This enum defines the various roles that can be assigned to user accounts,
- * each with specific permissions and access levels.</p>
+ * <p>Defines the various roles that can be assigned to user accounts, each
+ * with specific permissions and access levels.</p>
  * 
  * @author Joel Salazar
  */

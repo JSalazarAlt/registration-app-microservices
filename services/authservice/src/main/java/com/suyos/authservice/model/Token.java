@@ -21,11 +21,8 @@ import lombok.NoArgsConstructor;
  * Entity representing an authentication token associated with an
  * {@link Account}.
  * 
- * <p>Maps to the <b>tokens</b> table and stores metadata for token
- * lifecycle management (issue and expiration timestamps).</p>
- * 
- * <p>Tokens are uniquely associated with an account and used to validate
- * authentication requests.</p>
+ * <p>Maps to the <b>tokens</b> table. Tokens are uniquely associated
+ * with an account and used to validate authentication requests.</p>
  * 
  * @author Joel Salazar
  */
@@ -69,12 +66,12 @@ public class Token {
     /** Flag indicating if token has been reused */
     @Builder.Default
     @Column(name = "reused", nullable = false)
-    private boolean reused = false;
+    private Boolean reused = false;
 
     /** Flag indicating if token has been revoked */
     @Builder.Default
     @Column(name = "revoked", nullable = false)
-    private boolean revoked = false;
+    private Boolean revoked = false;
 
     /** Timestamp when the token was revoked */
     @Column(name = "revoked_at")
