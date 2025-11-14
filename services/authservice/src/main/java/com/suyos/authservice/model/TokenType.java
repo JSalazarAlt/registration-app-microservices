@@ -6,8 +6,8 @@ import lombok.Getter;
 /**
  * Enumeration of token types within the authentication system.
  * 
- * <p>This enum defines the various types of tokens used for authentication,
- * each with specific purposes and usage scenarios.</p>
+ * <p>Defines the various types of tokens used for authentication, each 
+ * with specific purposes and usage scenarios.</p>
  * 
  * @author Joel Salazar
  */
