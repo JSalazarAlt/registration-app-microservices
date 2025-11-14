@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 /**
  * Main application class for the Authentication microservice.
  *
- * <p>Handles user authentication, account management, JWT token generation,
+ * <p>Handles user authentication, account management, token generation,
  * and OAuth2 integration. Provides secure authentication endpoints for
  * the registration application ecosystem.</p>
  *
