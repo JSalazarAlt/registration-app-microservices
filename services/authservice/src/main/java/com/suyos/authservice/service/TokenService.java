@@ -16,10 +16,12 @@ import com.suyos.authservice.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service for JWT and refresh token management operations.
+ * Service for token management operations.
  *
  * <p>Handles token generation, refresh, and revocation for authentication
- * flows. Implements refresh token rotation for enhanced security.</p>
+ * flows such as refresh token rotation, email verification, and password 
+ * reset. Uses {@link JwtService} for JWT access token operations.</p>
+ * 
  *
  * @author Joel Salazar
  */
@@ -28,44 +30,50 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class TokenService {
     
-    /** Repository for token operations */
+    /** Repository for token data access operations */
     private final TokenRepository tokenRepository;
 
-    /** Service for JWT token generation and validation */
+    /** Service for JWT token management */
     private final JwtService jwtService;
 
     // TOKEN GENERATION
 
     /**
-     * Issues new email verification token for authenticating an email.
+     * Issues a new token of a specific type.
      * 
-     * @param account Authenticated account
-     * @return Email verification token
+     * <p>Creates a new token of a specific type and associates it with an 
+     * account. Used to issue tokens for email verification, password reset,
+     * and other flows.</p>
+     * 
+     * @param account Account to associate the token with
+     * @param type Type of token to issue
+     * @param lifetimeInHours Duration in hours the token remains valid
+     * @return Created token
      */
-    public Token issueEmailVerificationToken(Account account) {
-        // Generate a new email verification token value
+    public Token issueToken(Account account, TokenType type, Long lifetimeInHours) {
+        // Generate a new token value
         String value = UUID.randomUUID().toString();
 
-        // Create email verification token
-        Token emailVerificationToken = new Token();
-        emailVerificationToken.setValue(value);
-        emailVerificationToken.setType(TokenType.EMAIL_VERIFICATION);
-        emailVerificationToken.setAccount(account);
-        emailVerificationToken.setIssuedAt(LocalDateTime.now());
-        emailVerificationToken.setExpiresAt(LocalDateTime.now().plusDays(1));
+        // Create token
+        Token token = new Token();
+        token.setValue(value);
+        token.setType(type);
+        token.setAccount(account);
+        token.setIssuedAt(LocalDateTime.now());
+        token.setExpiresAt(LocalDateTime.now().plusHours(lifetimeInHours));
 
-        // Persist created email verification token
-        Token createdEmailVerificationToken = tokenRepository.save(emailVerificationToken);
+        // Persist created token
+        Token createdToken = tokenRepository.save(token);
 
-        // Return created email verification token
-        return createdEmailVerificationToken;
+        // Return created token
+        return createdToken;
     }
 
     /**
      * Issues new refresh and access tokens for an authenticated account.
      * 
      * @param account Authenticated account
-     * @return Authentication response with refresh and access tokens
+     * @return Refresh and access tokens
      */
     public AuthenticationResponseDTO issueRefreshAndAccessTokens(Account account) {
         // Generate a new access token
@@ -85,23 +93,29 @@ public class TokenService {
         // Persist created refresh token
         tokenRepository.save(refreshToken);
 
-        // Build authentication response DTO with refresh and access tokens
-        AuthenticationResponseDTO authenticationResponseDTO = AuthenticationResponseDTO.builder()
+        // Build authentication response with refresh and access tokens
+        AuthenticationResponseDTO response = AuthenticationResponseDTO.builder()
                 .accountId(account.getId())
                 .accessToken(accessToken)
                 .refreshToken(value)
                 .expiresIn(jwtService.getExpirationTime())
                 .build();
 
-        // Return authentication response DTO
-        return authenticationResponseDTO;
+        // Return refresh and access tokens
+        return response;
     }
 
     // TOKEN VALIDATION
 
-    public boolean isTokenValid(String value) {
+    /**
+     * Checks if a token is valid (not revoked and not expired).
+     * 
+     * @param token Token to validate
+     * @return True if token is valid, false otherwise
+     */
+    public boolean isTokenValid(Token token) {
         // Return true if token is not revoked and not expired
-        return tokenRepository.findValidByValue(value).isPresent();
+        return !token.getRevoked() && token.getExpiresAt().isAfter(LocalDateTime.now());
     }
 
     // TOKEN REFRESH
@@ -109,18 +123,21 @@ public class TokenService {
     /**
      * Refreshes access token using a valid refresh token (token rotation).
      * 
-     * @param value Current refresh token value
+     * @param request Current refresh token value
      * @return New authentication response with rotated refresh and access tokens
-     * @throws RuntimeException If refresh token is invalid or expired
+     * @throws RuntimeException If refresh token is invalid
      */
-    public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        // Find if there is an existing refresh token for the value
-        Token refreshToken = tokenRepository.findByValue(refreshTokenRequestDTO.getValue())
+    public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO request) {
+        // Extract refresh token value from request
+        String value = request.getValue();
+        
+        // Lookup refresh token by value
+        Token refreshToken = tokenRepository.findByValueAndType(value, TokenType.REFRESH)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         
-        // Check if refresh token is revoked or expired
-        if (refreshToken.isRevoked() || refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token expired or revoked");
+        // Check if refresh token is invalid
+        if (!isTokenValid(refreshToken)) {
+            throw new RuntimeException("Invalid refresh token");
         }
 
         // Revoke old token for security
@@ -130,59 +147,59 @@ public class TokenService {
         // Persist revoked token
         tokenRepository.save(refreshToken);
 
-        // Issue new refresh and access tokens (refresh token rotation)
-        AuthenticationResponseDTO authenticationResponseDTO = issueRefreshAndAccessTokens(refreshToken.getAccount());
+        // Build authentication response with new refresh and access tokens 
+        // (refresh token rotation)
+        AuthenticationResponseDTO response = issueRefreshAndAccessTokens(refreshToken.getAccount());
 
-        // Return authentication response DTO with new refresh and access tokens
-        return authenticationResponseDTO;
+        // Return new refresh and access tokens
+        return response;
     }
 
-    // TOKEN HELPER METHODS
+    // TOKEN LOOKUP
 
     /**
-     * Extracts account ID from Authorization header containing access token.
+     * Finds a token by value.
      * 
-     * @param authHeader Authorization header with Bearer token
-     * @return Account ID extracted from access token
+     * @param value Token value to search for
+     * @return Token
+     * @throws RuntimeException If token is not found or invalid
      */
-    public UUID extractAccountIdFromAccessToken(String authHeader) {
-        // Strip "Bearer " prefix
-        String accessToken = authHeader.replace("Bearer ", "").trim();
-
-        // Extract account ID from access token
-        String accountIdStr = jwtService.extractSubject(accessToken);
-        UUID accountId = UUID.fromString(accountIdStr);
-
-        // Return account ID
-        return accountId;
-    }
-
-    /**
-     * Finds account associated with a token.
-     * 
-     * @param value Token value
-     * @return Account associated with token
-     * @throws RuntimeException If token is invalid
-     */
-    public Account findAccountByToken(String value) {
-        // Find token by value
+    public Token findTokenByValue(String value) {
+        // Lookup token by value
         Token token = tokenRepository.findByValue(value)
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
+            .orElseThrow(() -> new RuntimeException("Token not found"));
         
-        // Return account associated with token
-        return token.getAccount();
+        // Return token
+        return token;
+    }
+
+    /**
+     * Finds a token by value and type.
+     * 
+     * @param value Token value to search for
+     * @param type Token type to search for
+     * @return Token
+     * @throws RuntimeException If token is not found or invalid
+     */
+    public Token findTokenByValueAndType(String value, TokenType type) {
+        // Lookup token by value and type
+        Token token = tokenRepository.findByValueAndType(value, type)
+            .orElseThrow(() -> new RuntimeException("Token not found"));
+
+        // Return token
+        return token;
     }
 
     // TOKEN REVOCATION
 
     /**
-     * Revokes a token.
+     * Revokes a token by value.
      * 
      * @param value Token value to revoke
      * @throws RuntimeException If token is invalid
      */
     public void revokeTokenByValue(String value) {
-        // Find if there is an existing token by value
+        // Lookup token by value
         Token refreshToken = tokenRepository.findByValue(value)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));
         
@@ -210,7 +227,7 @@ public class TokenService {
      * @param accountId Account ID
      */
     public void revokeAllTokensByAccountIdAndType(UUID accountId, TokenType type) {
-        tokenRepository.revokeAllValidByAccountAndType(accountId, type);
+        tokenRepository.revokeAllValidByAccountIdAndType(accountId, type);
     }
 
     // TOKEN DELETION
@@ -222,12 +239,32 @@ public class TokenService {
      * @throws RuntimeException If token is invalid
      */
     public void deleteToken(String value) {
-        // Find if there is an existing token for the value
+        // Lookup token by value
         Token token = tokenRepository.findByValue(value)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));
         
         // Delete token
         tokenRepository.delete(token);
+    }
+
+    // HELPER METHODS
+
+    /**
+     * Extracts account ID from Authorization header containing access token.
+     * 
+     * @param authHeader Authorization header with Bearer token
+     * @return Account ID extracted from access token
+     */
+    public UUID extractAccountIdFromAccessToken(String authHeader) {
+        // Strip "Bearer " prefix
+        String accessToken = authHeader.replace("Bearer ", "").trim();
+
+        // Extract account ID from access token
+        String accountIdStr = jwtService.extractSubject(accessToken);
+        UUID accountId = UUID.fromString(accountIdStr);
+
+        // Return account ID
+        return accountId;
     }
     
 }

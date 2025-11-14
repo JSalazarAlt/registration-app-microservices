@@ -13,17 +13,19 @@ import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 
 /**
- * Repository interface for Token entity data access operations.
+ * Repository for token data access operations.
  *
- * <p>Handles refresh token storage, validation, and cleanup operations for
- * JWT authentication flows.</p>
+ * <p>Provides standard CRUD operations for account entities. Handles token
+ * lookup, revocation, deletion, and cleanup operations.</p>
  *
  * @author Joel Salazar
  */
 public interface TokenRepository extends JpaRepository<Token, UUID> {
 
+    // TOKEN LOOKUP
+
     /**
-     * Finds a token by its value.
+     * Finds a token by value.
      * 
      * @param value Token value to search for
      * @return Optional containing token if found, empty otherwise
@@ -31,65 +33,63 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     Optional<Token> findByValue(String value);
 
     /**
-     * Finds a valid token by its value.
-     * 
+     * Finds a token by value and type.
+     *
      * @param value Token value to search for
+     * @param type Token type to search for
      * @return Optional containing token if found, empty otherwise
      */
-    @Query("""
-        SELECT t FROM Token t 
-        WHERE t.value = :value 
-        AND t.revoked = false 
-        AND t.expiresAt > CURRENT_TIMESTAMP
-    """)
-    Optional<Token> findValidByValue(String value);
+    Optional<Token> findByValueAndType(String value, TokenType type);
 
     /**
-     * Finds all valid (non-revoked, non-expired) tokens for an account.
+     * Finds all tokens for a specified account ID.
      * 
      * @param accountId Account ID to search tokens for
-     * @return List of valid tokens for the account
+     * @return List of tokens associated with the account
      */
-    @Query("""
-        SELECT t FROM Token t 
-        WHERE t.account.id = :accountId
-        AND t.revoked = false 
-        AND t.expiresAt > CURRENT_TIMESTAMP
-    """)
-    List<Token> findAllValidByAccountId(UUID accountId);
+    List<Token> findAllByAccountId(UUID accountId);
+
+    // TOKEN REVOCATION
 
     /**
-     * Revokes all valid tokens for an account (e.g., password change).
+     * Revokes all valid tokens for an account.
      * 
-     * @param accountId Account ID to revoke tokens for
+     * <p>Used during .</p>
+     * 
+     * @param accountId Account ID to delete tokens for
      */
     @Modifying
     @Query("""
-        UPDATE Token t 
-        SET t.revoked = true
-        WHERE t.account.id = :accountId 
-        AND t.revoked = false 
+        UPDATE Token t
+        SET t.revoked = true,
+            t.revokedAt = CURRENT_TIMESTAMP
+        WHERE t.account.id = :accountId
+        AND t.revoked = false
         AND t.expiresAt > CURRENT_TIMESTAMP
     """)
     void revokeAllValidByAccountId(UUID accountId);
 
     /**
-     * Deletes all tokens for an account (used during account deletion).
+     * Deletes all tokens of a specific type for an account.
      * 
-     * @param account Account to delete tokens for
+     * @param accountId Account ID to delete tokens for
      */
     @Modifying
     @Query("""
-        UPDATE Token t 
-        SET t.revoked = true
+        UPDATE Token t
+        SET t.revoked = true,
+            t.revokedAt = CURRENT_TIMESTAMP
         WHERE t.account.id = :accountId
         AND t.type = :type
         AND t.revoked = false
+        AND t.expiresAt > CURRENT_TIMESTAMP
     """)
-    void revokeAllValidByAccountAndType(UUID accountId, TokenType type);
+    void revokeAllValidByAccountIdAndType(UUID accountId, TokenType type);
+
+    // TOKEN DELETION
 
     /**
-     * Deletes all tokens for an account (used during account deletion).
+     * Deletes all tokens for an account.
      * 
      * @param accountId Account ID to delete tokens for
      */
@@ -100,6 +100,8 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     """)
     void deleteAllByAccountId(UUID accountId);
 
+    // TOKEN CLEAN-UP
+
     /**
      * Deletes all expired or revoked tokens.
      * 
@@ -108,7 +110,8 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     @Modifying
     @Query("""
         DELETE FROM Token t
-        WHERE t.expiresAt < :now OR t.revoked = true
+        WHERE t.revoked = true
+        OR t.expiresAt < :now
     """)
     void deleteExpiredOrRevoked(LocalDateTime now);
     

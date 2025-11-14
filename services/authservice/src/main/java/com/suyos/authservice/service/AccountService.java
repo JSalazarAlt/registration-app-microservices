@@ -3,7 +3,6 @@ package com.suyos.authservice.service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +15,11 @@ import com.suyos.authservice.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service for authentication and account management operations.
- *
- * <p>Handles account creation, authentication, OAuth2 integration, and
- * interservice communication with User Service. Manages JWT token
- * generation and account security features.</p>
+ * Service for account management operations.
+ * 
+ * <p>Handles account retrieval, updates, and deletion operations. Provides
+ * methods for locating accounts (e.g., by email or username) and supports 
+ * soft deletion for audit and recovery purposes.</p>
  *
  * @author Joel Salazar
  */
@@ -35,100 +34,85 @@ public class AccountService {
     /** Repository for account data access operations */
     private final AccountRepository accountRepository;
 
-    /** Service for token management */
-    private final TokenService tokenService;
-
-    /** Password encoder for secure password hashing */
-    private final PasswordEncoder passwordEncoder;
+    // ACCOUNT LOOKUP
 
     /**
-     * Finds an active account by ID.
+     * Finds an account by ID.
      * 
-     * @param id ID of the account to search for
-     * @return Active account's information
-     * @throws RuntimeException If active account is not found
+     * @param id ID to search for
+     * @return Account's information
+     * @throws RuntimeException If account is not found
      */
     public AccountInfoDTO findAccountById(UUID id) {
-        // Find if there is an active account for the ID
-        Account account = accountRepository.findActiveById(id)
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
 
-        // Map account's information from active account
+        // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
 
-        // Return the active account's information
+        // Return the account's information
         return accountInfo;
     }
 
     /**
-     * Finds an active account by email.
+     * Finds an account by email.
      * 
      * @param email Email to search for
-     * @return Active account's information
-     * @throws RuntimeException If active account is not found
+     * @return Account's information
+     * @throws RuntimeException If account is not found
      */
     public AccountInfoDTO findAccountByEmail(String email) {
-        // Find if there is an active account for the email
-        Account account = accountRepository.findActiveByEmail(email)
+        // Look up account by email
+        Account account = accountRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Account not found for email: " + email));
 
-        // Map account's information from active account
+        // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
 
-        // Return the active account's information
+        // Return the account's information
         return accountInfo;
     }
 
     /**
-     * Finds an active account by username.
+     * Finds an account by username.
      * 
      * @param username Username to search for
-     * @return Active account's information
-     * @throws RuntimeException If active account is not found
+     * @return Account's information
+     * @throws RuntimeException If account is not found
      */
     public AccountInfoDTO findAccountByUsername(String username) {
-        // Find if there is an active account for the username
-        Account account = accountRepository.findActiveByUsername(username)
+        // Look up account by username
+        Account account = accountRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));;
         
-        // Map account's information from active account
+        // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
         
-        // Return the active account's information
+        // Return the account's information
         return accountInfo;
     }
 
+    // ACCOUNT UPDATE
+
     /**
-     * Updates an active account by ID.
+     * Updates an account by ID.
      * 
-     * @param id ID of the account to update
+     * @param id Account ID to update
      * @param request Account's update data
      * @return Updated account's information
-     * @throws RuntimeException If active account is not found
+     * @throws RuntimeException If account is not found
      */
     public AccountInfoDTO updateAccountById(UUID id, AccountUpdateRequestDTO request) {
-        // Find if there is an active account for the ID
-        Account account = accountRepository.findActiveById(id)
-            .orElseThrow(() -> new RuntimeException("Active account not found for ID: " + id));
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
 
-        // Handle password change separately (security-sensitive)
-        boolean passwordChanged = false;
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            account.setPassword(passwordEncoder.encode(request.getPassword()));
-            account.setLastPasswordChangedAt(LocalDateTime.now());
-            passwordChanged = true;
-        }
-
-        // Update account fields from account's information using mapper
+        // Update account fields using mapper
         accountMapper.updateAccountFromDTO(request, account);
 
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
-
-        // Revoke all valid tokens if password changed (security measure)
-        if (passwordChanged) {
-            tokenService.revokeAllTokensByAccountId(id);
-        }
 
         // Map account's information from updated account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
@@ -137,30 +121,37 @@ public class AccountService {
         return accountInfo;
     }
 
+    // ACCOUNT SOFT DELETION
+
     /**
-     * Deletes the logged-in account using its ID.
+     * Soft deletes an account by ID.
      * 
-     * @param id ID of the account to delete
-     * @return Deleted account's information
-     * @throws RuntimeException If active account is not found
+     * <p>Performs a soft deletion by marking the account as deleted and
+     * setting the deletion timestamp.</p>
+     * 
+     * @param id Account ID to soft delete
+     * @return Soft deleted account's information
+     * @throws RuntimeException If account is not found
      */
-    public AccountInfoDTO deleteAccountById(UUID id) {
-        // Find if there is an active account for the logged-in account ID
-        Account account = accountRepository.findActiveById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+    public AccountInfoDTO softDeleteAccountById(UUID id) {
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
         
         // Soft delete account
         account.setDeleted(true);
         account.setDeletedAt(LocalDateTime.now());
 
-        // Persist updated account
+        // Persist soft deleted account
         Account updatedAccount = accountRepository.save(account);
 
-        // Map account's information from updated account
+        // Map account's information from soft deleted account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(updatedAccount);
 
-        // Return updated account's information DTO
+        // Return soft deleted account's information
         return accountInfoDTO;
     }
-    
+
+    // ACCOUNT CLEAN-UP
+
 }

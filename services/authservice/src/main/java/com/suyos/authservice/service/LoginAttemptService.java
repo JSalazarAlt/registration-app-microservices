@@ -14,9 +14,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * Service for handling login attempt tracking and account security.
  * 
- * <p>Manages failed login attempts, implements account locking mechanisms,
- * and provides security features to prevent brute force attacks. Uses
- * separate transactions to ensure failed attempts are recorded even when
+ * <p>Manages failed login attempts and implements account locking mechanisms.
+ * Uses separate transactions to ensure failed attempts are recorded even when
  * authentication fails.</p>
  * 
  * @author Joel Salazar

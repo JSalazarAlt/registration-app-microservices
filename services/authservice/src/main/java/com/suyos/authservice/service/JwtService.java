@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Service for JWT token generation, validation, and extraction operations.
  * 
- * <p>Handles all JWT-related functionality including token creation, validation,
+ * <p>Handles JWT-related functionality such as token creation, validation,
  * and claims extraction. Uses HMAC-SHA256 algorithm for token signing.</p>
  * 
  * @author Joel Salazar
@@ -65,9 +65,9 @@ public class JwtService {
     /**
      * Extracts all claims from JWT token.
      * 
-     * @param jwtToken the JWT token
-     * @return all claims from the token
-     * @throws JwtException if token parsing fails
+     * @param jwtToken JWT token
+     * @return All claims from the token
+     * @throws JwtException If JWT token parsing fails
      */
     private Claims extractAllClaims(String jwtToken) {
         try {
@@ -94,11 +94,11 @@ public class JwtService {
     /**
      * Extracts a specific claim from JWT token.
      * 
-     * @param <T> the type of the claim
-     * @param jwtToken the JWT token
-     * @param claimsResolver function to extract the specific claim
-     * @return the extracted claim
-     * @throws JwtException if token is invalid
+     * @param <T> Type of the claim
+     * @param jwtToken JWT token
+     * @param claimsResolver Function to extract the specific claim
+     * @return Extracted claim
+     * @throws JwtException If JWT token is invalid
      */
     public <T> T extractClaim(String jwtToken, Function<Claims, T> claimsResolver) {
         try {
@@ -113,11 +113,11 @@ public class JwtService {
     }
 
     /**
-     * Extracts username from JWT token.
+     * Extracts subject from JWT token.
      * 
-     * @param jwtToken the JWT token
-     * @return Account ID (subject) from the token
-     * @throws JwtException if token is invalid or expired
+     * @param jwtToken JWT token
+     * @return Subject from the token (i.e., account ID)
+     * @throws JwtException If JWT token is invalid or expired
      */
     public String extractSubject(String jwtToken) {
         try {
@@ -140,8 +140,8 @@ public class JwtService {
     /**
      * Extracts expiration date from JWT token.
      * 
-     * @param jwtToken the JWT token
-     * @return the expiration date
+     * @param jwtToken JWT token
+     * @return Expiration date
      */
     public Date extractExpiration(String jwtToken) {
         return extractClaim(jwtToken, Claims::getExpiration);
@@ -165,8 +165,8 @@ public class JwtService {
     /**
      * Checks if JWT token is expired.
      * 
-     * @param jwtToken the JWT token
-     * @return true if token is expired, false otherwise
+     * @param jwtToken JWT token
+     * @return True if token is expired, false otherwise
      */
     private boolean isTokenExpired(String jwtToken) {
         return extractExpiration(jwtToken).before(new Date());
@@ -175,7 +175,7 @@ public class JwtService {
     /**
      * Gets the signing key for JWT token operations.
      * 
-     * @return the signing key
+     * @return Signing key
      */
     private javax.crypto.SecretKey getSignInKey() {
         try {
