@@ -421,7 +421,7 @@ public class AuthService {
             }
         });
 
-        // Build response
+        // Build response with email verification message
         GenericMessageResponseDTO response = GenericMessageResponseDTO.builder()
                 .message("If your email is registered, a verification link has been sent.")
                 .build();
