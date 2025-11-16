@@ -11,16 +11,11 @@ import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.model.Account;
 
 /**
- * MapStruct mapper interface for converting between {@link Account}
- * entities and DTOs.
+ * Mapper for converting between {@link Account} entities and DTOs.
  * 
- * <p>This interface defines the mapping contract between the internal
- * Account entity and various user-related DTOs. MapStruct generates
- * the implementation at compile time, providing type-safe and
- * efficient object mapping without reflection.</p>
- * 
- * <p>The Spring component model integration allows this mapper to be
- * injected as a Spring bean into other components.</p>
+ * <p>Defines the mapping contract between the account entity and related 
+ * DTOs. MapStruct generates the implementation at compile time, providing
+ * type-safe and efficient object mapping without reflection.</p>
  * 
  * @author Joel Salazar
  */
@@ -31,11 +26,10 @@ public interface AccountMapper {
      * Converts a {@link AccountUpsertDTO} to a {@link Account} entity.
      * 
      * <p>Ignores fields that are managed internally or belong to other
-     * services, such as identifiers and audit fields.</p>
+     * services, such as audit fields.</p>
      *
-     * @param accountUpsertDTO {@link AccountUpsertDTO} containing user
-     * information
-     * @return {@link Account} entity populated with created fields
+     * @param request Account's registration data
+     * @return Account entity populated with created fields
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "emailVerified", ignore = true)
@@ -56,16 +50,17 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    Account toEntity(RegistrationRequestDTO accountRegistrationDTO);
+    Account toEntity(RegistrationRequestDTO request);
 
     /**
      * Updates an existing {@link Account} entity with fields from
-     * {@link AccountUpdateRequestDTO}. Null values and sensitive fields are
-     * ignored.
+     * {@link AccountUpdateRequestDTO}.
      * 
-     * @param accountUpdateDTO {@link AccountUpdateRequestDTO} containing updated
-     * values
-     * @param account Existing {@link Account} entity to update
+     * <p>Ignores fields that are managed internally or belong to other
+     * services, such as audit fields.</p>
+     * 
+     * @param request Account's update data
+     * @param account Updated account entity
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
@@ -87,13 +82,13 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    Account updateAccountFromDTO(AccountUpdateRequestDTO accountUpdateDTO, @MappingTarget Account account);
+    Account updateAccountFromDTO(AccountUpdateRequestDTO request, @MappingTarget Account account);
 
     /**
      * Converts a {@link Account} entity to a {@link AccountInfoDTO}.
      *
-     * @param account {@link Account} entity to convert
-     * @return {@link AccountInfoDTO} representing public profile data
+     * @param account Account entity convert
+     * @return Account's information representing profile data
      */
     AccountInfoDTO toAccountInfoDTO(Account account);
     
