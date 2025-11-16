@@ -13,6 +13,8 @@ import com.suyos.authservice.model.Account;
 import com.suyos.authservice.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service for account management operations.
@@ -34,7 +36,33 @@ public class AccountService {
     /** Repository for account data access operations */
     private final AccountRepository accountRepository;
 
+    // ----------------------------------------------------------------
+    // ADMIN
+    // ----------------------------------------------------------------
+
+    /**
+     * Finds an account by ID.
+     * 
+     * @param id ID to search for
+     * @return Account's information
+     * @throws RuntimeException If account is not found
+     */
+    public List<AccountInfoDTO> findAllAccounts() {
+        // Look up all accounts
+        List<Account> accounts = accountRepository.findAll();
+
+        // Map accounts' information from accounts
+        List<AccountInfoDTO> accountInfos = accounts.stream()
+            .map(accountMapper::toAccountInfoDTO)
+            .collect(Collectors.toList());
+        
+        // Return all accounts' information
+        return accountInfos;
+    }
+
+    // ----------------------------------------------------------------
     // ACCOUNT LOOKUP
+    // ----------------------------------------------------------------
 
     /**
      * Finds an account by ID.
@@ -51,7 +79,7 @@ public class AccountService {
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
 
-        // Return the account's information
+        // Return account's information
         return accountInfo;
     }
 
@@ -70,7 +98,7 @@ public class AccountService {
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
 
-        // Return the account's information
+        // Return account's information
         return accountInfo;
     }
 
@@ -89,7 +117,7 @@ public class AccountService {
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
         
-        // Return the account's information
+        // Return account's information
         return accountInfo;
     }
 

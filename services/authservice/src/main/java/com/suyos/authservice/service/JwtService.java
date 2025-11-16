@@ -40,6 +40,10 @@ public class JwtService {
     @Value("${jwt.expiration:900000}")
     private Long jwtExpiration;
 
+    // ----------------------------------------------------------------
+    // JWT TOKEN GENERATION
+    // ----------------------------------------------------------------
+
     /**
      * Builds JWT token with specified claims and expiration.
      * 
@@ -61,6 +65,10 @@ public class JwtService {
                 .signWith(getSignInKey())
                 .compact();
     }
+
+    // ----------------------------------------------------------------
+    // CLAIMS EXTRACTION
+    // ----------------------------------------------------------------
 
     /**
      * Extracts all claims from JWT token.
@@ -162,6 +170,10 @@ public class JwtService {
         }
     }
 
+    // ----------------------------------------------------------------
+    // JWT TOKEN VALIDATION
+    // ----------------------------------------------------------------
+
     /**
      * Checks if JWT token is expired.
      * 
@@ -171,6 +183,10 @@ public class JwtService {
     private boolean isTokenExpired(String jwtToken) {
         return extractExpiration(jwtToken).before(new Date());
     }
+
+    // ----------------------------------------------------------------
+    // HELPERS
+    // ----------------------------------------------------------------
 
     /**
      * Gets the signing key for JWT token operations.

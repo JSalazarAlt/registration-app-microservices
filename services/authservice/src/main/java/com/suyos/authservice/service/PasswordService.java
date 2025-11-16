@@ -46,6 +46,10 @@ public class PasswordService {
     /** Password reset token lifetime in hours */
     private static final Long PASSWORD_TOKEN_LIFETIME_HOURS = 24L;
 
+    // ----------------------------------------------------------------
+    // PASSWORD RESET
+    // ----------------------------------------------------------------
+
     /**
      * Handles the password reset request process.
      * 
@@ -121,5 +125,9 @@ public class PasswordService {
         // Return updated account's information
         return accountInfo;
     }
+
+    // ----------------------------------------------------------------
+    // PASSWORD CHANGE
+    // ----------------------------------------------------------------
     
 }

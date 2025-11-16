@@ -36,7 +36,9 @@ public class TokenService {
     /** Service for JWT token management */
     private final JwtService jwtService;
 
+    // ----------------------------------------------------------------
     // TOKEN GENERATION
+    // ----------------------------------------------------------------
 
     /**
      * Issues a new token of a specific type.
@@ -105,7 +107,9 @@ public class TokenService {
         return response;
     }
 
+    // ----------------------------------------------------------------
     // TOKEN VALIDATION
+    // ----------------------------------------------------------------
 
     /**
      * Checks if a token is valid (not revoked and not expired).
@@ -118,7 +122,9 @@ public class TokenService {
         return !token.getRevoked() && token.getExpiresAt().isAfter(LocalDateTime.now());
     }
 
+    // ----------------------------------------------------------------
     // TOKEN REFRESH
+    // ----------------------------------------------------------------
 
     /**
      * Refreshes access token using a valid refresh token (token rotation).
@@ -155,7 +161,9 @@ public class TokenService {
         return response;
     }
 
+    // ----------------------------------------------------------------
     // TOKEN LOOKUP
+    // ----------------------------------------------------------------
 
     /**
      * Finds a token by value.
@@ -190,7 +198,9 @@ public class TokenService {
         return token;
     }
 
+    // ----------------------------------------------------------------
     // TOKEN REVOCATION
+    // ----------------------------------------------------------------
 
     /**
      * Revokes a token by value.
@@ -230,7 +240,9 @@ public class TokenService {
         tokenRepository.revokeAllValidByAccountIdAndType(accountId, type);
     }
 
+    // ----------------------------------------------------------------
     // TOKEN DELETION
+    // ----------------------------------------------------------------
 
     /**
      * Deletes a token.
@@ -247,7 +259,9 @@ public class TokenService {
         tokenRepository.delete(token);
     }
 
-    // HELPER METHODS
+    // ----------------------------------------------------------------
+    // HELPERS
+    // ----------------------------------------------------------------
 
     /**
      * Extracts account ID from Authorization header containing access token.

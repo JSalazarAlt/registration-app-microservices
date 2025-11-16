@@ -67,7 +67,9 @@ public class AuthService {
     /** Refresh token lifetime in hours */
     private static final Long REFRESH_TOKEN_LIFETIME_HOURS = 720L;
 
+    // ----------------------------------------------------------------
     // TRADITIONAL REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
 
     /**
      * Creates a new account with the registration data.
@@ -200,7 +202,9 @@ public class AuthService {
         return response;
     }
 
-    // OAUTH2 REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
+    // GOOGLE OAUTH2 REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
 
     /**
      * Creates a new account with the registration data from Google.
@@ -301,7 +305,9 @@ public class AuthService {
         return response;
     }
 
+    // ----------------------------------------------------------------
     // LOGOUT
+    // ----------------------------------------------------------------
 
     /**
      * Deauthenticates an account.
@@ -337,7 +343,9 @@ public class AuthService {
         tokenService.revokeTokenByValue(value);
     }
 
+    // ----------------------------------------------------------------
     // EMAIL MANAGEMENT
+    // ----------------------------------------------------------------
 
     /**
      * Verifies email using the email verification token.
