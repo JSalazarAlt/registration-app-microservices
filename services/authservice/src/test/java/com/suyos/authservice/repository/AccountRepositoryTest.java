@@ -71,7 +71,7 @@ class AccountRepositoryTest {
 
     @Test
     void findActiveByEmail_Success() {
-        Optional<Account> result = accountRepository.findActiveByEmail("test@example.com");
+        Optional<Account> result = accountRepository.findByEmail("test@example.com");
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
     }
@@ -81,13 +81,13 @@ class AccountRepositoryTest {
         testAccount.setLocked(true);
         accountRepository.save(testAccount);
         
-        Optional<Account> result = accountRepository.findActiveByEmail("test@example.com");
+        Optional<Account> result = accountRepository.findByEmail("test@example.com");
         assertFalse(result.isPresent());
     }
 
     @Test
     void findActiveById_Success() {
-        Optional<Account> result = accountRepository.findActiveById(testAccount.getId());
+        Optional<Account> result = accountRepository.findById(testAccount.getId());
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
     }
@@ -97,7 +97,7 @@ class AccountRepositoryTest {
         testAccount.setEnabled(false);
         accountRepository.save(testAccount);
         
-        Optional<Account> result = accountRepository.findActiveById(testAccount.getId());
+        Optional<Account> result = accountRepository.findById(testAccount.getId());
         assertFalse(result.isPresent());
     }
 
@@ -118,7 +118,7 @@ class AccountRepositoryTest {
         testAccount.setOauth2ProviderId("google123");
         accountRepository.save(testAccount);
         
-        Optional<Account> result = accountRepository.findActiveByOauth2ProviderAndOauth2ProviderId("google", "google123");
+        Optional<Account> result = accountRepository.findByOauth2ProviderAndOauth2ProviderId("google", "google123");
         assertTrue(result.isPresent());
         assertEquals("test@example.com", result.get().getEmail());
     }

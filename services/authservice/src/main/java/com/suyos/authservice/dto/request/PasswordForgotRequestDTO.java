@@ -7,20 +7,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Data Transfer Object for email verification resend requests.
- * 
- * <p>Captures and validates email address for resending verification
- * links. Used when users need a new verification email sent to their
- * registered address.</p>
- * 
- * @author Joel Salazar
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmailResendRequestDTO {
+public class PasswordForgotRequestDTO {
 
     /** Email address to which send the password reset link */
     @NotBlank(message = "Email is required")

@@ -35,14 +35,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     // ACCOUNT LOOKUP
 
     /**
-     * Finds an account by ID.
-     * 
-     * @param id Account ID to search for
-     * @return Optional containing account if found, empty otherwise
-     */
-    Optional<Account> findByID(UUID id);
-
-    /**
      * Finds an account by username.
      * 
      * @param username Username to search for
@@ -66,5 +58,5 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * @return Optional containing account if found, empty otherwise
      */
     Optional<Account> findByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
-    
+
 }

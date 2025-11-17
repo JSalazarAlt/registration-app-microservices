@@ -100,6 +100,23 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     """)
     void deleteAllByAccountId(UUID accountId);
 
+    // TOKEN VALIDATION
+
+    /**
+     * Finds all valid tokens by value (not revoked, not expired).
+     * 
+     * @param value Token value to search for
+     * @return Optional containing valid token if found, empty otherwise
+     */
+    @Query("""
+        SELECT t FROM Token t 
+        WHERE t.value = :value 
+        AND t.revoked = false 
+        AND t.expiresAt > CURRENT_TIMESTAMP
+    """)
+    Optional<Token> findValidByValue(String value);
+
+
     // TOKEN CLEAN-UP
 
     /**

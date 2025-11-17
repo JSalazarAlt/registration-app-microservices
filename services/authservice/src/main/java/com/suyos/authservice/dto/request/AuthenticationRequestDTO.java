@@ -1,6 +1,5 @@
 package com.suyos.authservice.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,11 +7,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for user login authentication information.
+ * Data Transfer Object for login authentication credentials.
  * 
- * <p>This DTO is used to capture and validate user credentials during the login 
- * process. It contains only the essential fields required for user authentication 
- * and session establishment.</p>
+ * <p>Captures and validates account credentials during the login process. 
+ * Contains only essential fields required for authentication and session
+ * establishment.</p>
  * 
  * @author Joel Salazar
  */
@@ -22,12 +21,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthenticationRequestDTO {
 
-    /** Account's username */
-    private String username;
-
-    /** Account's email address */
-    @Email(message = "Invalid email format")
-    private String email;
+    /** Account's username or email */
+    @NotBlank(message = "Username or email is required")
+    private String identifier;
 
     /** Account's password */
     @NotBlank(message = "Password is required")

@@ -81,7 +81,7 @@ class AuthControllerIntegrationTest {
 
         // Then login
         AuthenticationRequestDTO loginDTO = AuthenticationRequestDTO.builder()
-                .email("login@example.com")
+                .identifier("login@example.com")
                 .password("password123")
                 .build();
 
@@ -97,7 +97,7 @@ class AuthControllerIntegrationTest {
     @Test
     void loginAccount_InvalidCredentials() throws Exception {
         AuthenticationRequestDTO loginDTO = AuthenticationRequestDTO.builder()
-                .email("nonexistent@example.com")
+                .identifier("nonexistent@example.com")
                 .password("wrongpassword")
                 .build();
 

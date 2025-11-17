@@ -1,5 +1,8 @@
 package com.suyos.authservice.config;
 
+import javax.crypto.spec.SecretKeySpec;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,8 +13,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,9 +31,8 @@ import lombok.RequiredArgsConstructor;
  * and password encoding for the application. Supports both traditional JWT 
  * authentication and Google OAuth2 authentication.</p>
  * 
- * <p>SecurityConfig wires JwtAuthenticationFilter (so that incoming requests 
- * get a JWT checked) and OAuth2AuthenticationSuccessHandler (so OAuth2 logins 
- * get processed into application tokens).</p>
+ * <p>Uses OAuth2 Resource Server for JWT validation (industry standard)
+ * and OAuth2 Client for Google authentication.</p>
  * 
  * @author Joel Salazar
  */
@@ -36,11 +41,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    /** JWT authentication filter for processing JWT tokens in requests */
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    
-    /** OAuth2 success handler for processing successful Google OAuth2 authentication */
     private final OAuth2AuthenticationSuccessHandler oauth2SuccessHandler;
+    private final JwtAuthenticationConverter jwtAuthenticationConverter;
+    
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     /**
      * Configures the main security rules and authentication mechanisms 
@@ -57,14 +62,8 @@ public class SecurityConfig {
      *       persistence for JWT-based authentication.</li>
      *   <li>Configures OAuth2 login flow, specifying authorization and 
      *       redirection endpoints, and a custom success handler.</li>
-     *   <li>Registers custom filters:
-     *     <ul>
-     *       <li>{@code rateLimitingFilter} — Applied before authentication to 
-     *           throttle excessive requests.</li>
-     *       <li>{@code jwtAuthFilter} — Validates and processes JWT tokens for 
-     *           authentication.</li>
-     *     </ul>
-     *   </li>
+     *   <li>Configures OAuth2 Resource Server for JWT validation using
+     *       industry-standard approach.</li>
      * </ul>
      *
      * <p><b>Purpose:</b></p>
@@ -75,8 +74,8 @@ public class SecurityConfig {
      *       unauthorized use of sensitive endpoints.</li>
      *   <li>Ensures the API operates securely in a stateless manner, suitable for 
      *       modern REST and microservice architectures.</li>
-     *   <li>Integrates essential security layers — CORS, headers, rate limiting, 
-     *       and authentication filters — into a unified filter chain.</li>
+     *   <li>Integrates essential security layers — CORS, headers, and 
+     *       authentication — into a unified filter chain.</li>
      * </ul>
      *
      * <hr>
@@ -88,43 +87,35 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            // Disable CSRF protection (suitable for stateless APIs using JWT)
             .csrf(csrf -> csrf.disable())
-            // Enable CORS with custom configuration
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // Configure security-related HTTP headers
             .headers(headers -> {
-                // Prevent the site from being loaded in a frame (clickjacking protection)
                 headers.frameOptions(frame -> frame.deny());
-                // Disable content type sniffing (optional, enabled by default)
                 headers.contentTypeOptions(contentType -> contentType.disable());
-                // Enforce HTTP Strict Transport Security (HSTS)
                 headers.httpStrictTransportSecurity(hsts -> hsts
-                    .maxAgeInSeconds(31536000) // 1 year
+                    .maxAgeInSeconds(31536000)
                     .includeSubDomains(true));
             })
-            // Define authorization rules for endpoints
             .authorizeHttpRequests(auth -> auth
-                // Allow anyone to register or login
                 .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
-                // Require authentication for logout
+                .requestMatchers("/api/v1/auth/oauth2/google").permitAll()
+                .requestMatchers("/api/v1/auth/verify-email", "/api/v1/auth/resend-verification").permitAll()
+                .requestMatchers("/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
+                .requestMatchers("/api/v1/auth/refresh").permitAll()
                 .requestMatchers("/api/v1/auth/logout").authenticated()
-                // Allow anyone to use OAuth2 endpoints
                 .requestMatchers("/oauth2/**").permitAll()
-                // All other requests require authentication
                 .anyRequest().authenticated())
-            // Use stateless session management (no HTTP session, suitable for JWT)
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // Configure OAuth2 login
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(authorization -> authorization
                     .baseUri("/oauth2/authorize"))
                 .redirectionEndpoint(redirection -> redirection
                     .baseUri("/oauth2/callback/*"))
                 .successHandler(oauth2SuccessHandler))
-            // Add JWT authentication filter before authentication filter
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                .bearerTokenResolver(bearerTokenResolver()))
             .build();
     }
 
@@ -204,6 +195,17 @@ public class SecurityConfig {
     }
 
     /**
+     * Configures JWT decoder for OAuth2 Resource Server.
+     * 
+     * @return the JWT decoder
+     */
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        byte[] keyBytes = java.util.Base64.getDecoder().decode(secretKey);
+        return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(keyBytes, "HmacSHA256")).build();
+    }
+
+    /**
      * Configures the password encoder.
      * 
      * @return the BCrypt password encoder
@@ -212,5 +214,30 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
+    @Bean
+    public BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
+        resolver.setAllowUriQueryParameter(false);
+        
+        return request -> {
+            String path = request.getRequestURI();
+            
+            // Skip JWT validation for public endpoints
+            if (path.equals("/api/v1/auth/register") || 
+                path.equals("/api/v1/auth/login") ||
+                path.equals("/api/v1/auth/oauth2/google") ||
+                path.equals("/api/v1/auth/verify-email") ||
+                path.equals("/api/v1/auth/resend-verification") ||
+                path.equals("/api/v1/auth/forgot-password") ||
+                path.equals("/api/v1/auth/reset-password") ||
+                path.equals("/api/v1/auth/refresh") ||
+                path.startsWith("/oauth2/")) {
+                return null;
+            }
+            
+            return resolver.resolve(request);
+        };
+    }
+        
 }

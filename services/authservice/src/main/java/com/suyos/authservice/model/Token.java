@@ -85,7 +85,7 @@ public class Token {
     private Account account;
 
     /** Session ID associated with this token */
-    @JoinColumn(name = "session_id", nullable = false)
+    @Column(name = "session_id")
     private UUID sessionId;
 
     // LIFECYCLE

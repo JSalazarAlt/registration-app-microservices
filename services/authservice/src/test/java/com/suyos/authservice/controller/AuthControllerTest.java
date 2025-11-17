@@ -60,7 +60,7 @@ class AuthControllerTest {
                 .build();
                 
         loginDTO = AuthenticationRequestDTO.builder()
-                .email("test@example.com")
+                .identifier("test@example.com")
                 .password("password123")
                 .build();
                 

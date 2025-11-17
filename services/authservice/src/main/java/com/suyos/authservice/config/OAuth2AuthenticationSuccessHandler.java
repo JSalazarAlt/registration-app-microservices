@@ -9,7 +9,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.suyos.authservice.dto.request.OAuthAuthenticationRequestDTO;
+import com.suyos.authservice.dto.request.OAuth2AuthenticationRequestDTO;
 import com.suyos.authservice.service.AuthService;
 
 import jakarta.servlet.ServletException;
@@ -83,7 +83,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             String name = oauth2User.getAttribute("name");
             String providerId = oauth2User.getAttribute("sub"); // Google uses 'sub'
 
-            OAuthAuthenticationRequestDTO dto = OAuthAuthenticationRequestDTO.builder()
+            OAuth2AuthenticationRequestDTO dto = OAuth2AuthenticationRequestDTO.builder()
                     .email(email)
                     .name(name)
                     .providerId(providerId)

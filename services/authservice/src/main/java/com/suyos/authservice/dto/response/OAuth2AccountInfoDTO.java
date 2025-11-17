@@ -15,7 +15,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class OAuthAccountInfoDTO {
+public class OAuth2AccountInfoDTO {
 
     /** User's email address from OAuth2 provider */
     private String email;

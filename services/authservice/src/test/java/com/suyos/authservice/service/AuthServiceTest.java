@@ -75,8 +75,7 @@ class AuthServiceTest {
                 .build();
                 
         loginDTO = AuthenticationRequestDTO.builder()
-                .email("test@example.com")
-                .password("password123")
+                .identifier("test@example.com")
                 .build();
     }
 
@@ -122,7 +121,7 @@ class AuthServiceTest {
     @Test
     void authenticateAccount_Success() {
         // Given
-        when(accountRepository.findActiveByEmail(anyString())).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(accountRepository.save(any())).thenReturn(testAccount);
         when(tokenService.issueRefreshAndAccessTokens(any())).thenReturn(
@@ -146,7 +145,7 @@ class AuthServiceTest {
     @Test
     void authenticateAccount_InvalidPassword() {
         // Given
-        when(accountRepository.findActiveByEmail(anyString())).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
         // When & Then
@@ -159,7 +158,7 @@ class AuthServiceTest {
     @Test
     void authenticateAccount_AccountNotFound() {
         // Given
-        when(accountRepository.findActiveByEmail(anyString())).thenReturn(Optional.empty());
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
         // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, 

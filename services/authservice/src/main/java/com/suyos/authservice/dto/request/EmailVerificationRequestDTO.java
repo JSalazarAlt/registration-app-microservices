@@ -8,8 +8,9 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for email verification token requests.
  *
- * <p>Used for email verication operations that require an email
- * for processing.</p>
+ * <p>Captures and validates the verification token sent to users
+ * via email. Used to confirm email ownership during account
+ * registration.</p>
  *
  * @author Joel Salazar
  */

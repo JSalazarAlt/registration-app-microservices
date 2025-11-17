@@ -2,8 +2,8 @@ package com.suyos.authservice.service;
 
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -54,7 +54,7 @@ public class JwtService {
         Map<String, Object> claims = Map.of(
             "username", account.getUsername(),
             "email", account.getEmail(),
-            "role", account.getRole().name()
+            "authorities", List.of("ROLE_" + account.getRole().name())
         );
 
         return Jwts.builder()
@@ -67,61 +67,14 @@ public class JwtService {
     }
 
     // ----------------------------------------------------------------
-    // CLAIMS EXTRACTION
+    // CLAIMS EXTRACTION (for internal use only)
     // ----------------------------------------------------------------
 
     /**
-     * Extracts all claims from JWT token.
-     * 
-     * @param jwtToken JWT token
-     * @return All claims from the token
-     * @throws JwtException If JWT token parsing fails
-     */
-    private Claims extractAllClaims(String jwtToken) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(getSignInKey())
-                    .build()
-                    .parseSignedClaims(jwtToken)
-                    .getPayload();
-        } catch (ExpiredJwtException e) {
-            log.debug("JWT token expired");
-            throw e;
-        } catch (MalformedJwtException e) {
-            log.debug("Malformed JWT token");
-            throw e;
-        } catch (SignatureException e) {
-            log.debug("JWT signature validation failed");
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to parse JWT token: {}", e.getMessage());
-            throw new JwtException("Token parsing failed", e);
-        }
-    }
-
-    /**
-     * Extracts a specific claim from JWT token.
-     * 
-     * @param <T> Type of the claim
-     * @param jwtToken JWT token
-     * @param claimsResolver Function to extract the specific claim
-     * @return Extracted claim
-     * @throws JwtException If JWT token is invalid
-     */
-    public <T> T extractClaim(String jwtToken, Function<Claims, T> claimsResolver) {
-        try {
-            final Claims claims = extractAllClaims(jwtToken);
-            return claimsResolver.apply(claims);
-        } catch (JwtException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error extracting claim from JWT: {}", e.getMessage());
-            throw new JwtException("Failed to extract claim from token", e);
-        }
-    }
-
-    /**
      * Extracts subject from JWT token.
+     * 
+     * <p>Used internally for extracting account ID from Authorization header.
+     * OAuth2 Resource Server handles all JWT validation.</p>
      * 
      * @param jwtToken JWT token
      * @return Subject from the token (i.e., account ID)
@@ -129,7 +82,12 @@ public class JwtService {
      */
     public String extractSubject(String jwtToken) {
         try {
-            return extractClaim(jwtToken, Claims::getSubject);
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSignInKey())
+                    .build()
+                    .parseSignedClaims(jwtToken)
+                    .getPayload();
+            return claims.getSubject();
         } catch (ExpiredJwtException e) {
             log.warn("JWT token expired: {}", e.getMessage());
             throw e;
@@ -140,48 +98,9 @@ public class JwtService {
             log.warn("JWT signature validation failed: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Error extracting username from JWT: {}", e.getMessage());
+            log.error("Error extracting subject from JWT: {}", e.getMessage());
             throw new JwtException("Invalid JWT token", e);
         }
-    }
-
-    /**
-     * Extracts expiration date from JWT token.
-     * 
-     * @param jwtToken JWT token
-     * @return Expiration date
-     */
-    public Date extractExpiration(String jwtToken) {
-        return extractClaim(jwtToken, Claims::getExpiration);
-    }
-
-    /**
-     * Validates JWT token against user details.
-     * 
-     * @param jwtToken JWT token to validate
-     * @param expectedAccountId Expected account ID in the token
-     * @return True if token is valid, false otherwise
-     */
-    public boolean isTokenValid(String jwtToken, String expectedAccountId) {
-        try {
-            return extractSubject(jwtToken).equals(expectedAccountId) && !isTokenExpired(jwtToken);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    // ----------------------------------------------------------------
-    // JWT TOKEN VALIDATION
-    // ----------------------------------------------------------------
-
-    /**
-     * Checks if JWT token is expired.
-     * 
-     * @param jwtToken JWT token
-     * @return True if token is expired, false otherwise
-     */
-    private boolean isTokenExpired(String jwtToken) {
-        return extractExpiration(jwtToken).before(new Date());
     }
 
     // ----------------------------------------------------------------

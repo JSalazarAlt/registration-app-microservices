@@ -3,18 +3,23 @@ package com.suyos.authservice.service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
+import com.suyos.authservice.dto.response.PagedResponseDTO;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
+import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service for account management operations.
@@ -36,28 +41,55 @@ public class AccountService {
     /** Repository for account data access operations */
     private final AccountRepository accountRepository;
 
+    /** Service for token management */
+    private final TokenService tokenService;
+
     // ----------------------------------------------------------------
     // ADMIN
     // ----------------------------------------------------------------
 
     /**
-     * Finds an account by ID.
+     * Finds all accounts paginated.
      * 
-     * @param id ID to search for
-     * @return Account's information
-     * @throws RuntimeException If account is not found
+     * @param page Page number to search for
+     * @param size Size of page
+     * @param sortBy Sort
+     * @param sortDir Sort direction
+     * @return All accounts' information
      */
-    public List<AccountInfoDTO> findAllAccounts() {
-        // Look up all accounts
-        List<Account> accounts = accountRepository.findAll();
+    public PagedResponseDTO<AccountInfoDTO> findAllAccounts(int page, int size, 
+        String sortBy, String sortDir) {
+        // Define dynamic sorting rules
+        Sort sort = Sort.by(sortBy);
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            sort = sort.descending();
+        }
 
-        // Map accounts' information from accounts
-        List<AccountInfoDTO> accountInfos = accounts.stream()
-            .map(accountMapper::toAccountInfoDTO)
-            .collect(Collectors.toList());
+        // Create pageable request with dynamic sorting
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Look up all accounts paginated
+        Page<Account> accountPage = accountRepository.findAll(pageable);
         
-        // Return all accounts' information
-        return accountInfos;
+        // Map accounts' information from accounts
+        List<AccountInfoDTO> accountInfos = accountPage.getContent()
+            .stream()
+            .map(accountMapper::toAccountInfoDTO)
+            .toList();
+
+        // Build paginated response with all accounts' information
+        PagedResponseDTO<AccountInfoDTO> response = PagedResponseDTO.<AccountInfoDTO>builder()
+            .content(accountInfos)
+            .currentPage(accountPage.getNumber())
+            .totalPages(accountPage.getTotalPages())
+            .totalElements(accountPage.getTotalElements())
+            .size(accountPage.getSize())
+            .first(accountPage.isFirst())
+            .last(accountPage.isLast())
+            .build();
+        
+        // Return all accounts' information paginated
+        return response;
     }
 
     // ----------------------------------------------------------------
@@ -121,7 +153,9 @@ public class AccountService {
         return accountInfo;
     }
 
-    // ACCOUNT UPDATE
+    // ----------------------------------------------------------------
+    // ACCOUNT MANAGEMENT
+    // ----------------------------------------------------------------
 
     /**
      * Updates an account by ID.
@@ -136,8 +170,23 @@ public class AccountService {
         Account account = accountRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
 
-        // Update account fields using mapper
-        accountMapper.updateAccountFromDTO(request, account);
+        // Update email if update request includes it
+        if (request.getEmail() != null) {
+            // Check if email is already registered
+            if (accountRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already registered");
+            }
+            account.setEmail(request.getEmail());
+        }
+
+        // Update username if update request includes it
+        if (request.getUsername() != null) {
+            // Check if username is already taken
+            if (accountRepository.existsByUsername(request.getUsername())) {
+                throw new RuntimeException("Username already registered");
+            }
+            account.setUsername(request.getUsername());
+        }
 
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
@@ -148,8 +197,6 @@ public class AccountService {
         // Return updated account's information
         return accountInfo;
     }
-
-    // ACCOUNT SOFT DELETION
 
     /**
      * Soft deletes an account by ID.
@@ -170,16 +217,24 @@ public class AccountService {
         account.setDeleted(true);
         account.setDeletedAt(LocalDateTime.now());
 
+        // Update last logout timestamp
+        account.setLastLogoutAt(LocalDateTime.now());
+
         // Persist soft deleted account
         Account updatedAccount = accountRepository.save(account);
 
         // Map account's information from soft deleted account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(updatedAccount);
 
+        // Revoke 
+        tokenService.revokeAllTokensByAccountIdAndType(updatedAccount.getId(), TokenType.REFRESH);
+
         // Return soft deleted account's information
         return accountInfoDTO;
     }
 
+    // ----------------------------------------------------------------
     // ACCOUNT CLEAN-UP
+    // ----------------------------------------------------------------
 
 }

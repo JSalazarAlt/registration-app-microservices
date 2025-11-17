@@ -1,5 +1,6 @@
 package com.suyos.authservice.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,7 @@ import lombok.NoArgsConstructor;
 public class RefreshTokenRequestDTO {
 
     /** Token value used for the request */
+    @NotBlank(message = "Refresh token value is required")
     private String value;
 
 }

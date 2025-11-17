@@ -3,18 +3,21 @@ package com.suyos.authservice.controller;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
+import com.suyos.authservice.dto.response.PagedResponseDTO;
 import com.suyos.authservice.service.AccountService;
-import com.suyos.authservice.service.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,8 +46,65 @@ public class AccountController {
     /** Service for account business logic */
     private final AccountService accountService;
 
-    /** Service for token management */
-    private final TokenService tokenService;
+    // ----------------------------------------------------------------
+    // ADMIN
+    // ----------------------------------------------------------------
+
+    /**
+     * Retrieves all accounts' information.
+     * 
+     * @return All accounts' information
+     */
+    @GetMapping
+    @Operation(
+        summary = "Get accounts paginated", 
+        description = "Retrieves accounts with pagination and sorting"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Success - Accounts found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
+    })
+    public ResponseEntity<PagedResponseDTO<AccountInfoDTO>> getAllAccounts(
+            @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
+            @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir) {
+        // Find all accounts' information
+        PagedResponseDTO<AccountInfoDTO> accountInfos = accountService.findAllAccounts(page, 
+            size, sortBy, sortDir);
+        
+        // Return accounts' information with "200 OK" status
+        return ResponseEntity.ok(accountInfos);
+    }
+
+    /**
+     * Retrieves account information by ID.
+     * 
+     * @param id ID to search for
+     * @return Account's information
+     * @throws RuntimeException If account not found
+     */
+    @GetMapping("/{id}")
+    @Operation(
+        summary = "Get account by ID",
+        description = "Retrieves account information by ID"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Success - Account found and returned"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Access denied"),
+        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
+    })
+    public ResponseEntity<AccountInfoDTO> getAccountById(
+            @Parameter(description = "Account's ID", required = true)
+            @PathVariable UUID id) {
+        // Find account's information by id
+        AccountInfoDTO accountInfo = accountService.findAccountById(id);
+
+        // Return account information with "200 OK" status
+        return ResponseEntity.ok(accountInfo);
+    }
 
     /**
      * Retrieves account information by username.
@@ -59,18 +119,24 @@ public class AccountController {
         description = "Retrieves account information by username"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Account found and returned"),
-        @ApiResponse(responseCode = "404", description = "Account not found")
+        @ApiResponse(responseCode = "200", description = "Success - Account found and returned"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Access denied"),
+        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
     })
     public ResponseEntity<AccountInfoDTO> getAccountByUsername(
             @Parameter(description = "Account's username", required = true)
             @PathVariable String username) {
-        // Fetch account information by username
+        // Find account's information by username
         AccountInfoDTO accountInfo = accountService.findAccountByUsername(username);
 
         // Return account information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
     }
+
+    // ----------------------------------------------------------------
+    // ACCOUNT MANAGEMENT
+    // ----------------------------------------------------------------
 
     /**
      * Retrieves current logged-in account.
@@ -85,14 +151,15 @@ public class AccountController {
         description = "Retrieves current logged-in account information"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Account found and returned"),
-        @ApiResponse(responseCode = "404", description = "Account not found")
+        @ApiResponse(responseCode = "200", description = "Success - Account found and returned"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
     })
-    public ResponseEntity<AccountInfoDTO> getLoggedInAccount(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<AccountInfoDTO> getLoggedInAccount(@AuthenticationPrincipal Jwt jwt) {
         // Extract logged-in account's ID from access token
-        UUID loggedInAccountId = tokenService.extractAccountIdFromAccessToken(authHeader);
+        UUID loggedInAccountId = UUID.fromString(jwt.getSubject());
         
-        // Find the logged-in account
+        // Find logged-in account
         AccountInfoDTO accountInfo = accountService.findAccountById(loggedInAccountId);
 
         // Return logged-in account's information with "200 OK" status
@@ -112,17 +179,17 @@ public class AccountController {
         description = "Updates fields of the currently logged-in account"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Account updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input"),
-        @ApiResponse(responseCode = "404", description = "Account not found")
+        @ApiResponse(responseCode = "200", description = "Success - Account found and updated"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
     })
     public ResponseEntity<AccountInfoDTO> updateLoggedInAccount(
-            @RequestHeader("Authorization") String authHeader,
+            @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody AccountUpdateRequestDTO request) {
-        // Extract logged-in account ID from access token
-        UUID loggedInAccountId = tokenService.extractAccountIdFromAccessToken(authHeader);
+        // Extract logged-in account's ID from access token
+        UUID loggedInAccountId = UUID.fromString(jwt.getSubject());
 
-        // Update the logged-in account
+        // Update logged-in account
         AccountInfoDTO accountInfo = accountService.updateAccountById(loggedInAccountId, request);
         
         // Return updated logged-in account's information with "200 OK" status
@@ -136,22 +203,22 @@ public class AccountController {
      * @return Soft deleted logged-in account's information
      * @throws RuntimeException If account not found
      */
-    @PatchMapping("/me")
+    @DeleteMapping("/me")
     @Operation(
         summary = "Soft delete current logged-in account",
         description = "Soft deletes the currently logged-in account"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Account updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input"),
-        @ApiResponse(responseCode = "404", description = "Account not found")
+        @ApiResponse(responseCode = "200", description = "Success - Account found and deleted"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
+        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
     })
-    public ResponseEntity<AccountInfoDTO> deleteLoggedInAccount(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<AccountInfoDTO> deleteLoggedInAccount(@AuthenticationPrincipal Jwt jwt) {
         // Extract logged-in account ID from access token
-        UUID loggedInAccountId = tokenService.extractAccountIdFromAccessToken(authHeader);
+        UUID loggedInAccountId = UUID.fromString(jwt.getSubject());
 
-        // Soft delete the logged-in account
-        AccountInfoDTO accountInfo = accountService.deleteAccountById(loggedInAccountId);
+        // Soft delete logged-in account
+        AccountInfoDTO accountInfo = accountService.softDeleteAccountById(loggedInAccountId);
         
         // Return soft deleted logged-in account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);

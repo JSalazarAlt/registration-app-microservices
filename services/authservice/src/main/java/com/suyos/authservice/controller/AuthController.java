@@ -11,11 +11,15 @@ import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.request.EmailResendRequestDTO;
 import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
+import com.suyos.authservice.dto.request.OAuth2AuthenticationRequestDTO;
+import com.suyos.authservice.dto.request.PasswordForgotRequestDTO;
+import com.suyos.authservice.dto.request.PasswordResetRequestDTO;
 import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
-import com.suyos.authservice.dto.response.EmailResendResponseDTO;
+import com.suyos.authservice.dto.response.GenericMessageResponseDTO;
 import com.suyos.authservice.service.AuthService;
+import com.suyos.authservice.service.PasswordService;
 import com.suyos.authservice.service.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * REST controller for authentication operations.
  *
- * <p>Handles user registration and login endpoints and provides JWT-based
+ * <p>Handles account registration and login endpoints and provides JWT-based
  * authentication for the application.</p>
  *
  * @author Joel Salazar
@@ -44,16 +48,21 @@ public class AuthController {
     
     /** Service for authentication business logic */
     private final AuthService authService;
+
+    /** Service for password management */
+    private final PasswordService passwordService;
     
     /** Service for token management */
     private final TokenService tokenService;
 
-    // REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
+    // TRADITIONAL REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
 
     /**
      * Registers a new user account.
      * 
-     * @param accountRegistrationDTO Account's registration data
+     * @param request Registration data
      * @return ResponseEntity containing created account's information
      */
     @PostMapping("/register")
@@ -65,66 +74,126 @@ public class AuthController {
         @ApiResponse(responseCode = "201", description = "Registration successful"),
         @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
     })
-    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody RegistrationRequestDTO accountRegistrationDTO) {
+    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody RegistrationRequestDTO request) {
         // Create a new account using the registration data
-        AccountInfoDTO accountInfoDTO = authService.createAccount(accountRegistrationDTO);
+        AccountInfoDTO accountInfo = authService.createAccount(request);
         
         // Return the created account info with "201 Created" status
-        return ResponseEntity.status(HttpStatus.CREATED).body(accountInfoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(accountInfo);
     }
 
     /**
      * Authenticates account and returns refresh and access tokens.
      * 
-     * @param accountLoginDTO Account's login credentials
+     * @param request Login credentials
      * @return ResponseEntity containing refresh and access tokens
      */
     @PostMapping("/login")
     @Operation(
-        summary = "Account login", 
-        description = "Authenticates account credentials and returns JWT token"
+        summary = "Login account", 
+        description = "Authenticates account credentials and returns refresh and access tokens"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
+        @ApiResponse(responseCode = "200", description = "Login successful, tokens returned"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials or account not active")
     })
-    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AuthenticationRequestDTO accountLoginDTO) {
+    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AuthenticationRequestDTO request) {
         // Authenticate an account using the login credentials
-        AuthenticationResponseDTO authenticationResponseDTO = authService.authenticateAccount(accountLoginDTO);
+        AuthenticationResponseDTO response = authService.authenticateAccount(request);
         
         // Return the authentication response with "200 OK" status
-        return ResponseEntity.ok(authenticationResponseDTO);
+        return ResponseEntity.ok(response);
     }
+    
+    // ----------------------------------------------------------------
+    // GOOGLE OAUTH2 REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
+
+    /**
+     * Authenticates account using Google OAuth2 and returns refresh and access tokens.
+     *
+     * @param request Google OAuth2 authentication request
+     * @return ResponseEntity containing refresh and access tokens
+     */
+    @PostMapping("/oauth2/google")
+    @Operation(
+        summary = "Google OAuth2 register and login account",
+        description = "Authenticates account using Google OAuth2 and returns refresh and access tokens"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login successful, tokens returned"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials or account not active")
+    })
+    public ResponseEntity<AuthenticationResponseDTO> googleOAuth2Authentication(@Valid @RequestBody OAuth2AuthenticationRequestDTO request) {
+        // Authenticate an account using the Google OAuth2 credentials
+        AuthenticationResponseDTO response = authService.processGoogleOAuth2Account(request);
+
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(response);
+    }
+
+    // ----------------------------------------------------------------
+    // LOGOUT
+    // ----------------------------------------------------------------
 
     /**
      * Deauthenticates account and revokes refresh token.
      * 
-     * @param refreshTokenRequestDTO Refresh token request
+     * @param request Refresh token request value
      * @return ResponseEntity indicating logout success
      */
     @PostMapping("/logout")
     @Operation(
-        summary = "Account logout",
-        description = "Invalidates account's JWT and refresh tokens"
+        summary = "Logout account",
+        description = "Invalidates account's refresh token and JWT access token"
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Logout successful"),
-        @ApiResponse(responseCode = "400", description = "Invalid or missing token")
+        @ApiResponse(responseCode = "400", description = "Invalid refresh token")
     })
-    public ResponseEntity<Void> logoutAccount(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
+    public ResponseEntity<Void> logoutAccount(@RequestBody RefreshTokenRequestDTO request) {
         // Deauthenticate an account revoking the refresh token
-        authService.deauthenticateAccount(refreshTokenRequestDTO);
+        authService.deauthenticateAccount(request);
         
         // Return the logout response with "204 No Content" status
         return ResponseEntity.noContent().build();
     }
 
-    // EMAIL 
+    // ----------------------------------------------------------------
+    // TOKEN REFRESH
+    // ----------------------------------------------------------------
 
     /**
-     * Verifies email address and deletes email verification token.
+     * Refreshes access token using the refresh token.
      * 
-     * @param emailVerificationTokenRequestDTO Email verification token request
+     * @param request Refresh token request
+     * @return ResponseEntity containing new refresh and access tokens
+     */
+    @PostMapping("/refresh")
+    @Operation(
+        summary = "Refresh JWT token",
+        description = "Generates new JWT token using valid refresh token"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+        @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+    })
+    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO request) {
+        // Refresh access token using the refresh token
+        AuthenticationResponseDTO response = tokenService.refreshToken(request);
+        
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(response);
+    }
+
+    // ----------------------------------------------------------------
+    // EMAIL MANAGEMENT
+    // ----------------------------------------------------------------
+
+    /**
+     * Verifies email address and revokes email verification token.
+     * 
+     * @param request Email verification token value
      * @return ResponseEntity containing account's information
      */
     @PostMapping("/verify-email")
@@ -136,18 +205,18 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Verify email successful"),
         @ApiResponse(responseCode = "401", description = "Invalid credentials or account locked")
     })
-    public ResponseEntity<AccountInfoDTO> verifyEmail(@Valid @RequestBody EmailVerificationRequestDTO emailVerificationTokenRequestDTO) {
+    public ResponseEntity<AccountInfoDTO> verifyEmail(@Valid @RequestBody EmailVerificationRequestDTO request) {
         // Authenticate an email using the email vefication token
-        AccountInfoDTO accountInfo = authService.verifyEmail(emailVerificationTokenRequestDTO);
+        AccountInfoDTO accountInfo = authService.verifyEmail(request);
 
         // Return the authentication response with "200 OK" status
         return ResponseEntity.ok(accountInfo);
     }
 
     /**
-     * Verifies email address and deletes email verification token.
+     * Resends email vefication link and revokes old email verification tokens.
      * 
-     * @param emailResendRequestDTO Email verification token request
+     * @param request Email to which send the link 
      * @return ResponseEntity containing message of verification link sent
      */
     @PostMapping("/resend-verification")
@@ -158,37 +227,61 @@ public class AuthController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Verify email successful"),
     })
-    public ResponseEntity<EmailResendResponseDTO> verifyEmail(@Valid @RequestBody EmailResendRequestDTO emailResendRequestDTO) {
+    public ResponseEntity<GenericMessageResponseDTO> resendEmailVerification(@Valid @RequestBody EmailResendRequestDTO request) {
         // Resend verification link to authenticate an email
-        EmailResendResponseDTO emailResendResponseDTO = authService.resendEmailVerification(emailResendRequestDTO);
+        GenericMessageResponseDTO response = authService.resendEmailVerification(request);
 
-        // Return the authentication response with "200 OK" status
-        return ResponseEntity.ok(emailResendResponseDTO);
-    }
-
-    // TOKEN MANAGEMENT
-
-    /**
-     * Refreshes access token using the refresh token.
-     * 
-     * @param refreshTokenRequestDTO Refresh token request
-     * @return ResponseEntity containing new refresh and access tokens
-     */
-    @PostMapping("/refresh")
-    @Operation(
-        summary = "Refresh JWT token",
-        description = "Generates new JWT token using valid refresh token"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
-        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
-    })
-    public ResponseEntity<AuthenticationResponseDTO> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        // Refresh access token using the refresh token
-        AuthenticationResponseDTO response = tokenService.refreshToken(refreshTokenRequestDTO);
-        
         // Return the authentication response with "200 OK" status
         return ResponseEntity.ok(response);
+    }
+
+    // ----------------------------------------------------------------
+    // PASSWORD MANAGEMENT
+    // ----------------------------------------------------------------
+
+    /**
+     * Sends password reset link and revokes old password reset tokens.
+     *
+     * @param request Email to which send the link
+     * @return ResponseEntity containing message of password reset link sent
+     */
+    @PostMapping("/forgot-password")
+    @Operation(
+        summary = "Send password reset email",
+        description = "Sends the password reset link to the email address of an account"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Password reset email sent"),
+    })
+    public ResponseEntity<GenericMessageResponseDTO> forgotPassword(@Valid @RequestBody PasswordForgotRequestDTO request) {
+        // Resend password reset link to authenticate an email
+        GenericMessageResponseDTO response = passwordService.forgotPassword(request);
+
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Sends password reset link and revokes old password reset tokens.
+     *
+     * @param request Email to which send the link
+     * @return ResponseEntity containing message of password reset link sent
+     */
+    @PostMapping("/reset-password")
+    @Operation(
+        summary = "Reset password",
+        description = "Resets the password of an account"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Password reset email sent"),
+        @ApiResponse(responseCode = "401", description = "Invalid password reset token")
+    })
+    public ResponseEntity<AccountInfoDTO> resetPassword(@Valid @RequestBody PasswordResetRequestDTO request) {
+        // Resend password reset link to authenticate an email
+        AccountInfoDTO accountInfo = passwordService.resetPassword(request);
+
+        // Return the authentication response with "200 OK" status
+        return ResponseEntity.ok(accountInfo);
     }
     
 }
