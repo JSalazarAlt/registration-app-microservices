@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for email verification token requests.
+ * Data Transfer Object for refresh token requests.
  *
  * <p>Contains the refresh token value used to obtain a new access token or
  * invalidate an existing session.</p>

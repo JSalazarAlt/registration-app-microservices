@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for authentication requests.
+ * Data Transfer Object for account authentication requests.
  * 
  * <p>Contains the account identifier and password used to authenticate the
  * user and establish a session.</p>

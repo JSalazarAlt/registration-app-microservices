@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for user registration and update information.
+ * Data Transfer Object for account registration requests.
  * 
  * <p>Contains user credentials and profile information used to create a new
  * account.</p>
