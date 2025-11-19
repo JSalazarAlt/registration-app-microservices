@@ -184,7 +184,7 @@ public class TokenService {
      * Finds a token by value and type.
      * 
      * @param value Token value to search for
-     * @param type Token type to search for
+     * @param type Type of token to search for
      * @return Token
      * @throws RuntimeException If token is not found or invalid
      */
@@ -237,7 +237,7 @@ public class TokenService {
      * <p>Used for email verification resend and password reset flows.</p>
      * 
      * @param accountId Account ID
-     * @param type Token type to revoke
+     * @param type Type of token to revoke
      */
     public void revokeAllTokensByAccountIdAndType(UUID accountId, TokenType type) {
         tokenRepository.revokeAllValidByAccountIdAndType(accountId, type);

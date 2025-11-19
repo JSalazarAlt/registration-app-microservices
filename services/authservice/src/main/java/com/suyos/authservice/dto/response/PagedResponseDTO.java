@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
  * <p>Contains paginated data and metadata used to support pagination controls
  * in client applications.</p>
  * 
- * @param <T> Objects' type contained in the paginated response
+ * @param <T> Type of objects contained in the paginated response
  * @author Joel Salazar
  */
 @Data
