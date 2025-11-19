@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for account update requests.
  * 
- * <p>Captures and validates account information during update
- * operations. Contains fields that can be modified by the account
- * owner.</p>
+ * <p>Contains the fields a user can modify, such as username and email, used
+ * to update account information.</p>
  * 
  * @author Joel Salazar
  */
@@ -21,7 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountUpdateRequestDTO {
 
-    /** Account's username */
+    /** New username */
     @Size(min = 3, max = 20, message = "Username must be 3–20 characters")
     @Pattern(
         regexp = "^[a-zA-Z0-9]+$", 
@@ -29,7 +28,7 @@ public class AccountUpdateRequestDTO {
     )
     private String username;
 
-    /** Account's email address */
+    /** New email address */
     @Email(message = "Invalid email format")
     private String email;
     

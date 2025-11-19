@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Service for account management operations.
  * 
- * <p>Handles account retrieval, updates, and deletion operations. Provides
+ * <p>Handles account retrieval, update, and deletion operations. Provides
  * methods for locating accounts (e.g., by email or username) and supports 
  * soft deletion for audit and recovery purposes.</p>
  *
@@ -43,6 +43,9 @@ public class AccountService {
 
     /** Service for token management */
     private final TokenService tokenService;
+
+    /** Account lock duration in hours */
+    private static final int LOCK_DURATION_HOURS = 24;
 
     // ----------------------------------------------------------------
     // ADMIN
@@ -92,6 +95,58 @@ public class AccountService {
         return response;
     }
 
+    /**
+     * Locks an account by ID.
+     * 
+     * @param id Account ID to lock
+     * @return Account's information
+     * @throws RuntimeException If account is not found
+     */
+    public AccountInfoDTO lockAccountById(UUID id) {
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+
+        // Lock account
+        account.setLocked(true);
+        account.setLockedUntil(LocalDateTime.now().plusHours(LOCK_DURATION_HOURS));
+
+        // Persist updated account
+        Account updatedAccount = accountRepository.save(account);
+
+        // Map account's information from updated account
+        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+
+        // Return account's information
+        return accountInfo;
+    }
+
+    /**
+     * Unlocks an account by ID.
+     * 
+     * @param id Account ID to unlock
+     * @return Account's information
+     * @throws RuntimeException If account is not found
+     */
+    public AccountInfoDTO unlockAccountById(UUID id) {
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+
+        // Unlock account
+        account.setLocked(false);
+        account.setLockedUntil(null);
+
+        // Persist updated account
+        Account updatedAccount = accountRepository.save(account);
+
+        // Map account's information from updated account
+        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+
+        // Return account's information
+        return accountInfo;
+    }
+
     // ----------------------------------------------------------------
     // ACCOUNT LOOKUP
     // ----------------------------------------------------------------
@@ -99,7 +154,7 @@ public class AccountService {
     /**
      * Finds an account by ID.
      * 
-     * @param id ID to search for
+     * @param id Account ID to search for
      * @return Account's information
      * @throws RuntimeException If account is not found
      */
@@ -169,6 +224,16 @@ public class AccountService {
         // Look up account by ID
         Account account = accountRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+        
+        // Update username if update request includes it
+        if (request.getUsername() != null) {
+            // Check if username is already taken
+            if (accountRepository.existsByUsername(request.getUsername())) {
+                throw new RuntimeException("Username already registered");
+            }
+            account.setUsername(request.getUsername());
+            // Publish event for updating username
+        }
 
         // Update email if update request includes it
         if (request.getEmail() != null) {
@@ -177,15 +242,7 @@ public class AccountService {
                 throw new RuntimeException("Email already registered");
             }
             account.setEmail(request.getEmail());
-        }
-
-        // Update username if update request includes it
-        if (request.getUsername() != null) {
-            // Check if username is already taken
-            if (accountRepository.existsByUsername(request.getUsername())) {
-                throw new RuntimeException("Username already registered");
-            }
-            account.setUsername(request.getUsername());
+            // Publish event for updating email
         }
 
         // Persist updated account

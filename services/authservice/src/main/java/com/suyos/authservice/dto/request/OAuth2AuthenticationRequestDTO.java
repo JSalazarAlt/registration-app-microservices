@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for OAuth2 authentication requests.
  * 
- * <p>Captures user information from OAuth2 providers (Google,
- * Facebook, etc.) during authentication. Used for both account
- * creation and login flows.</p>
+ * <p>Contains information from OAuth2 providers used to authenticate the
+ * user during login or account creation.</p>
  * 
  * @author Joel Salazar
  */

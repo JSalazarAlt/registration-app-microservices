@@ -12,9 +12,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for user registration and update information.
  * 
- * <p>This DTO is used to capture and validate user credentials during registration 
- * process. It contains only the essential fields required for user authentication 
- * and session establishment.</p>
+ * <p>Contains user credentials and profile information used to create a new
+ * account.</p>
  * 
  * @author Joel Salazar
  */
@@ -24,7 +23,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class RegistrationRequestDTO {
 
-    /** Account's username */
+    // ----------------------------------------------------------------
+    // ACCOUNT INFORMATION
+    // ----------------------------------------------------------------
+
+    /** Username */
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 20, message = "Username must be 3–20 characters")
     @Pattern(
@@ -33,12 +36,12 @@ public class RegistrationRequestDTO {
     )
     private String username;
 
-    /** Account's email address */
+    /** Email address */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
 
-    /** Account's password */
+    /** Password */
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(
@@ -47,7 +50,11 @@ public class RegistrationRequestDTO {
     )
     private String password;
 
-    /** User's first name */
+    // ----------------------------------------------------------------
+    // USER PROFILE
+    // ----------------------------------------------------------------
+
+    /** First name */
     @NotBlank(message = "First name is required")
     @Pattern(
         regexp = "^[\\p{L} ]+$", 
@@ -55,7 +62,7 @@ public class RegistrationRequestDTO {
     )
     private String firstName;
 
-    /** User's last name */
+    /** Last name */
     @NotBlank(message = "Last name is required")
     @Pattern(
         regexp = "^[\\p{L} ]+$", 
@@ -63,20 +70,20 @@ public class RegistrationRequestDTO {
     )
     private String lastName;
 
-    /** User's phone number for contact purposes */
+    /** Phone number */
     @Pattern(
         regexp = "^$|^\\+?[0-9]{7,15}$",
         message = "Phone must be 7–15 digits, optional + for country code"
     )
     private String phone;
     
-    /** User's profile picture URL */
+    /** Profile picture URL */
     private String profilePictureUrl;
     
-    /** User's preferred language locale */
+    /** Preferred language locale */
     private String locale;
     
-    /** User's timezone preference */
+    /** Preferred timezone */
     private String timezone;
     
 }

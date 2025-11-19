@@ -402,7 +402,7 @@ public class AuthService {
      * account is not already verified. Publishes an event to send the new
      * email verification token using the Email microservice.</p>
      *
-     * @param request Email to which send the link
+     * @param request Email address to send email verification link
      * @return Message indicating if email verification link has been sent
      */
     public GenericMessageResponseDTO resendEmailVerification(EmailResendRequestDTO request) {

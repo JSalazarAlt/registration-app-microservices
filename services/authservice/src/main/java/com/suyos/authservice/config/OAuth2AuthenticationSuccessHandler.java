@@ -20,9 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Handles successful Google OAuth2 authentication.
  *
- * <p>Processes Google OAuth2 user information, creates or updates user,
- * generates JWT token, and redirects to frontend with authentication
- * details for session initialization.</p>
+ * <p>Processes Google OAuth2 user information after successful
+ * authentication, creates or links account, generates JWT tokens,
+ * and redirects to frontend with authentication details.</p>
+ *
+ * <p>Integrates with AuthService for account management and token
+ * generation. Handles errors gracefully by redirecting to login
+ * page with error parameters.</p>
  *
  * @author Joel Salazar
  */
@@ -36,74 +40,67 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public OAuth2AuthenticationSuccessHandler(@Lazy AuthService authService) {
         this.authService = authService;
     }
-
+    
     /**
-     * Handles successful Google OAuth2 authentication and redirects the user 
-     * to the frontend with a generated access token.
+     * Handles successful OAuth2 authentication and redirects to frontend.
      *
      * <p><b>Behavior:</b></p>
-     * <ol>
-     *   <li>Extracts user information (email, name, provider ID) from the 
-     *       {@link OAuth2User} principal.</li>
-     *   <li>Processes the authenticated user through 
-     *       {@code authService.processGoogleOAuth2User()} to generate an access token.</li>
-     *   <li>Builds a redirect URL including token and basic user details.</li>
-     *   <li>Redirects the user to the frontend’s OAuth2 callback endpoint.</li>
-     *   <li>Logs and redirects to the login page with an error flag if any 
-     *       exception occurs.</li>
-     * </ol>
+     * <ul>
+     *   <li>Extracts user info from OAuth2User principal</li>
+     *   <li>Processes account creation/linking via AuthService</li>
+     *   <li>Redirects to frontend with tokens and account data</li>
+     *   <li>Redirects to login with error on failure</li>
+     * </ul>
      *
      * <p><b>Purpose:</b></p>
      * <ul>
-     *   <li>Completes the Google OAuth2 login flow after successful authentication.</li>
-     *   <li>Transfers user data and token securely to the frontend for session 
-     *       initialization.</li>
-     *   <li>Ensures proper error handling and user feedback on authentication 
-     *       failure.</li>
+     *   <li>Completes OAuth2 flow after Google authentication</li>
+     *   <li>Transfers tokens to frontend for session initialization</li>
      * </ul>
      *
-     * <hr>
-     *
-     * @param request the HTTP request
-     * @param response the HTTP response
-     * @param authentication the authenticated {@link Authentication} containing 
-     *        OAuth2 user details
-     * @throws IOException if an I/O operation fails
-     * @throws ServletException if servlet processing fails
+     * @param request HTTP request
+     * @param response HTTP response
+     * @param authentication OAuth2 authentication with user details
+     * @throws IOException If redirect fails
+     * @throws ServletException If servlet processing fails
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
         
+        // Extract OAuth2 user principal
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         
         try {
-            // Extract Google user information
+            // Extract Google user information from OAuth2 attributes
             String email = oauth2User.getAttribute("email");
             String name = oauth2User.getAttribute("name");
-            String providerId = oauth2User.getAttribute("sub"); // Google uses 'sub'
+            String providerId = oauth2User.getAttribute("sub");
 
+            // Build OAuth2 authentication request DTO
             OAuth2AuthenticationRequestDTO dto = OAuth2AuthenticationRequestDTO.builder()
                     .email(email)
                     .name(name)
                     .providerId(providerId)
                     .build();
             
-            // Process Google OAuth2 user
+            // Process OAuth2 account (create or link) and generate tokens
             var authResponse = authService.processGoogleOAuth2Account(dto);
             String token = authResponse.getAccessToken();
             
-            // Redirect to frontend with token and account data
+            // Build redirect URL with authentication data
             String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth2/redirect")
                     .queryParam("accountId", authResponse.getAccountId())
                     .queryParam("token", token)
                     .queryParam("tokenType", authResponse.getTokenType())
-                    .queryParam("expiresIn", authResponse.getExpiresIn())
+                    .queryParam("expiresIn", authResponse.getAccessTokenExpiresIn())
                     .build().toUriString();
             
+            // Redirect to frontend OAuth2 callback
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
             
         } catch (Exception e) {
+            // Log error and redirect to login with error flag
             log.error("Google OAuth2 authentication failed", e);
             getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/login?error=oauth2_failed");
         }

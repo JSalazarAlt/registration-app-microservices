@@ -7,13 +7,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Data Transfer Object for forgot password requests.
+ * 
+ * <p>Contains the user's email address used to send a password reset link.</p>
+ * 
+ * @author Joel Salazar
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PasswordForgotRequestDTO {
 
-    /** Email address to which send the password reset link */
+    /** Email address to send the password reset link */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;

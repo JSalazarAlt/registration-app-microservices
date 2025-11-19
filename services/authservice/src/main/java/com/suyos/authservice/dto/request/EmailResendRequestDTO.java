@@ -8,11 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for email verification resend requests.
+ * Data Transfer Object for resend email verification requests.
  * 
- * <p>Captures and validates email address for resending verification
- * links. Used when users need a new verification email sent to their
- * registered address.</p>
+ * <p>Contains the account's email address used to send a new email
+ * verification link.</p>
  * 
  * @author Joel Salazar
  */
@@ -22,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class EmailResendRequestDTO {
 
-    /** Email address to which send the password reset link */
+    /** Email address to send the email verification link */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;

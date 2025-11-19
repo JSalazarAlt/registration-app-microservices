@@ -18,11 +18,10 @@ import lombok.RequiredArgsConstructor;
 /**
  * Service for token management operations.
  *
- * <p>Handles token generation, refresh, and revocation for authentication
- * flows such as refresh token rotation, email verification, and password 
- * reset. Uses {@link JwtService} for JWT access token operations.</p>
+ * <p>Handles token generation, refresh, and revocation for flows such 
+ * as refresh token rotation, email verification, and password reset. 
+ * Uses {@link JwtService} for JWT access token operations.</p>
  * 
- *
  * @author Joel Salazar
  */
 @Service
@@ -100,7 +99,7 @@ public class TokenService {
                 .accountId(account.getId())
                 .accessToken(accessToken)
                 .refreshToken(value)
-                .expiresIn(jwtService.getExpirationTime())
+                .accessTokenExpiresIn(jwtService.getExpirationTime())
                 .build();
 
         // Return refresh and access tokens
@@ -130,7 +129,7 @@ public class TokenService {
      * Refreshes access token using a valid refresh token (token rotation).
      * 
      * @param request Current refresh token value
-     * @return New authentication response with rotated refresh and access tokens
+     * @return Rotated refresh and access tokens
      * @throws RuntimeException If refresh token is invalid
      */
     public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO request) {
@@ -222,7 +221,9 @@ public class TokenService {
     }
 
     /**
-     * Revokes all valid tokens for an account (e.g., on password change).
+     * Revokes all valid tokens by account ID.
+     * 
+     * <p>Used for password changes and account deletion flows.</p>
      * 
      * @param accountId Account ID
      */
@@ -231,10 +232,12 @@ public class TokenService {
     }
 
     /**
-     * Revokes all valid tokens of a specific type for an account (e.g., on 
-     * email verification resend).
+     * Revokes all valid tokens by account ID and type.
+     * 
+     * <p>Used for email verification resend and password reset flows.</p>
      * 
      * @param accountId Account ID
+     * @param type Token type to revoke
      */
     public void revokeAllTokensByAccountIdAndType(UUID accountId, TokenType type) {
         tokenRepository.revokeAllValidByAccountIdAndType(accountId, type);
@@ -257,28 +260,6 @@ public class TokenService {
         
         // Delete token
         tokenRepository.delete(token);
-    }
-
-    // ----------------------------------------------------------------
-    // HELPERS
-    // ----------------------------------------------------------------
-
-    /**
-     * Extracts account ID from Authorization header containing access token.
-     * 
-     * @param authHeader Authorization header with Bearer token
-     * @return Account ID extracted from access token
-     */
-    public UUID extractAccountIdFromAccessToken(String authHeader) {
-        // Strip "Bearer " prefix
-        String accessToken = authHeader.replace("Bearer ", "").trim();
-
-        // Extract account ID from access token
-        String accountIdStr = jwtService.extractSubject(accessToken);
-        UUID accountId = UUID.fromString(accountIdStr);
-
-        // Return account ID
-        return accountId;
     }
     
 }

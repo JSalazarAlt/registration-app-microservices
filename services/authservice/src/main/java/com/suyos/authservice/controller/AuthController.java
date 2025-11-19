@@ -72,7 +72,7 @@ public class AuthController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Registration successful"),
-        @ApiResponse(responseCode = "400", description = "Invalid registration data or email already exists")
+        @ApiResponse(responseCode = "400", description = "Invalid registration data or email/username already exists")
     })
     public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody RegistrationRequestDTO request) {
         // Create a new account using the registration data

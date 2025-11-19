@@ -8,6 +8,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Data Transfer Object for password reset requests.
+ *
+ * <p>Contains the password reset token and the new password used to complete
+ * the forgot-password process.</p>
+ *
+ * @author Joel Salazar
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,8 +26,8 @@ public class PasswordResetRequestDTO {
     @NotBlank(message = "Password reset token value is required")
     private String value;
 
-    /** Account's password */
-    @NotBlank(message = "Password is required")
+    /** New password */
+    @NotBlank(message = "New password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",

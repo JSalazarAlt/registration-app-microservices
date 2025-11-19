@@ -36,6 +36,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Token {
+    
+    // ----------------------------------------------------------------
+    // IDENTITY
+    // ----------------------------------------------------------------
 
     /** Unique identifier for the token record */
     @Id
@@ -43,17 +47,17 @@ public class Token {
     @Column(name = "id")
     private UUID id;
 
-    // IDENTITY
-
-    /** Token value for authentication */
+    /** Token value */
     @Column(name = "value", nullable = false, unique = true, length = 512)
     private String value;
 
-    /** Type of the token (e.g., refresh, email verification) */
+    /** Type of token (e.g., refresh, email verification) */
     @Column(name = "type", nullable = false)
     private TokenType type;
 
+    // ----------------------------------------------------------------
     // TOKEN ROTATION
+    // ----------------------------------------------------------------
 
     /** Root token ID for tracking token rotation chains */
     @Column(name = "root_token_id")
@@ -73,28 +77,32 @@ public class Token {
     @Column(name = "revoked", nullable = false)
     private Boolean revoked = false;
 
-    /** Timestamp when the token was revoked */
+    /** Timestamp when token was revoked */
     @Column(name = "revoked_at")
     private LocalDateTime revokedAt;
 
+    // ----------------------------------------------------------------
     // RELATIONSHIPS
+    // ----------------------------------------------------------------
 
-    /** Account associated with this token */
+    /** Account associated with token */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    /** Session ID associated with this token */
+    /** Session ID associated with token */
     @Column(name = "session_id")
     private UUID sessionId;
 
+    // ----------------------------------------------------------------
     // LIFECYCLE
+    // ----------------------------------------------------------------
 
-    /** Timestamp when the token was issued */
+    /** Timestamp when token was issued */
     @Column(name = "issued_at", nullable = false)
     private LocalDateTime issuedAt;
 
-    /** Timestamp when the token expires */
+    /** Timestamp when token expires */
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
     

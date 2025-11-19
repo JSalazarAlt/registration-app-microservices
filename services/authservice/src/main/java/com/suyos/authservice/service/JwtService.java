@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JwtService {
 
-    /** JWT secret key from application properties */
+    /** JWT secret key */
     @Value("${jwt.secret}")
     private String secretKey;
     
@@ -67,7 +67,7 @@ public class JwtService {
     }
 
     // ----------------------------------------------------------------
-    // CLAIMS EXTRACTION (for internal use only)
+    // CLAIMS EXTRACTION
     // ----------------------------------------------------------------
 
     /**

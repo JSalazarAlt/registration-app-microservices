@@ -26,36 +26,60 @@ import com.suyos.authservice.repository.AccountRepository;
 
 import reactor.core.publisher.Mono;
 
+/**
+ * Unit tests for AuthService.
+ *
+ * <p>Tests authentication business logic using mocked dependencies
+ * to verify service behavior.</p>
+ *
+ * @author Joel Salazar
+ */
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
+    /** Mocked account repository */
     @Mock
     private AccountRepository accountRepository;
     
+    /** Mocked account mapper */
     @Mock
     private AccountMapper accountMapper;
     
+    /** Mocked login attempt service */
     @Mock
     private LoginAttemptService loginAttemptService;
     
+    /** Mocked password encoder */
     @Mock
     private PasswordEncoder passwordEncoder;
     
+    /** Mocked token service */
     @Mock
     private TokenService tokenService;
     
+    /** Mocked user client */
     @Mock
     private UserClient userClient;
     
+    /** Auth service under test with injected mocks */
     @InjectMocks
     private AuthService authService;
     
+    /** Test account entity */
     private Account testAccount;
+    
+    /** Test registration request DTO */
     private RegistrationRequestDTO registrationDTO;
+    
+    /** Test authentication request DTO */
     private AuthenticationRequestDTO loginDTO;
 
+    /**
+     * Sets up test data before each test.
+     */
     @BeforeEach
     void setUp() {
+        // Build test account
         testAccount = Account.builder()
                 .id(UUID.randomUUID())
                 .username("testuser")
@@ -65,7 +89,8 @@ class AuthServiceTest {
                 .locked(false)
                 .failedLoginAttempts(0)
                 .build();
-                
+        
+        // Build registration request DTO
         registrationDTO = RegistrationRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
@@ -73,15 +98,22 @@ class AuthServiceTest {
                 .firstName("Test")
                 .lastName("User")
                 .build();
-                
+        
+        // Build login request DTO
         loginDTO = AuthenticationRequestDTO.builder()
                 .identifier("test@example.com")
                 .build();
     }
 
+    /**
+     * Tests successful account creation.
+     * 
+     * <p>Verifies that account is created, saved to database, and
+     * user profile is created in User Service.</p>
+     */
     @Test
     void createAccount_Success() {
-        // Given
+        // Mock dependencies for successful account creation
         when(accountRepository.existsByEmail(anyString())).thenReturn(false);
         when(accountMapper.toEntity(any())).thenReturn(testAccount);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
@@ -95,10 +127,10 @@ class AuthServiceTest {
                 .build()
         );
 
-        // When
+        // Create account
         AccountInfoDTO result = authService.createAccount(registrationDTO);
 
-        // Then
+        // Verify account was created successfully
         assertNotNull(result);
         assertEquals(testAccount.getUsername(), result.getUsername());
         assertEquals(testAccount.getEmail(), result.getEmail());
@@ -106,21 +138,33 @@ class AuthServiceTest {
         verify(userClient).createUser(any());
     }
 
+    /**
+     * Tests account creation with duplicate email.
+     * 
+     * <p>Verifies that account creation fails when email already
+     * exists in database.</p>
+     */
     @Test
     void createAccount_EmailAlreadyExists() {
-        // Given
+        // Mock email already exists
         when(accountRepository.existsByEmail(anyString())).thenReturn(true);
 
-        // When & Then
+        // Attempt to create account and expect exception
         RuntimeException exception = assertThrows(RuntimeException.class, 
             () -> authService.createAccount(registrationDTO));
         assertEquals("Email already registered", exception.getMessage());
         verify(accountRepository, never()).save(any());
     }
 
+    /**
+     * Tests successful account authentication.
+     * 
+     * <p>Verifies that authentication succeeds with valid credentials
+     * and returns access and refresh tokens.</p>
+     */
     @Test
     void authenticateAccount_Success() {
-        // Given
+        // Mock dependencies for successful authentication
         when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(accountRepository.save(any())).thenReturn(testAccount);
@@ -132,35 +176,47 @@ class AuthServiceTest {
                 .build()
         );
 
-        // When
+        // Authenticate account
         AuthenticationResponseDTO result = authService.authenticateAccount(loginDTO);
 
-        // Then
+        // Verify authentication was successful
         assertNotNull(result);
         assertEquals(testAccount.getId(), result.getAccountId());
         assertNotNull(result.getAccessToken());
         verify(accountRepository).save(any());
     }
 
+    /**
+     * Tests authentication with invalid password.
+     * 
+     * <p>Verifies that authentication fails when password is incorrect
+     * and failed attempt is recorded.</p>
+     */
     @Test
     void authenticateAccount_InvalidPassword() {
-        // Given
+        // Mock account found but password doesn't match
         when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
-        // When & Then
+        // Attempt authentication and expect exception
         RuntimeException exception = assertThrows(RuntimeException.class, 
             () -> authService.authenticateAccount(loginDTO));
         assertEquals("Invalid email or password", exception.getMessage());
         verify(loginAttemptService).recordFailedAttempt(testAccount);
     }
 
+    /**
+     * Tests authentication with non-existing account.
+     * 
+     * <p>Verifies that authentication fails when account does not
+     * exist in database.</p>
+     */
     @Test
     void authenticateAccount_AccountNotFound() {
-        // Given
+        // Mock account not found
         when(accountRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
-        // When & Then
+        // Attempt authentication and expect exception
         RuntimeException exception = assertThrows(RuntimeException.class, 
             () -> authService.authenticateAccount(loginDTO));
         assertTrue(exception.getMessage().contains("Account not found"));

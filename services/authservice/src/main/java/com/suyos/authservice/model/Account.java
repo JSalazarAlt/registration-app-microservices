@@ -22,7 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing an account in the authentication system.
+ * Entity representing an account.
  * 
  * <p>Maps to the <b>accounts</b> table and contains all fields for account
  * management and authentication.</p>
@@ -42,77 +42,91 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Account {
 
-    /** Unique identifier for the account record */
+    // ----------------------------------------------------------------
+    // IDENTITY
+    // ----------------------------------------------------------------
+
+    /** Unique identifier */
     @Id
     @GeneratedValue
     @Column(name = "id")
     private UUID id;
 
-    // IDENTITY
-
-    /** User's chosen username */
+    /** Username */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    /** User's email address used for login and communication */
+    /** Email address */
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    /** Flag indicating if the user's email address has been verified */
+    /** Flag indicating if email address has been verified */
     @Builder.Default
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
-    /** Encrypted password hash for user authentication */
+    /** Encrypted password hash */
     @Column(name = "password", nullable = false)
     private String password;
 
-    // AUTHORIZATION
+    // ----------------------------------------------------------------
+    // AUTHORITY
+    // ----------------------------------------------------------------
 
-    /** Encrypted password hash for user authentication */
+    /** Role defining access level */
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
 
+    // ----------------------------------------------------------------
     // STATUS
+    // ----------------------------------------------------------------
 
-    /** Flag indicating if the user account is enabled */
+    /** Flag indicating if account is enabled */
     @Builder.Default
     @Column(name = "enabled", nullable = false)
     private Boolean enabled = true;
 
-    /** Flag indicating if the user account is temporarily locked */
+    /** Flag indicating if account is temporarily locked */
     @Builder.Default
     @Column(name = "locked", nullable = false)
     private Boolean locked = false;
 
-    /** Timestamp when the account lock expires */
+    /** Timestamp when account lock expires */
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
 
-    /** Flag indicating if the user account was deactivated */
+    /** Flag indicating if account was soft deleted */
     @Builder.Default
     @Column(name = "deleted", nullable = false)
     private Boolean deleted = false;
 
-    // PASSWORD MANAGEMENT
+    /** Timestamp when account was soft deleted */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
-    /** Flag indicating if user must change password on next login */
+    // ----------------------------------------------------------------
+    // PASSWORD MANAGEMENT
+    // ----------------------------------------------------------------
+
+    /** Flag indicating if password must be changed on next login */
     @Builder.Default
     @Column(name = "must_change_password", nullable = false)
     private Boolean mustChangePassword = false;
 
-    /** Timestamp when the user's password was last changed */
+    /** Timestamp when password was last changed */
     @Column(name = "last_password_changed_at")
     private LocalDateTime lastPasswordChangedAt;
 
+    // ----------------------------------------------------------------
     // LOGIN AND LOGOUT TRACKING
+    // ----------------------------------------------------------------
 
-    /** Timestamp of the user's last successful login */
+    /** Timestamp of last successful login */
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    /** Timestamp of the user's last successful login */
+    /** Timestamp of last successful logout */
     @Column(name = "last_logout_at")
     private LocalDateTime lastLogoutAt;
 
@@ -121,41 +135,43 @@ public class Account {
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
 
+    // ----------------------------------------------------------------
     // OAUTH2 INTEGRATION
+    // ----------------------------------------------------------------
 
-    /** OAuth2 provider name (google) - null for traditional login */
+    /** OAuth2 provider name (e.g., Google, Facebook) */
     @Column(name = "oauth2_provider")
     private String oauth2Provider;
 
-    /** Unique identifier from OAuth2 provider - null for traditional login */
+    /** Unique identifier from OAuth2 provider */
     @Column(name = "oauth2_provider_id")
     private String oauth2ProviderId;
 
+    // ----------------------------------------------------------------
     // MULTI-FACTOR INTEGRATION
+    // ----------------------------------------------------------------
 
     /** Flag indicating if multi-factor authentication is enabled */
     @Builder.Default
     @Column(name = "mfa_enabled", nullable = false)
     private Boolean mfaEnabled = false;
 
-    /** Timestamp when multi-factor authentication was last enabled */
+    /** Timestamp when multi-factor authentication was enabled */
     @Column(name = "mfa_enabled_at")
     private LocalDateTime mfaEnabledAt;
     
-    // LIFECYCLE
+    // ----------------------------------------------------------------
+    // AUDITORY
+    // ----------------------------------------------------------------
 
-    /** Timestamp when the account record was first created in the system */
+    /** Timestamp when account record was first created */
     @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    /** Timestamp when the account record was last modified */
+    /** Timestamp when account record was last modified */
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    /** Timestamp when the account record was deleted */
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
     
 }

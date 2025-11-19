@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for email verification token requests.
  *
- * <p>Used for logout and token refresh operations that require
- * a refresh token for validation and processing.</p>
+ * <p>Contains the refresh token value used to obtain a new access token or
+ * invalidate an existing session.</p>
  * 
  * @author Joel Salazar
  */
@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class RefreshTokenRequestDTO {
 
-    /** Token value used for the request */
+    /** Refresh token value */
     @NotBlank(message = "Refresh token value is required")
     private String value;
 

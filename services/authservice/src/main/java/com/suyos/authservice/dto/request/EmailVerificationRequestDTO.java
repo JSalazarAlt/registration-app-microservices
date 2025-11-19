@@ -6,12 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for email verification token requests.
+ * Data Transfer Object for email verification requests.
  *
- * <p>Captures and validates the verification token sent to users
- * via email. Used to confirm email ownership during account
- * registration.</p>
- *
+ * <p>Contains the verification token used to confirm a user's email during
+ * the registration process.</p>
+ * 
  * @author Joel Salazar
  */
 @Data
@@ -20,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class EmailVerificationRequestDTO {
 
-    /** Token value used for the request */
+    /** Email verification token value */
     private String value;
     
 }

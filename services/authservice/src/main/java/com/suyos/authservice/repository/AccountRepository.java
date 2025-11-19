@@ -1,9 +1,13 @@
 package com.suyos.authservice.repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.model.Account;
 
@@ -16,6 +20,10 @@ import com.suyos.authservice.model.Account;
  */
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     
+    // ----------------------------------------------------------------
+    // EXISTENCE CHECKS
+    // ----------------------------------------------------------------
+
     /**
      * Checks if an email address is already registered.
      * 
@@ -32,7 +40,9 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      */
     boolean existsByUsername(String username);
 
-    // ACCOUNT LOOKUP
+    // ----------------------------------------------------------------
+    // LOOKUP
+    // ----------------------------------------------------------------
 
     /**
      * Finds an account by username.
@@ -58,5 +68,27 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * @return Optional containing account if found, empty otherwise
      */
     Optional<Account> findByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
+
+    // ----------------------------------------------------------------
+    // LOCK AND UNLOCK
+    // ----------------------------------------------------------------
+
+    @Modifying
+    @Transactional
+    @Query("""
+        UPDATE Account a
+        SET a.locked = true, a.lockedUntil = :until 
+        WHERE a.id = :id
+    """)
+    int lockAccount(UUID id, LocalDateTime until);
+
+    @Modifying
+    @Transactional
+    @Query("""
+        UPDATE Account a
+        SET a.locked = false, a.lockedUntil = null 
+        WHERE a.id = :id
+    """)
+    int unlockAccount(UUID id);
 
 }

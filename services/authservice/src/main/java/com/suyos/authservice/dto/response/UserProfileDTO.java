@@ -11,9 +11,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for user profile information.
  * 
- * <p>This DTO is used to transfer user profile data from the API to clients for 
- * display purposes. It contains public user information that can be safely 
- * exposed in API responses without sensitive security data.</p>
+ * <p>Contains public profile details used for display and client-facing API
+ * responses without exposing sensitive data.</p>
  * 
  * @author Joel Salazar
  */
@@ -23,43 +22,43 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserProfileDTO {
 
-    /** User's unique identifier */
-    private UUID id;
+    /** User's unique identifier from User microservice */
+    private UUID userId;
 
-    /** User's email address */
+    /** Email address */
     private String email;
 
-    /** User's chosen username for display purposes */
+    /** Username */
     private String username;
 
-    /** User's first name for personalization */
+    /** First name */
     private String firstName;
 
-    /** User's last name for identification */
+    /** Last name */
     private String lastName;
 
-    /** User's phone number for contact purposes */
+    /** Phone number */
     private String phone;
 
-    /** URL to the user's profile picture */
+    /** Profile picture URL */
     private String profilePictureUrl;
 
-    /** User's preferred language locale */
+    /** Preferred language locale */
     private String locale;
 
-    /** User's timezone preference */
+    /** Preferred timezone */
     private String timezone;
 
-    /** Timestamp when the user accepted the terms of service */
+    /** Timestamp when user accepted terms of service */
     private LocalDateTime termsAcceptedAt;
 
-    /** Timestamp when the user accepted the privacy policy */
+    /** Timestamp when user accepted privacy policy */
     private LocalDateTime privacyPolicyAcceptedAt;
 
-    /** Timestamp when the user record was first created in the system */
+    /** Timestamp when user record was first created */
     private LocalDateTime createdAt;
 
-    /** Timestamp when the user record was first updated in the system */
+    /** Timestamp when the user record was first updated */
     private LocalDateTime updatedAt;
 
 }

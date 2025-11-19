@@ -7,11 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for login authentication credentials.
+ * Data Transfer Object for authentication requests.
  * 
- * <p>Captures and validates account credentials during the login process. 
- * Contains only essential fields required for authentication and session
- * establishment.</p>
+ * <p>Contains the account identifier and password used to authenticate the
+ * user and establish a session.</p>
  * 
  * @author Joel Salazar
  */
@@ -21,11 +20,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthenticationRequestDTO {
 
-    /** Account's username or email */
+    /** Username or email */
     @NotBlank(message = "Username or email is required")
     private String identifier;
 
-    /** Account's password */
+    /** Password */
     @NotBlank(message = "Password is required")
     private String password;
 

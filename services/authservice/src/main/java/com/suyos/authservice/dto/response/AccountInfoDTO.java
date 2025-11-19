@@ -7,10 +7,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for account information.
+ * Data Transfer Object for basic account information.
  *
- * <p>Contains basic account details for public display and API responses.
- * Used when returning account information without sensitive data.</p>
+ * <p>Contains basic account details used for public display and API responses
+ * without exposing sensitive data.</p>
  *
  * @author Joel Salazar
  */
@@ -22,10 +22,16 @@ public class AccountInfoDTO {
     /** Account's ID */
     private UUID id;
 
-    /** Account's username */
+    /** Username */
     private String username;
 
-    /** Account's email address */
+    /** Email address */
     private String email;
+
+    /** Flag indicating if email address has been verified */
+    private Boolean emailVerified;
+
+    /** Flag indicating if multi-factor authentication is enabled */
+    private Boolean mfaEnabled;
 
 }

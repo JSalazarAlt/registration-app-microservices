@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Enumeration of account roles within the authentication system.
+ * Enumeration of account roles.
  * 
- * <p>Defines the various roles that can be assigned to user accounts, each
- * with specific permissions and access levels.</p>
+ * <p>Defines the various roles that can be assigned to accounts, each with
+ * specific permissions and access levels.</p>
  * 
  * @author Joel Salazar
  */

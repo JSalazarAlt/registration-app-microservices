@@ -31,7 +31,7 @@ public class LoginAttemptService {
     private static final int MAX_FAILED_ATTEMPTS = 5;
     
     /** Account lock duration in hours */
-    private static final int LOCK_DURATION_HOURS = 24;
+    private static final int LOCK_DURATION_HOURS = 2;
 
     /**
      * Records a failed login attempt and locks account if threshold reached.

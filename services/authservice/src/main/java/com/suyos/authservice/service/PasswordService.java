@@ -21,8 +21,9 @@ import lombok.RequiredArgsConstructor;
 /**
  * Service for password-related operations.
  *
- * <p>Handles forgot password and password reset. Uses {@link TokenService}
- * for token generation for password reset.
+ * <p>Handles password reset processing and password change operations. Uses
+ * {@link TokenService} for generating, validating, and revoking password reset
+ * tokens.</p>
  * 
  * @author Joel Salazar
  */
@@ -51,14 +52,14 @@ public class PasswordService {
     // ----------------------------------------------------------------
 
     /**
-     * Handles the password reset request process.
+     * Initiates the password reset process.
      * 
      * <p>Generates and sends a password reset token to the account associated
      * with the provided email if account exists and is not already verified.
      * Revokes any existing password reset tokens before issuing a new one.</p>
      *
-     * @param request Email address to send the password reset link to
-     * @return Message indicating that a password reset link has been sent
+     * @param request Email address to send password reset link
+     * @return Message indicating if password reset link has been sent
      */
     public GenericMessageResponseDTO forgotPassword(PasswordForgotRequestDTO request) {
         // Look up account by email

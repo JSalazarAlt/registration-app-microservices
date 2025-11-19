@@ -8,10 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for user creation requests to User Service.
+ * Data Transfer Object for user creation requests to User microservice.
  *
- * <p>Contains account and profile information needed to create a user
- * profile in the User Service during account registration.</p>
+ * <p>Contains account and user information needed to create a user profile
+ * in the User microservice during account registration.</p>
  *
  * @author Joel Salazar
  */
@@ -21,31 +21,39 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserCreationRequestDTO {
 
-    /** Account ID from Auth Service */
+    // ----------------------------------------------------------------
+    // ACCOUNT INFORMATION
+    // ----------------------------------------------------------------
+
+    /** Account ID from Auth microservice */
     private UUID accountId;
 
-    /** Account's username */
+    /** Username */
     private String username;
 
-    /** Account's email address */
+    /** Email address */
     private String email;
 
-    /** User's first name */
+    // ----------------------------------------------------------------
+    // USER PROFILE
+    // ----------------------------------------------------------------
+
+    /** First name */
     private String firstName;
     
-    /** User's last name */
+    /** Last name */
     private String lastName;
 
-    /** User's phone number */
+    /** Phone number */
     private String phone;
     
-    /** URL to the user's profile picture */
+    /** Profile picture URL */
     private String profilePictureUrl;
     
-    /** User's preferred language locale */
+    /** Preferred language locale */
     private String locale;
     
-    /** User's timezone preference */
+    /** Preferred timezone */
     private String timezone;
 
 }

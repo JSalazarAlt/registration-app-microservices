@@ -7,12 +7,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for authentication response containing JWT token and user 
- * information.
+ * Data Transfer Object for authentication responses.
  * 
- * <p>This DTO is returned after successful authentication, providing the client
- * with a JWT access token for subsequent API requests and basic user profile 
- * information.</p>
+ * <p>Contains the access and refresh tokens used for session management,
+ * along with basic account identifiers.</p>
  * 
  * @author Joel Salazar
  */
@@ -21,20 +19,20 @@ import lombok.Getter;
 @Builder
 public class AuthenticationResponseDTO {
     
-    /** Authenticated account's ID (for cross-service reference) */
+    /** Authenticated account's ID */
     private UUID accountId;
-    
-    /** JWT access token for API authentication */
-    private String accessToken;
 
     /** Refresh token for renewing expired access tokens */
     private String refreshToken;
+
+    /** JWT access token for API authentication */
+    private String accessToken;
     
-    /** Token type identifier */
+    /** JWT token type */
     @Builder.Default
     private String tokenType = "Bearer";
     
-    /** Token expiration time in seconds */
-    private Long expiresIn;
+    /** JWT access token expiration time in seconds */
+    private Long accessTokenExpiresIn;
 
 }

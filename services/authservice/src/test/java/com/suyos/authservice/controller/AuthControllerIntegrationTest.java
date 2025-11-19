@@ -17,6 +17,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 
+/**
+ * Integration tests for AuthController.
+ *
+ * <p>Tests authentication endpoints with full Spring context and
+ * database integration to verify end-to-end functionality.</p>
+ *
+ * @author Joel Salazar
+ */
 @SpringBootTest
 @AutoConfigureWebMvc
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
@@ -24,14 +32,23 @@ import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 @Transactional
 class AuthControllerIntegrationTest {
 
+    /** MockMvc for simulating HTTP requests */
     @Autowired
     private MockMvc mockMvc;
     
+    /** ObjectMapper for JSON serialization/deserialization */
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * Tests successful account registration with database persistence.
+     * 
+     * <p>Verifies that registration creates account in database and
+     * returns 201 Created with account information.</p>
+     */
     @Test
     void registerAccount_Success() throws Exception {
+        // Build registration request
         RegistrationRequestDTO registrationDTO = RegistrationRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
@@ -40,6 +57,7 @@ class AuthControllerIntegrationTest {
                 .lastName("User")
                 .build();
 
+        // Perform registration and verify response
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registrationDTO)))
@@ -48,8 +66,15 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.email").value("test@example.com"));
     }
 
+    /**
+     * Tests registration with invalid email format.
+     * 
+     * <p>Verifies that registration fails with 400 Bad Request when
+     * email format is invalid.</p>
+     */
     @Test
     void registerAccount_InvalidEmail() throws Exception {
+        // Build registration request with invalid email
         RegistrationRequestDTO registrationDTO = RegistrationRequestDTO.builder()
                 .username("testuser")
                 .email("invalid-email")
@@ -58,15 +83,22 @@ class AuthControllerIntegrationTest {
                 .lastName("User")
                 .build();
 
+        // Perform registration and expect bad request
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registrationDTO)))
                 .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Tests successful login with valid credentials.
+     * 
+     * <p>Verifies that login returns 200 OK with tokens after
+     * registering and authenticating a user.</p>
+     */
     @Test
     void loginAccount_Success() throws Exception {
-        // First register a user
+        // Register a user first
         RegistrationRequestDTO registrationDTO = RegistrationRequestDTO.builder()
                 .username("logintest")
                 .email("login@example.com")
@@ -79,12 +111,13 @@ class AuthControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registrationDTO)));
 
-        // Then login
+        // Build login request
         AuthenticationRequestDTO loginDTO = AuthenticationRequestDTO.builder()
                 .identifier("login@example.com")
                 .password("password123")
                 .build();
 
+        // Perform login and verify tokens are returned
         mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginDTO)))
@@ -94,13 +127,21 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.accountId").exists());
     }
 
+    /**
+     * Tests login with invalid credentials.
+     * 
+     * <p>Verifies that login fails with 401 Unauthorized when
+     * credentials are incorrect or account does not exist.</p>
+     */
     @Test
     void loginAccount_InvalidCredentials() throws Exception {
+        // Build login request with invalid credentials
         AuthenticationRequestDTO loginDTO = AuthenticationRequestDTO.builder()
                 .identifier("nonexistent@example.com")
                 .password("wrongpassword")
                 .build();
 
+        // Perform login and expect unauthorized
         mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginDTO)))

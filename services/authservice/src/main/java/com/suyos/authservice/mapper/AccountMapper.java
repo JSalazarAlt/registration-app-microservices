@@ -25,11 +25,8 @@ public interface AccountMapper {
     /**
      * Converts a {@link AccountUpsertDTO} to a {@link Account} entity.
      * 
-     * <p>Ignores fields that are managed internally or belong to other
-     * services, such as audit fields.</p>
-     *
      * @param request Account's registration data
-     * @return Account entity populated with created fields
+     * @return Created account entity
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "emailVerified", ignore = true)
@@ -55,9 +52,6 @@ public interface AccountMapper {
     /**
      * Updates an existing {@link Account} entity with fields from
      * {@link AccountUpdateRequestDTO}.
-     * 
-     * <p>Ignores fields that are managed internally or belong to other
-     * services, such as audit fields.</p>
      * 
      * @param request Account's update data
      * @param account Updated account entity
@@ -87,8 +81,8 @@ public interface AccountMapper {
     /**
      * Converts a {@link Account} entity to a {@link AccountInfoDTO}.
      *
-     * @param account Account entity convert
-     * @return Account's information representing profile data
+     * @param account Account entity
+     * @return Account's information
      */
     AccountInfoDTO toAccountInfoDTO(Account account);
     

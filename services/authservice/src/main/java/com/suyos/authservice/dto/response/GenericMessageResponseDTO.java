@@ -7,9 +7,8 @@ import lombok.Getter;
 /**
  * Data Transfer Object for generic message responses.
  * 
- * <p>Used for simple API responses that only need to return a
- * message string, such as success confirmations or informational
- * messages.</p>
+ * <p>Contains a simple message string used for confirmations or informational
+ * responses.</p>
  * 
  * @author Joel Salazar
  */
