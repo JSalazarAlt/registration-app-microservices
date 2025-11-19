@@ -14,7 +14,8 @@ import com.suyos.authservice.model.Account;
 /**
  * Repository for account data access operations.
  * 
- * <p>Provides standard CRUD operations for account entities.</p>
+ * <p>Provides standard CRUD operations for account entities and specific
+ * query methods.</p>
  * 
  * @author Joel Salazar
  */

@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RegistrationRequestDTO;
-import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
+//import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
 import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
@@ -62,7 +62,7 @@ class AuthControllerTest {
     private RefreshTokenRequestDTO refreshTokenRequestDTO;
     
     /** Test email verification request DTO */
-    private EmailVerificationRequestDTO emailVerificationTokenRequestDTO;
+    //private EmailVerificationRequestDTO emailVerificationTokenRequestDTO;
     
     /** Test account info response DTO */
     private AccountInfoDTO accountInfoDTO;
@@ -99,10 +99,12 @@ class AuthControllerTest {
                 .build();
         
         // Build email verification request DTO
+        /* 
         emailVerificationTokenRequestDTO = EmailVerificationRequestDTO.builder()
                 .value("email-verification-token")
                 .build();
-        
+        */
+
         // Build account info response DTO
         accountInfoDTO = AccountInfoDTO.builder()
                 .id(accountId)
