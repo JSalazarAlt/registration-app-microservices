@@ -49,16 +49,16 @@ public class UserProfileDTO {
     /** Preferred timezone */
     private String timezone;
 
-    /** Timestamp when user accepted terms of service */
+    /** Timestamp when terms of service were accepted */
     private LocalDateTime termsAcceptedAt;
 
-    /** Timestamp when user accepted privacy policy */
+    /** Timestamp when privacy policy was accepted */
     private LocalDateTime privacyPolicyAcceptedAt;
 
     /** Timestamp when user record was first created */
     private LocalDateTime createdAt;
 
-    /** Timestamp when the user record was first updated */
+    /** Timestamp when user record was last updated */
     private LocalDateTime updatedAt;
 
 }
