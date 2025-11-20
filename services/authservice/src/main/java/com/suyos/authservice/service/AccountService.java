@@ -283,7 +283,7 @@ public class AccountService {
         // Map account's information from soft deleted account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(updatedAccount);
 
-        // Revoke 
+        // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(updatedAccount.getId(), TokenType.REFRESH);
 
         // Return soft deleted account's information

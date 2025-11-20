@@ -315,7 +315,7 @@ public class AuthService {
      * <p>Revokes the associated refresh token during logout and updates the
      * account's last logout timestamp.</p>
      * 
-     * @param request Refresh token value
+     * @param request Refresh token value linked to account
      * @throws RuntimeException If refresh token is invalid
      */
     public void deauthenticateAccount(RefreshTokenRequestDTO request) {
@@ -385,7 +385,7 @@ public class AuthService {
         // Persist updated account
         accountRepository.save(account);
 
-        // Revoke email verification token
+        // Revoke email verification token used
         tokenService.revokeTokenByValue(value);
 
         // Map account's information from verified account

@@ -117,7 +117,7 @@ public class PasswordService {
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
 
-        // Revoke password reset token
+        // Revoke password reset token used
         tokenService.revokeTokenByValue(value);
 
         // Map account's information from updated account
