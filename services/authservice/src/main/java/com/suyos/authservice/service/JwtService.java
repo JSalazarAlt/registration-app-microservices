@@ -1,23 +1,19 @@
 package com.suyos.authservice.service;
 
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.suyos.authservice.model.Account;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -31,10 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class JwtService {
-
-    /** JWT secret key */
-    @Value("${jwt.secret}")
-    private String secretKey;
     
     /** JWT token expiration time in milliseconds (15 minutes) */
     @Value("${jwt.expiration:900000}")
@@ -62,76 +54,13 @@ public class JwtService {
                 .subject(account.getId().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSignInKey())
+                .signWith(getPrivateKey(), Jwts.SIG.RS256)
                 .compact();
-    }
-
-    // ----------------------------------------------------------------
-    // CLAIMS EXTRACTION
-    // ----------------------------------------------------------------
-
-    /**
-     * Extracts subject from JWT token.
-     * 
-     * <p>Used internally for extracting account ID from Authorization header.
-     * OAuth2 Resource Server handles all JWT validation.</p>
-     * 
-     * @param jwtToken JWT token
-     * @return Subject from the token (i.e., account ID)
-     * @throws JwtException If JWT token is invalid or expired
-     */
-    public String extractSubject(String jwtToken) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSignInKey())
-                    .build()
-                    .parseSignedClaims(jwtToken)
-                    .getPayload();
-            return claims.getSubject();
-        } catch (ExpiredJwtException e) {
-            log.warn("JWT token expired: {}", e.getMessage());
-            throw e;
-        } catch (MalformedJwtException e) {
-            log.warn("Malformed JWT token: {}", e.getMessage());
-            throw e;
-        } catch (SignatureException e) {
-            log.warn("JWT signature validation failed: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Error extracting subject from JWT: {}", e.getMessage());
-            throw new JwtException("Invalid JWT token", e);
-        }
     }
 
     // ----------------------------------------------------------------
     // HELPERS
     // ----------------------------------------------------------------
-
-    /**
-     * Gets the signing key for JWT token operations.
-     * 
-     * @return Signing key
-     */
-    private javax.crypto.SecretKey getSignInKey() {
-        try {
-            byte[] keyBytes;
-            try {
-                keyBytes = Base64.getDecoder().decode(secretKey);
-            } catch (IllegalArgumentException e) {
-                keyBytes = secretKey.getBytes();
-                log.warn("JWT secret is not base64 encoded. Consider using base64 encoding for better security.");
-            }
-            
-            if (keyBytes.length < 32) {
-                log.warn("JWT secret key is shorter than recommended 256 bits (32 bytes)");
-            }
-            
-            return new SecretKeySpec(keyBytes, "HmacSHA256");
-        } catch (Exception e) {
-            log.error("Failed to create signing key: {}", e.getMessage());
-            throw new RuntimeException("JWT configuration error", e);
-        }
-    }
 
     /**
      * Gets JWT token expiration time in seconds.
@@ -140,6 +69,31 @@ public class JwtService {
      */
     public Long getExpirationTime() {
         return jwtExpiration / 1000;
+    }
+
+    /**
+     * Gets the signing key for JWT token operations.
+     * 
+     * @return Signing key
+     */
+    private PrivateKey getPrivateKey() {
+        try (var inputStream = getClass().getResourceAsStream("/keys/private.pem")) {
+            var keyBytes = inputStream.readAllBytes();
+            var kf = KeyFactory.getInstance("RSA");
+            var spec = new PKCS8EncodedKeySpec(stripPemHeaders(keyBytes));
+            return kf.generatePrivate(spec);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load private key", e);
+        }
+    }
+
+    private byte[] stripPemHeaders(byte[] key) {
+        return Base64.getDecoder().decode(
+            new String(key)
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s", "")
+        );
     }
     
 }

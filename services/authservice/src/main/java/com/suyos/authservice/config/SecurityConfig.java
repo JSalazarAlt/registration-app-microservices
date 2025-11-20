@@ -1,10 +1,14 @@
 package com.suyos.authservice.config;
 
-import javax.crypto.spec.SecretKeySpec;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,9 +48,6 @@ public class SecurityConfig {
 
     private final OAuth2AuthenticationSuccessHandler oauth2SuccessHandler;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
-    
-    @Value("${jwt.secret}")
-    private String secretKey;
 
     /**
      * Configures security filter chain with authentication mechanisms.
@@ -174,17 +175,24 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures JWT decoder for OAuth2 Resource Server.
+     * Configures JWT decoder using RSA public key (RS256).
      * 
-     * @return JWT decoder with HMAC-SHA256 algorithm
+     * @return JWT decoder with RS256 algorithm
      */
     @Bean
-    public JwtDecoder jwtDecoder() {
-        // Decode base64 secret key
-        byte[] keyBytes = java.util.Base64.getDecoder().decode(secretKey);
-        
-        // Build JWT decoder with secret key
-        return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(keyBytes, "HmacSHA256")).build();
+    public JwtDecoder jwtDecoder(@Value("${jwt.public-key}") Resource publicKeyResource) throws Exception {
+        String key = new String(publicKeyResource.getInputStream().readAllBytes());
+
+        key = key.replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s+", "");
+
+        byte[] decoded = Base64.getDecoder().decode(key);
+
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        RSAPublicKey publicKey = (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(decoded));
+
+        return NimbusJwtDecoder.withPublicKey(publicKey).build();
     }
 
     /**
