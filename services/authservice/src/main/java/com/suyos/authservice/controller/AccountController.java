@@ -81,7 +81,7 @@ public class AccountController {
     /**
      * Retrieves account information by ID.
      * 
-     * @param id ID to search for
+     * @param id Account's ID to search for
      * @return Account's information
      * @throws RuntimeException If account not found
      */

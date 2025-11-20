@@ -15,19 +15,6 @@ import org.springframework.web.reactive.function.client.WebClient.Builder;
  */
 @Configuration
 public class WebClientConfig {
-
-    /**
-     * Creates WebClient bean for User microservice communication.
-     * 
-     * @param builder WebClient builder
-     * @return Configured WebClient for User Service
-     */
-    @Bean
-    public WebClient sessionMicroserviceWebClient(Builder builder) {
-        return builder
-                .baseUrl("http://localhost:8081")
-                .build();
-    }
     
     /**
      * Creates WebClient bean for User microservice communication.
@@ -39,19 +26,6 @@ public class WebClientConfig {
     public WebClient userMicroserviceWebClient(Builder builder) {
         return builder
                 .baseUrl("http://localhost:8081")
-                .build();
-    }
-
-    /**
-     * Creates WebClient bean for Email microservice communication.
-     * 
-     * @param builder WebClient builder
-     * @return Configured WebClient for User Service
-     */
-    @Bean
-    public WebClient emailMicroserviceWebClient(Builder builder) {
-        return builder
-                .baseUrl("http://localhost:8083")
                 .build();
     }
     

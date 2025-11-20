@@ -98,7 +98,7 @@ public class AccountService {
     /**
      * Locks an account by ID.
      * 
-     * @param id Account ID to lock
+     * @param id Account's ID to lock
      * @return Account's information
      * @throws RuntimeException If account is not found
      */
@@ -124,7 +124,7 @@ public class AccountService {
     /**
      * Unlocks an account by ID.
      * 
-     * @param id Account ID to unlock
+     * @param id Account's ID to unlock
      * @return Account's information
      * @throws RuntimeException If account is not found
      */
@@ -154,7 +154,7 @@ public class AccountService {
     /**
      * Finds an account by ID.
      * 
-     * @param id Account ID to search for
+     * @param id Account's ID to search for
      * @return Account's information
      * @throws RuntimeException If account is not found
      */
@@ -215,7 +215,7 @@ public class AccountService {
     /**
      * Updates an account by ID.
      * 
-     * @param id Account ID to update
+     * @param id Account's ID to update
      * @param request Account's update data
      * @return Updated account's information
      * @throws RuntimeException If account is not found
@@ -261,7 +261,7 @@ public class AccountService {
      * <p>Performs a soft deletion by marking the account as deleted and
      * setting the deletion timestamp.</p>
      * 
-     * @param id Account ID to soft delete
+     * @param id Account's ID to soft delete
      * @return Soft deleted account's information
      * @throws RuntimeException If account is not found
      */
