@@ -278,13 +278,13 @@ public class AccountService {
         account.setLastLogoutAt(LocalDateTime.now());
 
         // Persist soft deleted account
-        Account updatedAccount = accountRepository.save(account);
+        Account softDeletedAccount = accountRepository.save(account);
 
         // Map account's information from soft deleted account
-        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(updatedAccount);
+        AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(softDeletedAccount);
 
         // Revoke all valid refresh tokens linked to account
-        tokenService.revokeAllTokensByAccountIdAndType(updatedAccount.getId(), TokenType.REFRESH);
+        tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
 
         // Return soft deleted account's information
         return accountInfoDTO;
