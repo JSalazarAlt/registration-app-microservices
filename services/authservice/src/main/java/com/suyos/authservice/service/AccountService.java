@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
-import com.suyos.authservice.dto.response.PagedResponseDTO;
 import com.suyos.authservice.mapper.AccountMapper;
+import com.suyos.common.dto.response.PagedResponseDTO;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;

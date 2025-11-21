@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
-import com.suyos.authservice.dto.response.PagedResponseDTO;
 import com.suyos.authservice.service.AccountService;
+import com.suyos.common.dto.response.PagedResponseDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

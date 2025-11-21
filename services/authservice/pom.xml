@@ -32,6 +32,13 @@
 	
 	<dependencies>
 		
+		<!-- Shared Libraries -->
+		<dependency>
+			<groupId>com.suyos</groupId>
+			<artifactId>common</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		
 		<!-- Spring Boot Starters -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
