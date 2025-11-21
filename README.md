@@ -23,21 +23,26 @@ A full-stack authentication application built with React, Spring Boot microservi
 - **CSS3** - Styling and responsive design
 - **Vite** - Fast build tool and development server
 
-### Backend
+### Backend Microservices
 - **Spring Boot** - Java framework for microservices
 - **Spring Security** - Authentication and authorization
-- **Spring OAuth2** - Google OAuth2 integration
+- **Spring OAuth2 Resource Server** - JWT validation
+- **Spring OAuth2 Client** - Google OAuth2 integration
 - **Spring Data JPA** - Database operations and ORM
-- **JWT (JSON Web Tokens)** - Stateless authentication
+- **JWT (JSON Web Tokens)** - Stateless authentication with RS256 (RSA)
 - **MapStruct** - Object mapping between DTOs and entities
 - **Lombok** - Reduces boilerplate code with annotations
 - **Maven** - Dependency management and build tool
 - **Swagger/OpenAPI** - API documentation and testing
+- **MySQL** - Relational database
 
 ### BFF Service
 - **NestJS** - Node.js framework for Backend-for-Frontend
 - **TypeScript** - Type-safe JavaScript
 - **Axios** - HTTP client for microservice communication
+
+### Shared Libraries
+- **Common Library** - Shared DTOs (PagedResponseDTO) across microservices
 
 ## 📋 Prerequisites
 
@@ -49,39 +54,68 @@ A full-stack authentication application built with React, Spring Boot microservi
 ## 🏗️ Architecture
 
 ```
-Frontend (React) → BFF Service (NestJS) → Microservices (Spring Boot)
-                                        ├── Auth Service (Port 8080)
-                                        └── User Service (Port 8081)
+Frontend (React:5173) → BFF Service (NestJS:3000) → Auth Service (Spring Boot:8080)
+                                                   → User Service (Spring Boot:8081)
+                                                   
+                        Shared Library (common:1.0.0) ← Auth Service
+                                                       ← User Service
 ```
+
+### Key Architectural Decisions
+- **JWT Authentication**: RS256 asymmetric encryption (private key in Auth, public key shared)
+- **Independent Token Validation**: Each service validates JWT independently using OAuth2 Resource Server
+- **Shared Library**: Common DTOs to avoid duplication across microservices
+- **BFF Pattern**: Aggregates data from multiple services for simplified frontend consumption
 
 ## 🔧 Installation & Setup
 
-### Auth Service Setup
+### 1. Shared Library Setup (Required First)
+```bash
+cd shared/common
+mvn clean install
+```
+
+### 2. Auth Service Setup
 ```bash
 cd services/authservice
 mvn clean install
 mvn spring-boot:run
 ```
 
-### User Service Setup
+### 3. User Service Setup
 ```bash
 cd services/userservice
 mvn clean install
 mvn spring-boot:run
 ```
 
-### BFF Service Setup
+### 4. BFF Service Setup
 ```bash
 cd services/bffservice
 pnpm install
 pnpm run start:dev
 ```
 
-### Frontend Setup
+### 5. Frontend Setup
 ```bash
 cd web/frontend
 npm install
 npm run dev
+```
+
+### Environment Variables
+
+**Auth Service** (`services/authservice/src/main/resources/application.properties`):
+```properties
+jwt.private-key=classpath:keys/private_key.pem
+jwt.public-key=classpath:keys/public_key.pem
+spring.security.oauth2.client.registration.google.client-id=YOUR_GOOGLE_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_GOOGLE_CLIENT_SECRET
+```
+
+**User Service** (`services/userservice/src/main/resources/application.properties`):
+```properties
+jwt.public-key=classpath:keys/public_key.pem
 ```
 
 ## 🌐 API Endpoints
@@ -117,12 +151,15 @@ npm run dev
 ## 🔐 Security Features
 
 - **Password Encryption** - BCrypt hashing algorithm
-- **JWT Tokens** - Secure stateless authentication with refresh token rotation
+- **JWT Tokens** - RS256 (RSA asymmetric) with refresh token rotation
+  - Access Token: 15 minutes
+  - Refresh Token: 7 days
+- **Independent Token Validation** - Each service validates JWT using OAuth2 Resource Server
 - **Account Locking** - Automatic lockout after 5 failed attempts for 24 hours
-- **OAuth2 Integration** - Google OAuth2 with account linking
+- **OAuth2 Integration** - Google OAuth2 with account linking and active account validation
 - **Input Validation** - Comprehensive data validation with Bean Validation
-- **CORS Configuration** - Cross-origin resource sharing setup
-- **Active Account Validation** - Enhanced OAuth2 security with active account checks
+- **CORS Configuration** - Configured for `http://localhost:5173` and `http://localhost:3000`
+- **Soft Deletion** - Account and user soft deletion for audit trails
 
 ## 📱 Application Flow
 
@@ -142,25 +179,45 @@ npm run dev
 
 ## 🏛️ Microservices Design
 
-### Auth Service
+### Auth Service (Port 8080)
 - Account management and authentication
-- JWT token generation and validation
+- JWT token generation (RS256 with private key)
+- JWT token validation (OAuth2 Resource Server)
 - OAuth2 integration with Google
-- Account security features (locking, failed attempts)
-- Password encryption and validation
+- Account security features (locking after 5 failed attempts, 24h lockout)
+- Password encryption with BCrypt
+- Refresh token rotation
+- Account soft deletion
+- Swagger UI: http://localhost:8080/swagger-ui.html
 
-### User Service
+### User Service (Port 8081)
 - User profile management
+- JWT token validation (OAuth2 Resource Server with shared public key)
 - Personal information storage
 - Profile picture and preferences
 - User search and pagination
 - Terms and privacy policy acceptance tracking
+- Email/username sync from Auth Service
+- User soft deletion
+- Swagger UI: http://localhost:8081/swagger-ui.html
 
-### BFF Service
-- Data aggregation from multiple microservices
+### BFF Service (Port 3000)
+- Data aggregation from Auth and User services
 - Simplified frontend API
 - Request routing and transformation
-- Cross-service data composition
+- Complete profile endpoint (account + user data)
+- Error handling and transformation
+
+### Shared Library (common:1.0.0)
+- **Location**: `shared/common`
+- **Contents**: PagedResponseDTO for pagination
+- **Usage**: Maven dependency in Auth and User services
+- **Structure**: `com.suyos.common.dto.response.PagedResponseDTO`
+
+## 📊 API Documentation
+
+- **Auth Service Swagger**: http://localhost:8080/swagger-ui.html
+- **User Service Swagger**: http://localhost:8081/swagger-ui.html
 
 ## 📄 License
 
