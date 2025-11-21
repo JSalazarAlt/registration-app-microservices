@@ -1,4 +1,4 @@
-package com.suyos.userservice.dto;
+package com.suyos.userservice.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -8,10 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for user profile update information.
+ * Data Transfer Object for user profile update.
  * 
- * <p>This DTO is used to capture and validate user input when updating profile 
- * information. It contains only the fields that users are allowed to modify.</p>
+ * <p>Contains the fields of the user profile a user can modify.</p>
  * 
  * @author Joel Salazar
  */
@@ -19,9 +18,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserUpdateDTO {
+public class UserUpdateRequestDTO {
     
-    /** User's first name for personalization */
+    /** First name */
     @NotBlank(message = "First name is required")
     @Pattern(
         regexp = "^[\\p{L} ]+$", 
@@ -29,7 +28,7 @@ public class UserUpdateDTO {
     )
     private String firstName;
     
-    /** User's last name for identification */
+    /** Last name */
     @NotBlank(message = "Last name is required")
     @Pattern(
         regexp = "^[\\p{L} ]+$", 
@@ -37,20 +36,20 @@ public class UserUpdateDTO {
     )
     private String lastName;
     
-    /** User's phone number for contact purposes */
+    /** Phone number */
     @Pattern(
         regexp = "^$|^\\+?[0-9]{7,15}$",
         message = "Phone must be 7–15 digits, optional + for country code"
     )
     private String phone;
     
-    /** URL to the user's profile picture */
+    /** Profile picture URL */
     private String profilePictureUrl;
     
-    /** User's preferred language locale */
+    /** Preferred language locale */
     private String locale;
     
-    /** User's timezone preference */
+    /** Preferred timezone */
     private String timezone;
     
 }

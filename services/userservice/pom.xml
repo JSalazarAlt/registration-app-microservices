@@ -12,7 +12,7 @@
 	<artifactId>userservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>userservice</name>
-	<description>User service of the application</description>
+	<description>User microservice of the application</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -31,6 +31,13 @@
 	</properties>
 
 	<dependencies>
+		
+		<!-- Shared Libraries -->
+		<dependency>
+			<groupId>com.suyos</groupId>
+			<artifactId>common</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 		
 		<!-- Spring Boot Starters -->
 		<dependency>
@@ -89,6 +96,12 @@
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.7.0</version>
+		</dependency>
+
+		<!-- Spring Security OAuth2 Resource Server -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 		
 	</dependencies>

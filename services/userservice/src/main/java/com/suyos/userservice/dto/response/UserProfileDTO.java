@@ -1,4 +1,4 @@
-package com.suyos.userservice.dto;
+package com.suyos.userservice.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -13,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.userservice.dto.PagedResponseDTO;
-import com.suyos.userservice.dto.UserProfileDTO;
-import com.suyos.userservice.dto.UserUpdateDTO;
+import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
+import com.suyos.userservice.dto.response.UserProfileDTO;
 import com.suyos.userservice.service.UserService;
+import com.suyos.common.dto.response.PagedResponseDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,13 +30,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
- * REST controller for managing user profile operations.
+ * REST controller for user profile operations.
  *
- * <p>Exposes endpoints for both end-users (via /me routes) and administrative 
- * or internal use (via /{userId} routes).</p>
- *
- * <p>Authenticated users are identified by their accountId from the JWT token
- * (simulated here via request parameter for demonstration).</p>
+ * <p>Handles user profile retrieval and update endpoints.</p>
  *
  * @author Joel Salazar
  */
@@ -47,107 +45,18 @@ import lombok.RequiredArgsConstructor;
 )
 public class UserController {
 
-    /** Service for handling user profile logic */
+    /** Service for user business logic */
     private final UserService userService;
 
     // ----------------------------------------------------------------
-    // ADMIN / INTERNAL ENDPOINTS
-    // ----------------------------------------------------------------
-
-    @Operation(
-        summary = "Get user profile by ID (Admin)",
-        description = "Retrieves an existing user's profile using their ID.",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "User profile retrieved successfully",
-                         content = @Content(schema = @Schema(implementation = UserProfileDTO.class))),
-            @ApiResponse(responseCode = "404", description = "User not found")
-        }
-    )
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserProfileDTO> getUserById(
-            @Parameter(description = "User's unique ID", required = true)
-            @PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.getUserProfileById(userId));
-    }
-
-    @Operation(
-        summary = "Update user profile by ID (Admin)",
-        description = "Updates an existing user's profile using their ID.",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "User profile updated successfully",
-                         content = @Content(schema = @Schema(implementation = UserProfileDTO.class))),
-            @ApiResponse(responseCode = "404", description = "User not found")
-        }
-    )
-    @PutMapping("/{userId}")
-    public ResponseEntity<UserProfileDTO> updateUserById(
-            @Parameter(description = "User's unique ID", required = true)
-            @PathVariable UUID userId,
-            @RequestBody UserUpdateDTO userUpdateDTO) {
-        return ResponseEntity.ok(userService.updateUserProfileById(userId, userUpdateDTO));
-    }
-
-    @Operation(
-        summary = "Check if user exists by ID",
-        description = "Checks whether a user exists for a given ID.",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Returns true if user exists, false otherwise")
-        }
-    )
-    @GetMapping("/{userId}/exists")
-    public ResponseEntity<Boolean> existsById(
-            @Parameter(description = "User's unique ID", required = true)
-            @PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.existsById(userId));
-    }
-
-    // ----------------------------------------------------------------
-    // USER-FACING ENDPOINTS
-    // ----------------------------------------------------------------
-
-    @Operation(
-        summary = "Get profile by account ID",
-        description = "Retrieves a user's profile using their accountId.",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "User profile retrieved successfully",
-                         content = @Content(schema = @Schema(implementation = UserProfileDTO.class))),
-            @ApiResponse(responseCode = "404", description = "User not found")
-        }
-    )
-    @GetMapping("/account/{accountId}")
-    public ResponseEntity<UserProfileDTO> getProfileByAccountId(
-            @Parameter(description = "Account ID associated with the user", required = true)
-            @PathVariable UUID accountId) {
-        return ResponseEntity.ok(userService.getUserProfileByAccountId(accountId));
-    }
-
-    @Operation(
-        summary = "Update profile by account ID",
-        description = "Updates the profile information for the given accountId.",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "User profile updated successfully",
-                         content = @Content(schema = @Schema(implementation = UserProfileDTO.class))),
-            @ApiResponse(responseCode = "404", description = "User not found")
-        }
-    )
-    @PutMapping("/account/{accountId}")
-    public ResponseEntity<UserProfileDTO> updateProfileByAccountId(
-            @Parameter(description = "Account ID associated with the user", required = true)
-            @PathVariable UUID accountId,
-            @RequestBody UserUpdateDTO updateDTO) {
-        return ResponseEntity.ok(userService.updateUserProfileByAccountId(accountId, updateDTO));
-    }
-
-    // ----------------------------------------------------------------
-    // PAGINATION & SEARCH
+    // ADMIN
     // ----------------------------------------------------------------
 
     @Operation(
         summary = "List all users (paginated)",
         description = "Retrieves a paginated list of users with sorting options.",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Paged list of users retrieved successfully",
-                         content = @Content(schema = @Schema(implementation = PagedResponseDTO.class)))
+            @ApiResponse(responseCode = "200", description = "Paged list of users retrieved successfully")
         }
     )
     @GetMapping
@@ -156,26 +65,120 @@ public class UserController {
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
             @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir) {
-        return ResponseEntity.ok(userService.getAllUsersPaginated(page, size, sortBy, sortDir));
+        // Find all users' profile information paginated
+        PagedResponseDTO<UserProfileDTO> users = userService.findAllUsers(page, size, sortBy, sortDir);
+        
+        // Return users' profile information with "200 OK" status
+        return ResponseEntity.ok(users);
+    }
+
+    @Operation(
+        summary = "Get user profile by ID",
+        description = "Retrieves an existing user's profile using their ID.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "User profile retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<UserProfileDTO> getUserById(
+            @Parameter(description = "User's unique ID", required = true)
+            @PathVariable UUID id) {
+        // Find user's profile by ID
+        UserProfileDTO userProfile = userService.findUserById(id);
+        
+        // Return user's profile with "200 OK" status
+        return ResponseEntity.ok(userProfile);
+    }
+
+    @Operation(
+        summary = "Update user profile by ID",
+        description = "Updates an existing user's profile using their ID.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "User profile updated successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @PutMapping("/{id}")
+    public ResponseEntity<UserProfileDTO> updateUserById(
+            @Parameter(description = "User's unique ID", required = true)
+            @PathVariable UUID id,
+            @RequestBody UserUpdateRequestDTO userUpdateDTO) {
+        // Update user's profile by ID
+        UserProfileDTO userProfile = userService.updateUserById(id, userUpdateDTO);
+        
+        // Return updated user's profile with "200 OK" status
+        return ResponseEntity.ok(userProfile);
     }
 
     @Operation(
         summary = "Search users by name",
         description = "Performs a case-insensitive search across first and last names.",
         responses = {
-            @ApiResponse(responseCode = "200", description = "List of matching users retrieved successfully",
-                         content = @Content(schema = @Schema(implementation = UserProfileDTO.class)))
+            @ApiResponse(responseCode = "200", description = "List of matching users retrieved successfully")
         }
     )
     @GetMapping("/search")
     public ResponseEntity<List<UserProfileDTO>> searchUsersByName(
             @Parameter(description = "Partial or full name to search", required = true)
             @RequestParam String name) {
-        return ResponseEntity.ok(userService.searchUsersByName(name));
+        // Search users by name
+        List<UserProfileDTO> users = userService.searchUsersByName(name);
+        
+        // Return matching users' profile information with "200 OK" status
+        return ResponseEntity.ok(users);
     }
 
     // ----------------------------------------------------------------
-    // SYNC ENDPOINTS (triggered by Auth service)
+    // USER MANAGEMENT
+    // ----------------------------------------------------------------
+
+    @Operation(
+        summary = "Get current user profile",
+        description = "Retrieves the authenticated user's profile.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "User profile retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileDTO> getCurrentUserProfile(
+        @AuthenticationPrincipal Jwt jwt) {
+        // Extract account ID from JWT token
+        UUID accountId = UUID.fromString(jwt.getSubject());
+        
+        // Find user's profile by account ID
+        UserProfileDTO userProfile = userService.findUserByAccountId(accountId);
+        
+        // Return user's profile with "200 OK" status
+        return ResponseEntity.ok(userProfile);
+    }
+
+    @Operation(
+        summary = "Update current user profile",
+        description = "Updates the authenticated user's profile information.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "User profile updated successfully",
+                         content = @Content(schema = @Schema(implementation = UserProfileDTO.class))),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @PutMapping("/me")
+    public ResponseEntity<UserProfileDTO> updateCurrentUserProfile(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody UserUpdateRequestDTO updateDTO) {
+        // Extract account ID from JWT token
+        UUID accountId = UUID.fromString(jwt.getSubject());
+        
+        // Update user's profile by account ID
+        UserProfileDTO userProfile = userService.updateUserByAccountId(accountId, updateDTO);
+        
+        // Return updated user's profile with "200 OK" status
+        return ResponseEntity.ok(userProfile);
+    }
+
+    // ----------------------------------------------------------------
+    // SYNC ENDPOINTS
     // ----------------------------------------------------------------
 
     @Operation(
@@ -188,7 +191,10 @@ public class UserController {
             @PathVariable UUID accountId,
             @Parameter(description = "New email address", required = true)
             @RequestParam String newEmail) {
-        userService.handleEmailUpdateFromAuth(accountId, newEmail);
+        // Update user's email from Auth Service
+        userService.mirrorEmailUpdate(accountId, newEmail);
+        
+        // Return "204 No Content" status
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -202,7 +208,10 @@ public class UserController {
             @PathVariable UUID accountId,
             @Parameter(description = "New username", required = true)
             @RequestParam String newUsername) {
-        userService.handleUsernameUpdateFromAuth(accountId, newUsername);
+        // Update user's username from Auth Service
+        userService.mirrorUsernameUpdate(accountId, newUsername);
+        
+        // Return "204 No Content" status
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

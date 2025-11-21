@@ -23,12 +23,13 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 public class SwaggerConfig {
 
     /**
-     * Configures OpenAPI documentation with user microservice information.
+     * Configures OpenAPI documentation.
      * 
      * @return OpenAPI configuration object
      */
     @Bean
     public OpenAPI expenseTrackerOpenAPI() {
+        // Build OpenAPI configuration with API information
         return new OpenAPI()
             .info(new Info()
                 .title("Registration API")

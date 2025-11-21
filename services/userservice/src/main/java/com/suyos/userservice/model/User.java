@@ -20,10 +20,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing a user in the registration and authentication system.
+ * Entity representing a user.
  * 
- * This class maps to the 'users' table in the database and contains
- * all the necessary fields for user account management and authentication.
+ * <p>Maps to the <b>users</b> table and stores user profile, preferences,
+ * and acceptance timestamps for legal agreements. Mirrors core identity
+ * fields from the Auth microservice and links each user to its account.</p>
  * 
  * @author Joel Salazar
  */
@@ -39,62 +40,103 @@ import lombok.NoArgsConstructor;
 @Builder
 public class User {
 
-    /** Unique identifier for the user record */
+    // ----------------------------------------------------------------
+    // IDENTITY
+    // ----------------------------------------------------------------
+
+    /** Unique identifier */
     @Id
     @GeneratedValue
     @Column(name = "id")
     private UUID id;
 
-    /** User's username */
+    // ----------------------------------------------------------------
+    // ACCOUNT INFORMATION
+    // ----------------------------------------------------------------
+
+    /** Username (mirrored from Auth microservice) */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    /** User's first name */
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
-
-    /** User's last name */
-    @Column(name = "last_name", nullable = false)
-    private String lastName;
-
-    /** User's email address used for login and communication */
+    /** Email address (mirrored from Auth microservice) */
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    /** User's phone number for contact purposes */
+    // ----------------------------------------------------------------
+    // PROFILE
+    // ----------------------------------------------------------------
+
+    /** First name */
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    /** Last name */
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    /** Phone number */
     @Column(name = "phone")
     private String phone;
 
-    /** URL to the user's profile picture */
+    /** Profile picture URL */
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
+
+    // ----------------------------------------------------------------
+    // PREFERENCES
+    // ----------------------------------------------------------------
     
-    /** User's preferred language locale */
+    /** Preferred language locale */
     @Column(name = "locale")
     private String locale;
 
-    /** User's timezone preference */
+    /** Preferred timezone */
     @Column(name = "timezone")
     private String timezone;
 
-    /** Timestamp when the user accepted the terms of service */
+    // ----------------------------------------------------------------
+    // LEGAL TERMS
+    // ----------------------------------------------------------------
+
+    /** Timestamp when terms of service were accepted */
     @Column(name = "terms_accepted_at", nullable = false)
     private LocalDateTime termsAcceptedAt;
 
-    /** Timestamp when the user accepted the privacy policy */
+    /** Timestamp when privacy policy was accepted */
     @Column(name = "privacy_policy_accepted_at", nullable = false)
     private LocalDateTime privacyPolicyAcceptedAt;
+
+    // ----------------------------------------------------------------
+    // STATUS
+    // ----------------------------------------------------------------
+
+    /** Flag indicating if user was soft deleted */
+    @Builder.Default
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
+
+    /** Timestamp when user was soft deleted */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    // ----------------------------------------------------------------
+    // RELATIONSHIPS
+    // ----------------------------------------------------------------
 
     /** Unique identifier linking to the authentication account */
     @Column(name = "account_id", nullable = false, unique = true)
     private UUID accountId;
+
+    // ----------------------------------------------------------------
+    // AUDITORY
+    // ----------------------------------------------------------------
     
-    /** Timestamp when the user record was first created in the system */
+    /** Timestamp when user record was first created */
     @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    /** Timestamp when the user record was last modified */
+    /** Timestamp when user record was last modified */
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
