@@ -12,11 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
+import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.mapper.AccountMapper;
-import com.suyos.common.dto.response.PagedResponseDTO;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
+import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.event.AccountEmailUpdatedEvent;
+import com.suyos.common.event.AccountUsernameUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import java.util.List;
@@ -43,6 +46,9 @@ public class AccountService {
 
     /** Service for token management */
     private final TokenService tokenService;
+
+    /** Kafka producer for account events */
+    private final AccountEventProducer accountEventProducer;
 
     /** Account lock duration in hours */
     private static final int LOCK_DURATION_HOURS = 24;
@@ -232,7 +238,13 @@ public class AccountService {
                 throw new RuntimeException("Username already registered");
             }
             account.setUsername(request.getUsername());
-            // Publish event for updating username
+            
+            // Publish username updated event
+            AccountUsernameUpdatedEvent usernameEvent = AccountUsernameUpdatedEvent.builder()
+                .accountId(account.getId())
+                .newUsername(request.getUsername())
+                .build();
+            accountEventProducer.publishUsernameUpdated(usernameEvent);
         }
 
         // Update email if update request includes it
@@ -242,7 +254,13 @@ public class AccountService {
                 throw new RuntimeException("Email already registered");
             }
             account.setEmail(request.getEmail());
-            // Publish event for updating email
+            
+            // Publish email updated event
+            AccountEmailUpdatedEvent emailEvent = AccountEmailUpdatedEvent.builder()
+                .accountId(account.getId())
+                .newEmail(request.getEmail())
+                .build();
+            accountEventProducer.publishEmailUpdated(emailEvent);
         }
 
         // Persist updated account

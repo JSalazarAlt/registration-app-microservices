@@ -1,1 +1,3 @@
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\dto\response\PagedResponseDTO.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountUsernameUpdatedEvent.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountEmailUpdatedEvent.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\dto\response\PagedResponseDTO.java

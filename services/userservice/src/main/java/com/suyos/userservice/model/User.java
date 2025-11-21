@@ -51,6 +51,14 @@ public class User {
     private UUID id;
 
     // ----------------------------------------------------------------
+    // RELATIONSHIPS
+    // ----------------------------------------------------------------
+
+    /** Unique identifier linking to the authentication account */
+    @Column(name = "account_id", nullable = false, unique = true)
+    private UUID accountId;
+
+    // ----------------------------------------------------------------
     // ACCOUNT INFORMATION
     // ----------------------------------------------------------------
 
@@ -118,14 +126,6 @@ public class User {
     /** Timestamp when user was soft deleted */
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
-    // ----------------------------------------------------------------
-    // RELATIONSHIPS
-    // ----------------------------------------------------------------
-
-    /** Unique identifier linking to the authentication account */
-    @Column(name = "account_id", nullable = false, unique = true)
-    private UUID accountId;
 
     // ----------------------------------------------------------------
     // AUDITORY

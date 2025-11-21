@@ -1,2 +1,6 @@
+com\suyos\common\event\AccountUsernameUpdatedEvent.class
+com\suyos\common\event\AccountEmailUpdatedEvent.class
+com\suyos\common\event\AccountUsernameUpdatedEvent$AccountUsernameUpdatedEventBuilder.class
 com\suyos\common\dto\response\PagedResponseDTO$PagedResponseDTOBuilder.class
 com\suyos\common\dto\response\PagedResponseDTO.class
+com\suyos\common\event\AccountEmailUpdatedEvent$AccountEmailUpdatedEventBuilder.class

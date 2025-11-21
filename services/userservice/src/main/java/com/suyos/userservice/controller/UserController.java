@@ -3,7 +3,6 @@ package com.suyos.userservice.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -175,44 +174,6 @@ public class UserController {
         
         // Return updated user's profile with "200 OK" status
         return ResponseEntity.ok(userProfile);
-    }
-
-    // ----------------------------------------------------------------
-    // SYNC ENDPOINTS
-    // ----------------------------------------------------------------
-
-    @Operation(
-        summary = "Sync email update from Auth Service",
-        description = "Updates user's email after a change in the Auth service.",
-        responses = { @ApiResponse(responseCode = "204", description = "Email updated successfully") }
-    )
-    @PutMapping("/sync/email/{accountId}")
-    public ResponseEntity<Void> syncEmailUpdate(
-            @PathVariable UUID accountId,
-            @Parameter(description = "New email address", required = true)
-            @RequestParam String newEmail) {
-        // Update user's email from Auth Service
-        userService.mirrorEmailUpdate(accountId, newEmail);
-        
-        // Return "204 No Content" status
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @Operation(
-        summary = "Sync username update from Auth Service",
-        description = "Updates user's username after a change in the Auth service.",
-        responses = { @ApiResponse(responseCode = "204", description = "Username updated successfully") }
-    )
-    @PutMapping("/sync/username/{accountId}")
-    public ResponseEntity<Void> syncUsernameUpdate(
-            @PathVariable UUID accountId,
-            @Parameter(description = "New username", required = true)
-            @RequestParam String newUsername) {
-        // Update user's username from Auth Service
-        userService.mirrorUsernameUpdate(accountId, newUsername);
-        
-        // Return "204 No Content" status
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }
