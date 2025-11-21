@@ -3,8 +3,9 @@ package com.suyos.authservice.event;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import com.suyos.common.event.AccountEmailUpdatedEvent;
-import com.suyos.common.event.AccountUsernameUpdatedEvent;
+import com.suyos.common.event.AccountEmailUpdateEvent;
+import com.suyos.common.event.AccountUsernameUpdateEvent;
+import com.suyos.common.event.UserCreationEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,23 +25,32 @@ public class AccountEventProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    private static final String EMAIL_UPDATED_TOPIC = "account-email-updated";
-    private static final String USERNAME_UPDATED_TOPIC = "account-username-updated";
+    private static final String USER_CREATION_TOPIC = "user-creation";
+    private static final String ACCOUNT_EMAIL_UPDATE_TOPIC = "account-email-update";
+    private static final String ACCOUNT_USERNAME_UPDATE_TOPIC = "account-username-update";
 
     /**
-     * Publishes email updated event.
+     * Publishes user creation event.
      */
-    public void publishEmailUpdated(AccountEmailUpdatedEvent event) {
+    public void publishUserCreation(UserCreationEvent event) {
+        log.info("Publishing creation event for user: {}", event.getAccountId());
+        kafkaTemplate.send(USER_CREATION_TOPIC, event.getAccountId().toString(), event);
+    }
+    
+    /**
+     * Publishes account's email update event.
+     */
+    public void publishAccountEmailUpdate(AccountEmailUpdateEvent event) {
         log.info("Publishing email updated event for account: {}", event.getAccountId());
-        kafkaTemplate.send(EMAIL_UPDATED_TOPIC, event.getAccountId().toString(), event);
+        kafkaTemplate.send(ACCOUNT_EMAIL_UPDATE_TOPIC, event.getAccountId().toString(), event);
     }
 
     /**
-     * Publishes username updated event.
+     * Publishes account's username update event.
      */
-    public void publishUsernameUpdated(AccountUsernameUpdatedEvent event) {
+    public void publishAccountUsernameUpdate(AccountUsernameUpdateEvent event) {
         log.info("Publishing username updated event for account: {}", event.getAccountId());
-        kafkaTemplate.send(USERNAME_UPDATED_TOPIC, event.getAccountId().toString(), event);
+        kafkaTemplate.send(ACCOUNT_USERNAME_UPDATE_TOPIC, event.getAccountId().toString(), event);
     }
     
 }

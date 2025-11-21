@@ -18,8 +18,8 @@ import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
 import com.suyos.common.dto.response.PagedResponseDTO;
-import com.suyos.common.event.AccountEmailUpdatedEvent;
-import com.suyos.common.event.AccountUsernameUpdatedEvent;
+import com.suyos.common.event.AccountEmailUpdateEvent;
+import com.suyos.common.event.AccountUsernameUpdateEvent;
 
 import lombok.RequiredArgsConstructor;
 import java.util.List;
@@ -237,14 +237,18 @@ public class AccountService {
             if (accountRepository.existsByUsername(request.getUsername())) {
                 throw new RuntimeException("Username already registered");
             }
+
+            // Update username if not taken
             account.setUsername(request.getUsername());
             
-            // Publish username updated event
-            AccountUsernameUpdatedEvent usernameEvent = AccountUsernameUpdatedEvent.builder()
+            // Build account's username update event
+            AccountUsernameUpdateEvent usernameEvent = AccountUsernameUpdateEvent.builder()
                 .accountId(account.getId())
                 .newUsername(request.getUsername())
                 .build();
-            accountEventProducer.publishUsernameUpdated(usernameEvent);
+                
+            // Publish account's username update event
+            accountEventProducer.publishAccountUsernameUpdate(usernameEvent);
         }
 
         // Update email if update request includes it
@@ -253,14 +257,18 @@ public class AccountService {
             if (accountRepository.existsByEmail(request.getEmail())) {
                 throw new RuntimeException("Email already registered");
             }
+            
+            // Update email if not registered
             account.setEmail(request.getEmail());
             
-            // Publish email updated event
-            AccountEmailUpdatedEvent emailEvent = AccountEmailUpdatedEvent.builder()
+            // Build account's email update event
+            AccountEmailUpdateEvent emailEvent = AccountEmailUpdateEvent.builder()
                 .accountId(account.getId())
                 .newEmail(request.getEmail())
                 .build();
-            accountEventProducer.publishEmailUpdated(emailEvent);
+
+            // Publish account's email update event
+            accountEventProducer.publishAccountEmailUpdate(emailEvent);
         }
 
         // Persist updated account

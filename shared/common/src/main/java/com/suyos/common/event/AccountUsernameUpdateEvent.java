@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AccountUsernameUpdatedEvent {
+public class AccountUsernameUpdateEvent {
     
     /** Account ID */
     private UUID accountId;

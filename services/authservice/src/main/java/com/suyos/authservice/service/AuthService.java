@@ -8,8 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.authservice.client.UserClient;
-import com.suyos.authservice.dto.internal.UserCreationRequestDTO;
 import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.request.EmailResendRequestDTO;
@@ -19,12 +17,14 @@ import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.dto.response.GenericMessageResponseDTO;
+import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Role;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
+import com.suyos.common.event.UserCreationEvent;
 
 import lombok.RequiredArgsConstructor;
 
@@ -58,8 +58,8 @@ public class AuthService {
     /** Password encoder for secure password hashing */
     private final PasswordEncoder passwordEncoder;
 
-    /** Web client for user-related interservice calls */
-    private final UserClient userClient;
+    /** Kafka producer for account events */
+    private final AccountEventProducer accountEventProducer;
 
     /** Email verification token lifetime in hours */
     private static final Long EMAIL_TOKEN_LIFETIME_HOURS = 24L;
@@ -104,26 +104,24 @@ public class AuthService {
         // Persist created account
         Account createdAccount = accountRepository.save(account);
 
-        // Build user creation request
-        UserCreationRequestDTO userReq = new UserCreationRequestDTO();
-        userReq.setAccountId(createdAccount.getId());
-        userReq.setUsername(createdAccount.getUsername());
-        userReq.setEmail(createdAccount.getEmail());
-        userReq.setFirstName(request.getFirstName());
-        userReq.setLastName(request.getLastName());
-        userReq.setPhone(request.getPhone());
-        userReq.setProfilePictureUrl(request.getProfilePictureUrl());
-        userReq.setLocale(request.getLocale());
-        userReq.setTimezone(request.getTimezone());
-
-        // Call User microservice passing the request to create a new user
-        userClient.createUser(userReq).block();
-
         // Issue email verification token
         tokenService.issueToken(createdAccount, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
 
-        // Publish event for User microservice to create new user
-        //emailClient.sendEmail(emailReq).block();
+        // Build user creation event
+        UserCreationEvent event = UserCreationEvent.builder()
+            .accountId(account.getId())
+            .username(request.getUsername())
+            .email(request.getEmail())
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .phone(request.getPhone())
+            .profilePictureUrl(request.getProfilePictureUrl())
+            .locale(request.getLocale())
+            .timezone(request.getTimezone())
+            .build();
+        
+        // Publish user creation event
+        accountEventProducer.publishUserCreation(event);
 
         // Map account's information from created account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(createdAccount);
