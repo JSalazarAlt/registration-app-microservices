@@ -1,3 +1,9 @@
-C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountUsernameUpdatedEvent.java
-C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountEmailUpdatedEvent.java
-C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\dto\response\PagedResponseDTO.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountUsernameUpdateEvent.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\InvalidCredentialsException.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\dto\response\ErrorResponse.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountEmailUpdateEvent.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\DuplicateResourceException.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\AccountLockedException.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\dto\response\PagedResponseDTO.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\UserCreationEvent.java
+c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\ResourceNotFoundException.java

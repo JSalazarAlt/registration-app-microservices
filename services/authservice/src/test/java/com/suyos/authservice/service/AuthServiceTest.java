@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.suyos.authservice.client.UserClient;
 import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
@@ -23,8 +22,6 @@ import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.repository.AccountRepository;
-
-import reactor.core.publisher.Mono;
 
 /**
  * Unit tests for AuthService.
@@ -56,10 +53,6 @@ class AuthServiceTest {
     /** Mocked token service */
     @Mock
     private TokenService tokenService;
-    
-    /** Mocked user client */
-    @Mock
-    private UserClient userClient;
     
     /** Auth service under test with injected mocks */
     @InjectMocks
@@ -118,7 +111,6 @@ class AuthServiceTest {
         when(accountMapper.toEntity(any())).thenReturn(testAccount);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(accountRepository.save(any())).thenReturn(testAccount);
-        when(userClient.createUser(any())).thenReturn(Mono.empty());
         when(accountMapper.toAccountInfoDTO(any())).thenReturn(
             AccountInfoDTO.builder()
                 .id(testAccount.getId())
@@ -135,7 +127,6 @@ class AuthServiceTest {
         assertEquals(testAccount.getUsername(), result.getUsername());
         assertEquals(testAccount.getEmail(), result.getEmail());
         verify(accountRepository).save(any());
-        verify(userClient).createUser(any());
     }
 
     /**
