@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 /**
  * Event published when an account's username is updated.
  * 
+ * <p>Notifies the User microservice to synchronize username changes made in
+ * the Auth microservice to maintain data consistency across services.</p>
+ * 
  * @author Joel Salazar
  */
 @Data
@@ -18,10 +21,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AccountUsernameUpdateEvent {
     
-    /** Account ID */
+    /** Account ID from Auth microservice */
     private UUID accountId;
     
-    /** New username */
+    /** Updated username */
     private String newUsername;
     
 }

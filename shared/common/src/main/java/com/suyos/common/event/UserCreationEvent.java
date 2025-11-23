@@ -8,7 +8,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Event published when an account's email is updated.
+ * Event published when a new user account is created.
+ * 
+ * <p>Contains all necessary information to create a corresponding user
+ * profile in the User microservice when an account is registered in the
+ * Auth microservice.</p>
  * 
  * @author Joel Salazar
  */
