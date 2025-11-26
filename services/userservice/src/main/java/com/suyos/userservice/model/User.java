@@ -1,6 +1,6 @@
 package com.suyos.userservice.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -108,11 +108,11 @@ public class User {
 
     /** Timestamp when terms of service were accepted */
     @Column(name = "terms_accepted_at", nullable = false)
-    private LocalDateTime termsAcceptedAt;
+    private Instant termsAcceptedAt;
 
     /** Timestamp when privacy policy was accepted */
     @Column(name = "privacy_policy_accepted_at", nullable = false)
-    private LocalDateTime privacyPolicyAcceptedAt;
+    private Instant privacyPolicyAcceptedAt;
 
     // ----------------------------------------------------------------
     // STATUS
@@ -125,7 +125,7 @@ public class User {
 
     /** Timestamp when user was soft deleted */
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     // ----------------------------------------------------------------
     // AUDITORY
@@ -134,11 +134,11 @@ public class User {
     /** Timestamp when user record was first created */
     @CreatedDate
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     /** Timestamp when user record was last modified */
     @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
 }

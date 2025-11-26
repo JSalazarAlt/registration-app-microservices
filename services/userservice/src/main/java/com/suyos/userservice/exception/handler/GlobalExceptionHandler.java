@@ -1,57 +1,82 @@
 package com.suyos.userservice.exception.handler;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
+import org.slf4j.MDC;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import com.suyos.common.exception.ApiErrorResponse;
+import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
-import com.suyos.userservice.exception.exceptions.EmailRegisteredException;
-import com.suyos.userservice.exception.exceptions.UserNotFoundException;
-import com.suyos.userservice.exception.exceptions.UsernameTakenException;
 
-/**
- * Global exception handler for User Service.
- * 
- * <p>Handles all exceptions and returns standardized error responses.</p>
- * 
- * @author Joel Salazar
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ApiErrorResponse handleAccountNotFound(UserNotFoundException ex, WebRequest request) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), ex.getCode(), request);
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiErrorResponse> handleApiException(ApiException ex, WebRequest request) {
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .type(ex.getType())
+                .title(ex.getStatus().getReasonPhrase())
+                .status(ex.getStatus().value())
+                .detail(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .code(ex.getErrorCode())
+                .traceId(getTraceId())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.status(ex.getStatus()).body(response);
     }
 
-    @ExceptionHandler(EmailRegisteredException.class)
-    public ApiErrorResponse handleEmailAlreadyUsed(EmailRegisteredException ex, WebRequest request) {
-        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), ex.getCode(), request);
-    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleValidationErrors(
+            MethodArgumentNotValidException ex, WebRequest request) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+            errors.put(error.getField(), error.getDefaultMessage())
+        );
 
-    @ExceptionHandler(UsernameTakenException.class)
-    public ApiErrorResponse handleUsernameAlreadyUsed(UsernameTakenException ex, WebRequest request) {
-        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), ex.getCode(), request);
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .type("/errors/validation-error")
+                .title("Bad Request")
+                .status(400)
+                .detail("Validation failed")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .validationErrors(errors)
+                .code(ErrorCode.VALIDATION_ERROR)
+                .traceId(getTraceId())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(Exception.class)
-    public ApiErrorResponse handleOther(Exception ex, WebRequest request) {
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ErrorCode.INTERNAL_ERROR, request);
+    public ResponseEntity<ApiErrorResponse> handleException(Exception ex, WebRequest request) {
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .type("/errors/internal-error")
+                .title("Internal Server Error")
+                .status(500)
+                .detail(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .code(ErrorCode.INTERNAL_ERROR)
+                .traceId(getTraceId())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.internalServerError().body(response);
     }
 
-    private ApiErrorResponse build(HttpStatus status, String message, ErrorCode code, WebRequest request) {
-        return ApiErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .message(message)
-                .code(code)
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+    private String getTraceId() {
+        String traceId = MDC.get("traceId");
+        return (traceId != null && !traceId.isEmpty()) ? traceId : UUID.randomUUID().toString();
     }
 
 }

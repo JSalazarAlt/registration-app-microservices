@@ -1,40 +1,53 @@
 package com.suyos.common.exception;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Standardized error response for API exceptions.
- * 
- * @author Joel Salazar
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ApiErrorResponse {
     
-    /** Timestamp when error occurred */
-    @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
-    
-    /** HTTP status code */
+    // ----------------------------------------------------------------
+    // STANDARD (RFC 7807)
+    // ----------------------------------------------------------------
+
+    /** RFC 7807 URI identifying the problem type (e.g., /docs/errors/not-found) */
+    private String type;
+
+    /** Short description of the error */
+    private String title;
+
+    /** HTTP status code (e.g., 400, 404) */
     private int status;
-    
-    /** Error type */
-    private String error;
-    
-    /** Human-readable error message */
-    private String message;
-    
-    /** API path where error occurred */
+
+    /** Detailed error message */
+    private String detail;
+
+    /** Request path */
     private String path;
     
-    /** Custom error code */
+    // ----------------------------------------------------------------
+    // APPLICATION-SPECIFIC
+    // ----------------------------------------------------------------
+    
+    /** Custom fields for validation errors */
+    private Map<String, String> validationErrors;
+
+    /** Error name (e.g., ACCOUNT_NOT_FOUND)  */
     private ErrorCode code;
     
+    /** Trace ID for debugging purposes */
+    private String traceId;
+
+    /** Timestamp when the error occurred */
+    @Builder.Default
+    private Instant timestamp = Instant.now();
+
 }

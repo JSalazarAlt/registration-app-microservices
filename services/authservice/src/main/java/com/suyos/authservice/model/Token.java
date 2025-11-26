@@ -1,6 +1,6 @@
 package com.suyos.authservice.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -79,7 +79,7 @@ public class Token {
 
     /** Timestamp when token was revoked */
     @Column(name = "revoked_at")
-    private LocalDateTime revokedAt;
+    private Instant revokedAt;
 
     // ----------------------------------------------------------------
     // RELATIONSHIPS
@@ -100,10 +100,10 @@ public class Token {
 
     /** Timestamp when token was issued */
     @Column(name = "issued_at", nullable = false)
-    private LocalDateTime issuedAt;
+    private Instant issuedAt;
 
     /** Timestamp when token expires */
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
     
 }

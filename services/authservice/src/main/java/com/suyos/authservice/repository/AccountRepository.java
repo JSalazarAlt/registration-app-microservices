@@ -1,6 +1,6 @@
 package com.suyos.authservice.repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -81,7 +81,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         SET a.locked = true, a.lockedUntil = :until 
         WHERE a.id = :id
     """)
-    int lockAccount(UUID id, LocalDateTime until);
+    int lockAccount(UUID id, Instant until);
 
     @Modifying
     @Transactional

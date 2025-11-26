@@ -1,18 +1,19 @@
 package com.suyos.authservice.exception.exceptions;
 
+import org.springframework.http.HttpStatus;
+
+import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
-public class AccountLockedException extends RuntimeException {
+public class AccountLockedException extends ApiException {
     
-    /** */
-    private final String message;
-    
-    /** */
-    private final ErrorCode code = ErrorCode.ACCOUNT_LOCKED;
+    public AccountLockedException(String unlockTime) {
+        super(
+            "Account is locked due to multiple failed login attempts. Try again after " + unlockTime,
+            HttpStatus.FORBIDDEN,
+            "/errors/account-locked",
+            ErrorCode.ACCOUNT_LOCKED
+        );
+    }
 
 }

@@ -1,6 +1,6 @@
 package com.suyos.authservice.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ public class TokenCleanupService {
      */
     @Scheduled(cron = "0 0 3 * * *")
     public void cleanupExpiredAndRevokedTokens() {
-        tokenRepository.deleteExpiredOrRevoked(LocalDateTime.now());
+        tokenRepository.deleteExpiredOrRevoked(Instant.now());
     }
 
 }

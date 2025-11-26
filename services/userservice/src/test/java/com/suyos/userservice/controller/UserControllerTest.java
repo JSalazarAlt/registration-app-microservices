@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -76,7 +76,7 @@ class UserControllerTest {
                 .firstName("Test")
                 .lastName("User")
                 .phone("1234567890")
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
         
         // Build test update DTO
@@ -361,6 +361,92 @@ class UserControllerTest {
         
         // Verify service was called
         verify(userService).findAllUsers(0, 10, "createdAt", "desc");
+    }
+
+    /**
+     * Tests user update with invalid data.
+     */
+    @Test
+    void updateUserById_InvalidData() throws Exception {
+        UserUpdateRequestDTO invalidDTO = UserUpdateRequestDTO.builder()
+                .phone("invalid")  // Invalid phone format
+                .build();
+
+        mockMvc.perform(put("/api/v1/users/{userId}", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Tests pagination with custom parameters.
+     */
+    @Test
+    void getAllUsersPaginated_CustomParams() throws Exception {
+        List<UserProfileDTO> users = Arrays.asList(userProfileDTO);
+        PagedResponseDTO<UserProfileDTO> pagedResponse = PagedResponseDTO.<UserProfileDTO>builder()
+                .content(users)
+                .currentPage(2)
+                .totalPages(5)
+                .totalElements(50L)
+                .size(10)
+                .first(false)
+                .last(false)
+                .build();
+
+        when(userService.findAllUsers(2, 10, "username", "asc")).thenReturn(pagedResponse);
+
+        mockMvc.perform(get("/api/v1/users")
+                .param("page", "2")
+                .param("size", "10")
+                .param("sortBy", "username")
+                .param("sortDir", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentPage").value(2))
+                .andExpect(jsonPath("$.totalPages").value(5));
+
+        verify(userService).findAllUsers(2, 10, "username", "asc");
+    }
+
+
+
+    /**
+     * Tests getting all users with default pagination.
+     */
+    @Test
+    void getAllUsersPaginated_DefaultParams() throws Exception {
+        List<UserProfileDTO> users = Arrays.asList(userProfileDTO);
+        PagedResponseDTO<UserProfileDTO> pagedResponse = PagedResponseDTO.<UserProfileDTO>builder()
+                .content(users)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .size(10)
+                .first(true)
+                .last(true)
+                .build();
+
+        when(userService.findAllUsers(0, 10, "createdAt", "desc")).thenReturn(pagedResponse);
+
+        mockMvc.perform(get("/api/v1/users"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+
+        verify(userService).findAllUsers(0, 10, "createdAt", "desc");
+    }
+
+    /**
+     * Tests search with empty query.
+     */
+    @Test
+    void searchUsersByName_EmptyQuery() throws Exception {
+        when(userService.searchUsersByName("")).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/users/search")
+                .param("name", ""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
     
 }

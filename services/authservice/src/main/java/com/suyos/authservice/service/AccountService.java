@@ -1,6 +1,6 @@
 package com.suyos.authservice.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.event.AccountEventProducer;
+import com.suyos.authservice.exception.exceptions.AccountNotFoundException;
+import com.suyos.authservice.exception.exceptions.EmailAlreadyRegisteredException;
+import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.TokenType;
@@ -44,11 +47,11 @@ public class AccountService {
     /** Repository for account data access operations */
     private final AccountRepository accountRepository;
 
-    /** Service for token management */
-    private final TokenService tokenService;
-
     /** Kafka producer for account events */
     private final AccountEventProducer accountEventProducer;
+
+    /** Service for token management */
+    private final TokenService tokenService;
 
     /** Account lock duration in hours */
     private static final int LOCK_DURATION_HOURS = 24;
@@ -106,16 +109,16 @@ public class AccountService {
      * 
      * @param id Account's ID to lock
      * @return Account's information
-     * @throws RuntimeException If account is not found
+     * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO lockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
 
         // Lock account
         account.setLocked(true);
-        account.setLockedUntil(LocalDateTime.now().plusHours(LOCK_DURATION_HOURS));
+        account.setLockedUntil(Instant.now().plusSeconds(LOCK_DURATION_HOURS * 3600));
 
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
@@ -132,12 +135,12 @@ public class AccountService {
      * 
      * @param id Account's ID to unlock
      * @return Account's information
-     * @throws RuntimeException If account is not found
+     * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO unlockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
 
         // Unlock account
         account.setLocked(false);
@@ -162,12 +165,12 @@ public class AccountService {
      * 
      * @param id Account's ID to search for
      * @return Account's information
-     * @throws RuntimeException If account is not found
+     * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO findAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
 
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
@@ -181,12 +184,12 @@ public class AccountService {
      * 
      * @param email Email to search for
      * @return Account's information
-     * @throws RuntimeException If account is not found
+     * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO findAccountByEmail(String email) {
         // Look up account by email
         Account account = accountRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Account not found for email: " + email));
+            .orElseThrow(() -> new AccountNotFoundException(email));
 
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
@@ -200,12 +203,12 @@ public class AccountService {
      * 
      * @param username Username to search for
      * @return Account's information
-     * @throws RuntimeException If account is not found
+     * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO findAccountByUsername(String username) {
         // Look up account by username
         Account account = accountRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));;
+            .orElseThrow(() -> new AccountNotFoundException(username));;
         
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
@@ -224,18 +227,18 @@ public class AccountService {
      * @param id Account's ID to update
      * @param request Account's update data
      * @return Updated account's information
-     * @throws RuntimeException If account is not found
+     * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO updateAccountById(UUID id, AccountUpdateRequestDTO request) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
         
         // Update username if update request includes it
         if (request.getUsername() != null) {
             // Check if username is already taken
             if (accountRepository.existsByUsername(request.getUsername())) {
-                throw new RuntimeException("Username already registered");
+                throw new UsernameAlreadyTakenException(request.getUsername());
             }
 
             // Update username if not taken
@@ -255,7 +258,7 @@ public class AccountService {
         if (request.getEmail() != null) {
             // Check if email is already registered
             if (accountRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email already registered");
+                throw new EmailAlreadyRegisteredException(request.getEmail());
             }
             
             // Update email if not registered
@@ -289,19 +292,19 @@ public class AccountService {
      * 
      * @param id Account's ID to soft delete
      * @return Soft deleted account's information
-     * @throws RuntimeException If account is not found
+     * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO softDeleteAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Account not found for ID: " + id));
+            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
         
         // Soft delete account
         account.setDeleted(true);
-        account.setDeletedAt(LocalDateTime.now());
+        account.setDeletedAt(Instant.now());
 
         // Update last logout timestamp
-        account.setLastLogoutAt(LocalDateTime.now());
+        account.setLastLogoutAt(Instant.now());
 
         // Persist soft deleted account
         Account softDeletedAccount = accountRepository.save(account);

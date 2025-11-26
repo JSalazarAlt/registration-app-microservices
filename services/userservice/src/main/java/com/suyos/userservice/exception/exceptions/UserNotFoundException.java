@@ -1,18 +1,19 @@
 package com.suyos.userservice.exception.exceptions;
 
+import org.springframework.http.HttpStatus;
+
+import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends ApiException {
     
-    /** */
-    private final String message;
-    
-    /** */
-    private final ErrorCode code = ErrorCode.USER_NOT_FOUND;
+    public UserNotFoundException(String detail) {
+        super(
+            "User not found with " + detail,
+            HttpStatus.NOT_FOUND,
+            "/errors/user-not-found",
+            ErrorCode.USER_NOT_FOUND
+        );
+    }
 
 }

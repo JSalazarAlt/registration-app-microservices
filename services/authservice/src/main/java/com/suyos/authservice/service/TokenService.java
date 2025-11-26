@@ -1,6 +1,6 @@
 package com.suyos.authservice.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
+import com.suyos.authservice.exception.exceptions.InvalidTokenException;
+import com.suyos.authservice.exception.exceptions.TokenNotFoundException;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
@@ -60,8 +62,8 @@ public class TokenService {
         token.setValue(value);
         token.setType(type);
         token.setAccount(account);
-        token.setIssuedAt(LocalDateTime.now());
-        token.setExpiresAt(LocalDateTime.now().plusHours(lifetimeInHours));
+        token.setIssuedAt(Instant.now());
+        token.setExpiresAt(Instant.now().plusSeconds(lifetimeInHours * 3600));
 
         // Persist created token
         Token createdToken = tokenRepository.save(token);
@@ -88,8 +90,8 @@ public class TokenService {
         refreshToken.setValue(value);
         refreshToken.setType(TokenType.REFRESH);
         refreshToken.setAccount(account);
-        refreshToken.setIssuedAt(LocalDateTime.now());
-        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(30));
+        refreshToken.setIssuedAt(Instant.now());
+        refreshToken.setExpiresAt(Instant.now().plusSeconds(30 * 24 * 3600));
 
         // Persist created refresh token
         tokenRepository.save(refreshToken);
@@ -118,7 +120,7 @@ public class TokenService {
      */
     public boolean isTokenValid(Token token) {
         // Return true if token is not revoked and not expired
-        return !token.getRevoked() && token.getExpiresAt().isAfter(LocalDateTime.now());
+        return !token.getRevoked() && token.getExpiresAt().isAfter(Instant.now());
     }
 
     // ----------------------------------------------------------------
@@ -130,7 +132,7 @@ public class TokenService {
      * 
      * @param request Current refresh token value
      * @return Rotated refresh and access tokens
-     * @throws RuntimeException If refresh token is invalid
+     * @throws InvalidTokenException If refresh token is invalid
      */
     public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO request) {
         // Extract refresh token value from request
@@ -138,16 +140,16 @@ public class TokenService {
         
         // Lookup refresh token by value
         Token refreshToken = tokenRepository.findByValueAndType(value, TokenType.REFRESH)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> new TokenNotFoundException(value));
         
         // Check if refresh token is invalid
         if (!isTokenValid(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new InvalidTokenException(TokenType.REFRESH);
         }
 
         // Revoke old token for security
         refreshToken.setRevoked(true);
-        refreshToken.setRevokedAt(LocalDateTime.now());
+        refreshToken.setRevokedAt(Instant.now());
 
         // Persist revoked token
         tokenRepository.save(refreshToken);
@@ -174,7 +176,7 @@ public class TokenService {
     public Token findTokenByValue(String value) {
         // Lookup token by value
         Token token = tokenRepository.findByValue(value)
-            .orElseThrow(() -> new RuntimeException("Token not found"));
+            .orElseThrow(() -> new TokenNotFoundException(value));
         
         // Return token
         return token;
@@ -214,7 +216,7 @@ public class TokenService {
         
         // Mark token as revoked with timestamp
         refreshToken.setRevoked(true);
-        refreshToken.setRevokedAt(LocalDateTime.now());
+        refreshToken.setRevokedAt(Instant.now());
 
         // Persist revoked token
         tokenRepository.save(refreshToken);

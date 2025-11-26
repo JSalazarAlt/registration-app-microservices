@@ -1,6 +1,6 @@
 package com.suyos.authservice.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,6 +10,7 @@ import com.suyos.authservice.dto.request.PasswordForgotRequestDTO;
 import com.suyos.authservice.dto.request.PasswordResetRequestDTO;
 import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.GenericMessageResponseDTO;
+import com.suyos.authservice.exception.exceptions.InvalidTokenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Token;
@@ -78,8 +79,8 @@ public class PasswordService {
 
         // Build response
         GenericMessageResponseDTO response = GenericMessageResponseDTO.builder()
-                .message("A password reset link has been sent.")
-                .build();
+            .message("A password reset link has been sent.")
+            .build();
 
         // Return message indicating if password reset link has been sent
         return response;
@@ -93,7 +94,7 @@ public class PasswordService {
      *
      * @param request Password reset token value and new password
      * @return Account's information
-     * @throws RuntimeException If password reset token is invalid
+     * @throws InvalidPasswordTokenException If password reset token is invalid
      */
     public AccountInfoDTO resetPassword(PasswordResetRequestDTO request) {
         // Extract password reset token value from request
@@ -104,7 +105,7 @@ public class PasswordService {
 
         // Ensure password reset token is valid
         if(!tokenService.isTokenValid(passwordResetToken)) {
-            throw new RuntimeException("Invalid password reset token");
+            throw new InvalidTokenException(TokenType.PASSWORD_RESET);
         }
 
         // Get account linked to password reset token
@@ -112,7 +113,7 @@ public class PasswordService {
 
         // Reset password and update last password change timestamp
         account.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        account.setLastPasswordChangedAt(LocalDateTime.now());
+        account.setLastPasswordChangedAt(Instant.now());
         
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);

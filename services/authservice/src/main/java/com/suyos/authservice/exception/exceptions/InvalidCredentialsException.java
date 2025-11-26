@@ -1,18 +1,19 @@
 package com.suyos.authservice.exception.exceptions;
 
+import org.springframework.http.HttpStatus;
+
+import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
-public class InvalidCredentialsException extends RuntimeException {
+public class InvalidCredentialsException extends ApiException {
     
-    /** */
-    private final String message;
-    
-    /** */
-    private final ErrorCode code = ErrorCode.INVALID_CREDENTIALS;
+    public InvalidCredentialsException() {
+        super(
+            "Invalid email/username or password",
+            HttpStatus.UNAUTHORIZED,
+            "/errors/invalid-credentials",
+            ErrorCode.INVALID_CREDENTIALS
+        );
+    }
 
 }

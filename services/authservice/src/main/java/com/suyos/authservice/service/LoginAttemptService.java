@@ -1,6 +1,6 @@
 package com.suyos.authservice.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -47,7 +47,7 @@ public class LoginAttemptService {
         // Lock account if maximum attempts exceeded
         if (attempts >= MAX_FAILED_ATTEMPTS) {
             account.setLocked(true);
-            account.setLockedUntil(LocalDateTime.now().plusHours(LOCK_DURATION_HOURS));
+            account.setLockedUntil(Instant.now().plusSeconds(LOCK_DURATION_HOURS * 3600));
         }
 
         // Persist updated account

@@ -206,11 +206,203 @@ class AuthServiceTest {
     void authenticateAccount_AccountNotFound() {
         // Mock account not found
         when(accountRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(accountRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
         // Attempt authentication and expect exception
         RuntimeException exception = assertThrows(RuntimeException.class, 
             () -> authService.authenticateAccount(loginDTO));
-        assertTrue(exception.getMessage().contains("Account not found"));
+        assertTrue(exception.getMessage().contains("Invalid credentials"));
+    }
+
+    /**
+     * Tests authentication with disabled account.
+     */
+    @Test
+    void authenticateAccount_AccountDisabled() {
+        testAccount.setEnabled(false);
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.authenticateAccount(loginDTO));
+        assertTrue(exception.getMessage().contains("Account disabled"));
+    }
+
+    /**
+     * Tests authentication with unverified email.
+     */
+    @Test
+    void authenticateAccount_EmailNotVerified() {
+        testAccount.setEmailVerified(false);
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.authenticateAccount(loginDTO));
+        assertTrue(exception.getMessage().contains("Email not verified"));
+    }
+
+    /**
+     * Tests authentication with locked account.
+     */
+    @Test
+    void authenticateAccount_AccountLocked() {
+        testAccount.setLocked(true);
+        testAccount.setLockedUntil(java.time.Instant.now().plusSeconds(3600));
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.authenticateAccount(loginDTO));
+        assertTrue(exception.getMessage().contains("Account locked"));
+    }
+
+    /**
+     * Tests authentication with deleted account.
+     */
+    @Test
+    void authenticateAccount_AccountDeleted() {
+        testAccount.setDeleted(true);
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.authenticateAccount(loginDTO));
+        assertTrue(exception.getMessage().contains("Account deleted"));
+    }
+
+    /**
+     * Tests account creation with duplicate username.
+     */
+    @Test
+    void createAccount_UsernameAlreadyExists() {
+        when(accountRepository.existsByEmail(anyString())).thenReturn(false);
+        when(accountRepository.existsByUsername(anyString())).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.createAccount(registrationDTO));
+        assertEquals("Username already registered", exception.getMessage());
+        verify(accountRepository, never()).save(any());
+    }
+
+    /**
+     * Tests authentication by username instead of email.
+     */
+    @Test
+    void authenticateAccount_ByUsername_Success() {
+        loginDTO = AuthenticationRequestDTO.builder()
+                .identifier("testuser")
+                .password("password123")
+                .build();
+
+        when(accountRepository.findByUsername(anyString())).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(accountRepository.save(any())).thenReturn(testAccount);
+        when(tokenService.issueRefreshAndAccessTokens(any())).thenReturn(
+            AuthenticationResponseDTO.builder()
+                .accountId(testAccount.getId())
+                .accessToken("accessToken")
+                .refreshToken("refreshToken")
+                .build()
+        );
+
+        AuthenticationResponseDTO result = authService.authenticateAccount(loginDTO);
+
+        assertNotNull(result);
+        verify(accountRepository).findByUsername("testuser");
+    }
+
+    /**
+     * Tests auto-unlock of expired account lock.
+     */
+    @Test
+    void authenticateAccount_AutoUnlockExpiredLock() {
+        testAccount.setLocked(true);
+        testAccount.setLockedUntil(java.time.Instant.now().minusSeconds(3600));
+        testAccount.setFailedLoginAttempts(5);
+
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(accountRepository.save(any())).thenReturn(testAccount);
+        when(tokenService.issueRefreshAndAccessTokens(any())).thenReturn(
+            AuthenticationResponseDTO.builder()
+                .accountId(testAccount.getId())
+                .accessToken("accessToken")
+                .refreshToken("refreshToken")
+                .build()
+        );
+
+        AuthenticationResponseDTO result = authService.authenticateAccount(loginDTO);
+
+        assertNotNull(result);
+        assertFalse(testAccount.getLocked());
+        assertNull(testAccount.getLockedUntil());
+        assertEquals(0, testAccount.getFailedLoginAttempts());
+    }
+
+
+
+
+
+    /**
+     * Tests failed login attempt increments counter.
+     */
+    @Test
+    void authenticateAccount_IncrementFailedAttempts() {
+        testAccount.setFailedLoginAttempts(2);
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
+
+        assertThrows(RuntimeException.class,
+            () -> authService.authenticateAccount(loginDTO));
+
+        verify(loginAttemptService).recordFailedAttempt(testAccount);
+    }
+
+    /**
+     * Tests successful authentication resets failed attempts.
+     */
+    @Test
+    void authenticateAccount_ResetFailedAttempts() {
+        testAccount.setFailedLoginAttempts(3);
+        when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(accountRepository.save(any())).thenReturn(testAccount);
+        when(tokenService.issueRefreshAndAccessTokens(any())).thenReturn(
+            AuthenticationResponseDTO.builder()
+                .accountId(testAccount.getId())
+                .accessToken("accessToken")
+                .refreshToken("refreshToken")
+                .build()
+        );
+
+        authService.authenticateAccount(loginDTO);
+
+        verify(accountRepository).save(argThat(account -> 
+            account.getFailedLoginAttempts() == 0
+        ));
+    }
+
+    /**
+     * Tests password encoding during registration.
+     */
+    @Test
+    void createAccount_PasswordEncoded() {
+        when(accountRepository.existsByEmail(anyString())).thenReturn(false);
+        when(accountMapper.toEntity(any())).thenReturn(testAccount);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(accountRepository.save(any())).thenReturn(testAccount);
+        when(accountMapper.toAccountInfoDTO(any())).thenReturn(
+            AccountInfoDTO.builder()
+                .id(testAccount.getId())
+                .username(testAccount.getUsername())
+                .email(testAccount.getEmail())
+                .build()
+        );
+
+        authService.createAccount(registrationDTO);
+
+        verify(passwordEncoder).encode("password123");
+        verify(accountRepository).save(argThat(account -> 
+            "encodedPassword".equals(account.getPassword())
+        ));
     }
     
 }

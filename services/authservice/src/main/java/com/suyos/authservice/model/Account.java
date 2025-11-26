@@ -1,6 +1,6 @@
 package com.suyos.authservice.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -94,7 +94,7 @@ public class Account {
 
     /** Timestamp when account lock expires */
     @Column(name = "locked_until")
-    private LocalDateTime lockedUntil;
+    private Instant lockedUntil;
 
     /** Flag indicating if account was soft deleted */
     @Builder.Default
@@ -103,7 +103,7 @@ public class Account {
 
     /** Timestamp when account was soft deleted */
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     // ----------------------------------------------------------------
     // PASSWORD MANAGEMENT
@@ -116,7 +116,7 @@ public class Account {
 
     /** Timestamp when password was last changed */
     @Column(name = "last_password_changed_at")
-    private LocalDateTime lastPasswordChangedAt;
+    private Instant lastPasswordChangedAt;
 
     // ----------------------------------------------------------------
     // LOGIN AND LOGOUT TRACKING
@@ -124,11 +124,11 @@ public class Account {
 
     /** Timestamp of last successful login */
     @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     /** Timestamp of last successful logout */
     @Column(name = "last_logout_at")
-    private LocalDateTime lastLogoutAt;
+    private Instant lastLogoutAt;
 
     /** Counter for consecutive failed login attempts */
     @Builder.Default
@@ -158,7 +158,7 @@ public class Account {
 
     /** Timestamp when multi-factor authentication was enabled */
     @Column(name = "mfa_enabled_at")
-    private LocalDateTime mfaEnabledAt;
+    private Instant mfaEnabledAt;
     
     // ----------------------------------------------------------------
     // AUDITORY
@@ -167,11 +167,11 @@ public class Account {
     /** Timestamp when account record was first created */
     @CreatedDate
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     /** Timestamp when account record was last modified */
     @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
     
 }

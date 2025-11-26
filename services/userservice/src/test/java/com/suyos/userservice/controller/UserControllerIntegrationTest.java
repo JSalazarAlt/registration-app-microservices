@@ -3,7 +3,7 @@ package com.suyos.userservice.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -65,8 +65,8 @@ class UserControllerIntegrationTest {
                 .firstName("Test")
                 .lastName("User")
                 .phone("1234567890")
-                .termsAcceptedAt(LocalDateTime.now())
-                .privacyPolicyAcceptedAt(LocalDateTime.now())
+                .termsAcceptedAt(Instant.now())
+                .privacyPolicyAcceptedAt(Instant.now())
                 .build();
         testUser = userRepository.save(testUser);
     }

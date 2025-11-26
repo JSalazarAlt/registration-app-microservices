@@ -1,7 +1,7 @@
 package com.suyos.authservice.service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +18,15 @@ import com.suyos.authservice.dto.response.AccountInfoDTO;
 import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
 import com.suyos.authservice.dto.response.GenericMessageResponseDTO;
 import com.suyos.authservice.event.AccountEventProducer;
+import com.suyos.authservice.exception.exceptions.AccountDeletedException;
+import com.suyos.authservice.exception.exceptions.AccountDisabledException;
+import com.suyos.authservice.exception.exceptions.AccountLockedException;
+import com.suyos.authservice.exception.exceptions.EmailNotVerifiedException;
+import com.suyos.authservice.exception.exceptions.EmailAlreadyRegisteredException;
+import com.suyos.authservice.exception.exceptions.InvalidCredentialsException;
+import com.suyos.authservice.exception.exceptions.InvalidPasswordException;
+import com.suyos.authservice.exception.exceptions.InvalidTokenException;
+import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Role;
@@ -49,6 +58,9 @@ public class AuthService {
     /** Repository for account data access operations */
     private final AccountRepository accountRepository;
 
+    /** Kafka producer for account events */
+    private final AccountEventProducer accountEventProducer;
+
     /** Service for token management */
     private final TokenService tokenService;
 
@@ -57,9 +69,6 @@ public class AuthService {
     
     /** Password encoder for secure password hashing */
     private final PasswordEncoder passwordEncoder;
-
-    /** Kafka producer for account events */
-    private final AccountEventProducer accountEventProducer;
 
     /** Email verification token lifetime in hours */
     private static final Long EMAIL_TOKEN_LIFETIME_HOURS = 24L;
@@ -79,19 +88,21 @@ public class AuthService {
      * in use. After creation, publishes a request to the User microservice
      * to create a corresponding user record.</p>
      * 
-     * @param request Registration data
+     * @param request Registration data containing account's credentials and
+     * user's profile
      * @return Created account's information
-     * @throws RuntimeException If username or email are already registered
+     * @throws UsernameAlreadyTakenException If username is already in use
+    * @throws EmailAlreadyRegisteredException If email is already registered
      */
     public AccountInfoDTO createAccount(RegistrationRequestDTO request) {
-        // Check if email is already registered
-        if (accountRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
-        }
-
         // Check if username is already taken
         if (accountRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already registered");
+            throw new UsernameAlreadyTakenException(request.getUsername());
+        }
+        
+        // Check if email is already registered
+        if (accountRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyRegisteredException(request.getEmail());
         }
 
         // Map account from registration data
@@ -139,54 +150,57 @@ public class AuthService {
      * 
      * @param request Login credentials
      * @return Refresh and access tokens
-     * @throws RuntimeException If authentication fails
+     * @throws InvalidCredentialsException If username or email does not match any account
+     * @throws AccountDisabledException If account is disabled
+     * @throws EmailNotVerifiedException If account's email is not verified
+     * @throws AccountDeletedException If account is deleted
+     * @throws AccountLockedException If account is currently locked
+     * @throws InvalidPasswordException If provided password is incorrect
      */
     public AuthenticationResponseDTO authenticateAccount(AuthenticationRequestDTO request) {
         // Look up account by username or email
         Account account = accountRepository.findByUsername(request.getIdentifier())
             .or(() -> accountRepository.findByEmail(request.getIdentifier()))
-            .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+            .orElseThrow(() -> new InvalidCredentialsException());
 
         // Ensure account is enabled
         if (!account.getEnabled()) {
-            throw new RuntimeException("Account disabled");
+            throw new AccountDisabledException();
         }
 
         // Ensure account is verified
         if (!account.getEmailVerified()) {
-            throw new RuntimeException("Email not verified");
+            throw new EmailNotVerifiedException(account.getEmail());
         }
 
         // Ensure account is not deleted
         if (account.getDeleted()) {
-            throw new RuntimeException("Account deleted");
+            throw new AccountDeletedException();
         }
 
         // Ensure account is not locked
         if (account.getLocked()) {
-            if (account.getLockedUntil() != null && account.getLockedUntil().isBefore(LocalDateTime.now())) {
+            if (account.getLockedUntil() != null && account.getLockedUntil().isBefore(Instant.now())) {
                 // Auto-unlock expired locks
                 account.setLocked(false);
                 account.setLockedUntil(null);
                 account.setFailedLoginAttempts(0);
                 accountRepository.save(account);
             } else {
-                Duration remaining = Duration.between(LocalDateTime.now(), account.getLockedUntil());
-                throw new RuntimeException(
-                    String.format("Account locked for %d more minutes", remaining.toMinutes())
-                );
+                Duration remainingLockTime = Duration.between(Instant.now(), account.getLockedUntil());
+                throw new AccountLockedException(String.valueOf(remainingLockTime.toMinutes()));
             }
         }
         
         // Verify password match
         if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
             loginAttemptService.recordFailedAttempt(account);
-            throw new RuntimeException("Invalid password");
+            throw new InvalidPasswordException();
         }
         
         // Update login tracking fields on successful login
         account.setFailedLoginAttempts(0);
-        account.setLastLoginAt(LocalDateTime.now());
+        account.setLastLoginAt(Instant.now());
         account.setLocked(false);
         account.setLockedUntil(null);
         
@@ -244,7 +258,10 @@ public class AuthService {
      *
      * @param request Login credentials from Google
      * @return Refresh and access tokens
-     * @throws RuntimeException If authentication fails
+     * @throws AccountDisabledException If account is disabled
+     * @throws EmailNotVerifiedException If account's email is not verified
+     * @throws AccountDeletedException If account is deleted
+     * @throws AccountLockedException If account is currently locked
      */
     public AuthenticationResponseDTO processGoogleOAuth2Account(OAuth2AuthenticationRequestDTO request) {
         // Look up account by OAuth2 credentials or email
@@ -263,37 +280,35 @@ public class AuthService {
 
         // Ensure account is enabled
         if (!account.getEnabled()) {
-            throw new RuntimeException("Account disabled");
+            throw new AccountDisabledException();
         }
 
         // Ensure account is verified
         if (!account.getEmailVerified()) {
-            throw new RuntimeException("Email not verified");
+            throw new EmailNotVerifiedException(account.getEmail());
         }
 
         // Ensure account is not deleted
         if (account.getDeleted()) {
-            throw new RuntimeException("Account deleted");
+            throw new AccountDeletedException();
         }
 
         // Ensure account is not locked
         if (account.getLocked()) {
-            if (account.getLockedUntil() != null && account.getLockedUntil().isBefore(LocalDateTime.now())) {
+            if (account.getLockedUntil() != null && account.getLockedUntil().isBefore(Instant.now())) {
                 // Auto-unlock expired locks
                 account.setLocked(false);
                 account.setLockedUntil(null);
                 account.setFailedLoginAttempts(0);
                 accountRepository.save(account);
             } else {
-                Duration remaining = Duration.between(LocalDateTime.now(), account.getLockedUntil());
-                throw new RuntimeException(
-                    String.format("Account locked for %d more minutes", remaining.toMinutes())
-                );
+                Duration remainingLockTime = Duration.between(Instant.now(), account.getLockedUntil());
+                throw new AccountLockedException(String.valueOf(remainingLockTime.toMinutes()));
             }
         }
         
         // Update last login time
-        account.setLastLoginAt(LocalDateTime.now());
+        account.setLastLoginAt(Instant.now());
         Account savedAccount = accountRepository.save(account);
 
         // Issue refresh and access tokens for successful Google OAuth2 login
@@ -314,7 +329,7 @@ public class AuthService {
      * account's last logout timestamp.</p>
      * 
      * @param request Refresh token value linked to account
-     * @throws RuntimeException If refresh token is invalid
+     * @throws InvalidRefreshTokenException If refresh token is invalid
      */
     public void deauthenticateAccount(RefreshTokenRequestDTO request) {
         // Extract refresh token value from request
@@ -325,14 +340,14 @@ public class AuthService {
 
         // Ensure refresh token is valid
         if(!tokenService.isTokenValid(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new InvalidTokenException(TokenType.REFRESH);
         }
 
         // Get account linked to refresh token
         Account account = refreshToken.getAccount();
 
         // Update last logout timestamp
-        account.setLastLogoutAt(LocalDateTime.now());
+        account.setLastLogoutAt(Instant.now());
 
         // Persist updated account
         accountRepository.save(account);
@@ -354,8 +369,9 @@ public class AuthService {
      * 
      * @param request Email verification token value
      * @return Verified account's information
-     * @throws RuntimeException If email verification token is invalid or
-     * email is already verified
+     * @throws InvalidEmailVerificationTokenException If email verification 
+     * token is invalid
+     * @throws EmailAlreadyRegisteredException If email is already verified
      */
     public AccountInfoDTO verifyEmail(EmailVerificationRequestDTO request) {
         // Extract email verification token value from request
@@ -366,7 +382,7 @@ public class AuthService {
 
         // Ensure email verification token is valid
         if(!tokenService.isTokenValid(emailVerificationToken)) {
-            throw new RuntimeException("Invalid email verification token");
+            throw new InvalidTokenException(TokenType.EMAIL_VERIFICATION);
         }
 
         // Get account linked to email verification token
@@ -374,7 +390,7 @@ public class AuthService {
 
         // Check if email is not already verified
         if(account.getEmailVerified()) {
-            throw new RuntimeException("Email already verified");
+            throw new EmailAlreadyRegisteredException(account.getEmail());
         }
 
         // Set email as verified

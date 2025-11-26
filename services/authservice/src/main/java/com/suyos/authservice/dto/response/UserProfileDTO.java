@@ -1,6 +1,6 @@
 package com.suyos.authservice.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -50,15 +50,15 @@ public class UserProfileDTO {
     private String timezone;
 
     /** Timestamp when terms of service were accepted */
-    private LocalDateTime termsAcceptedAt;
+    private Instant termsAcceptedAt;
 
     /** Timestamp when privacy policy was accepted */
-    private LocalDateTime privacyPolicyAcceptedAt;
+    private Instant privacyPolicyAcceptedAt;
 
     /** Timestamp when user record was first created */
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     /** Timestamp when user record was last updated */
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
 }

@@ -1,18 +1,19 @@
 package com.suyos.authservice.exception.exceptions;
 
+import org.springframework.http.HttpStatus;
+
+import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
-public class EmailNotVerifiedException extends RuntimeException {
+public class EmailNotVerifiedException extends ApiException {
     
-    /** */
-    private final String message;
-    
-    /** */
-    private final ErrorCode code = ErrorCode.EMAIL_NOT_VERIFIED;
+    public EmailNotVerifiedException(String email) {
+        super(
+            "Email '" + email + "' has not been verified. Please check your inbox",
+            HttpStatus.FORBIDDEN,
+            "/errors/email-not-verified",
+            ErrorCode.EMAIL_NOT_VERIFIED
+        );
+    }
 
 }

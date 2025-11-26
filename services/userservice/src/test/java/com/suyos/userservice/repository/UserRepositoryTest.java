@@ -2,7 +2,7 @@ package com.suyos.userservice.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,8 +53,8 @@ class UserRepositoryTest {
                 .firstName("Test")
                 .lastName("User")
                 .phone("1234567890")
-                .termsAcceptedAt(LocalDateTime.now())
-                .privacyPolicyAcceptedAt(LocalDateTime.now())
+                .termsAcceptedAt(Instant.now())
+                .privacyPolicyAcceptedAt(Instant.now())
                 .build();
         testUser = userRepository.save(testUser);
     }
@@ -134,8 +134,8 @@ class UserRepositoryTest {
                 .email("new@example.com")
                 .firstName("New")
                 .lastName("User")
-                .termsAcceptedAt(LocalDateTime.now())
-                .privacyPolicyAcceptedAt(LocalDateTime.now())
+                .termsAcceptedAt(Instant.now())
+                .privacyPolicyAcceptedAt(Instant.now())
                 .build();
         
         // Save user

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -71,7 +71,7 @@ class UserServiceTest {
                 .firstName("Test")
                 .lastName("User")
                 .phone("1234567890")
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
         
         // Build test user profile DTO
@@ -309,6 +309,44 @@ class UserServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class,
             () -> userService.mirrorUsernameUpdate(nonExistentAccountId, "newusername"));
         assertTrue(exception.getMessage().contains("User not found"));
+    }
+
+
+
+    /**
+     * Tests partial update with null values.
+     */
+    @Test
+    void updateUserProfile_PartialUpdate() {
+        UserUpdateRequestDTO partialUpdate = UserUpdateRequestDTO.builder()
+                .firstName("Updated")
+                .build();
+
+        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
+
+        UserProfileDTO result = userService.updateUserById(testUser.getId(), partialUpdate);
+
+        assertNotNull(result);
+        verify(userMapper).updateUserFromDTO(partialUpdate, testUser);
+    }
+
+
+
+    /**
+     * Tests updating user with same email.
+     */
+    @Test
+    void updateUser_SameEmail() {
+        String sameEmail = testUser.getEmail();
+        when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        userService.mirrorEmailUpdate(testUser.getAccountId(), sameEmail);
+
+        verify(userRepository).save(testUser);
+        assertEquals(sameEmail, testUser.getEmail());
     }
     
 }

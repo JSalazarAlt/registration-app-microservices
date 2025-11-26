@@ -209,5 +209,129 @@ class AuthControllerTest {
         // Verify service was called
         verify(tokenService).refreshToken(refreshTokenRequestDTO);
     }
+
+    /**
+     * Tests registration with invalid data (validation error).
+     */
+    @Test
+    void registerAccount_ValidationError() throws Exception {
+        RegistrationRequestDTO invalidDTO = RegistrationRequestDTO.builder()
+                .username("ab")  // Too short
+                .email("invalid-email")  // Invalid format
+                .password("weak")  // Too short
+                .build();
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Tests login with invalid credentials.
+     */
+    @Test
+    void loginAccount_InvalidCredentials() throws Exception {
+        when(authService.authenticateAccount(any()))
+                .thenThrow(new RuntimeException("Invalid credentials"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDTO)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    /**
+     * Tests registration with duplicate email.
+     */
+    @Test
+    void registerAccount_EmailAlreadyExists() throws Exception {
+        when(authService.createAccount(any()))
+                .thenThrow(new RuntimeException("Email already registered"));
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registrationDTO)))
+                .andExpect(status().isInternalServerError());
+    }
+
+
+
+    /**
+     * Tests registration with missing required fields.
+     */
+    @Test
+    void registerAccount_MissingFields() throws Exception {
+        RegistrationRequestDTO invalidDTO = RegistrationRequestDTO.builder()
+                .username("testuser")
+                .build();
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Tests login with missing password.
+     */
+    @Test
+    void loginAccount_MissingPassword() throws Exception {
+        AuthenticationRequestDTO invalidDTO = AuthenticationRequestDTO.builder()
+                .identifier("test@example.com")
+                .build();
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Tests refresh token with invalid token.
+     */
+    @Test
+    void refreshToken_InvalidToken() throws Exception {
+        when(tokenService.refreshToken(any()))
+                .thenThrow(new RuntimeException("Invalid refresh token"));
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(refreshTokenRequestDTO)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    /**
+     * Tests logout with invalid token.
+     */
+    @Test
+    void logoutAccount_InvalidToken() throws Exception {
+        doThrow(new RuntimeException("Invalid refresh token"))
+                .when(authService).deauthenticateAccount(any());
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(refreshTokenRequestDTO)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    /**
+     * Tests registration with weak password.
+     */
+    @Test
+    void registerAccount_WeakPassword() throws Exception {
+        RegistrationRequestDTO weakPasswordDTO = RegistrationRequestDTO.builder()
+                .username("testuser")
+                .email("test@example.com")
+                .password("123")  // Too short
+                .firstName("Test")
+                .lastName("User")
+                .build();
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(weakPasswordDTO)))
+                .andExpect(status().isBadRequest());
+    }
     
 }

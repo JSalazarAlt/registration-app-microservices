@@ -1,18 +1,19 @@
 package com.suyos.authservice.exception.exceptions;
 
+import org.springframework.http.HttpStatus;
+
+import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
-public class TokenNotFoundException extends RuntimeException {
+public class TokenNotFoundException extends ApiException {
     
-    /** */
-    private final String message;
-    
-    /** */
-    private final ErrorCode code = ErrorCode.TOKEN_NOT_FOUND;
+    public TokenNotFoundException(String value) {
+        super(
+            "Token with value '" + value + "' not found",
+            HttpStatus.NOT_FOUND,
+            "/errors/token-not-found",
+            ErrorCode.TOKEN_NOT_FOUND
+        );
+    }
 
 }

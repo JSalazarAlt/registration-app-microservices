@@ -1,18 +1,19 @@
 package com.suyos.authservice.exception.exceptions;
 
+import org.springframework.http.HttpStatus;
+
+import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
-public class AccountNotFoundException extends RuntimeException {
+public class AccountNotFoundException extends ApiException {
     
-    /** */
-    private final String message;
-    
-    /** */
-    private final ErrorCode code = ErrorCode.ACCOUNT_NOT_FOUND;
+    public AccountNotFoundException(String id) {
+        super(
+            "Account with ID '" + id + "' not found",
+            HttpStatus.NOT_FOUND,
+            "/errors/account-not-found",
+            ErrorCode.ACCOUNT_NOT_FOUND
+        );
+    }
 
 }
