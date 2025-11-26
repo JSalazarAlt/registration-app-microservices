@@ -91,14 +91,14 @@ public class AccountService {
 
         // Build paginated response with all accounts' information
         PagedResponseDTO<AccountInfoDTO> response = PagedResponseDTO.<AccountInfoDTO>builder()
-            .content(accountInfos)
-            .currentPage(accountPage.getNumber())
-            .totalPages(accountPage.getTotalPages())
-            .totalElements(accountPage.getTotalElements())
-            .size(accountPage.getSize())
-            .first(accountPage.isFirst())
-            .last(accountPage.isLast())
-            .build();
+                .content(accountInfos)
+                .currentPage(accountPage.getNumber())
+                .totalPages(accountPage.getTotalPages())
+                .totalElements(accountPage.getTotalElements())
+                .size(accountPage.getSize())
+                .first(accountPage.isFirst())
+                .last(accountPage.isLast())
+                .build();
         
         // Return all accounts' information paginated
         return response;
@@ -246,9 +246,9 @@ public class AccountService {
             
             // Build account's username update event
             AccountUsernameUpdateEvent usernameEvent = AccountUsernameUpdateEvent.builder()
-                .accountId(account.getId())
-                .newUsername(request.getUsername())
-                .build();
+                    .accountId(account.getId())
+                    .newUsername(request.getUsername())
+                    .build();
                 
             // Publish account's username update event
             accountEventProducer.publishAccountUsernameUpdate(usernameEvent);
@@ -266,9 +266,9 @@ public class AccountService {
             
             // Build account's email update event
             AccountEmailUpdateEvent emailEvent = AccountEmailUpdateEvent.builder()
-                .accountId(account.getId())
-                .newEmail(request.getEmail())
-                .build();
+                    .accountId(account.getId())
+                    .newEmail(request.getEmail())
+                    .build();
 
             // Publish account's email update event
             accountEventProducer.publishAccountEmailUpdate(emailEvent);

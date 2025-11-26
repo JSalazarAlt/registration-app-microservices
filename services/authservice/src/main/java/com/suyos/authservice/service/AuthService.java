@@ -120,16 +120,16 @@ public class AuthService {
 
         // Build user creation event
         UserCreationEvent event = UserCreationEvent.builder()
-            .accountId(account.getId())
-            .username(request.getUsername())
-            .email(request.getEmail())
-            .firstName(request.getFirstName())
-            .lastName(request.getLastName())
-            .phone(request.getPhone())
-            .profilePictureUrl(request.getProfilePictureUrl())
-            .locale(request.getLocale())
-            .timezone(request.getTimezone())
-            .build();
+                .accountId(account.getId())
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .phone(request.getPhone())
+                .profilePictureUrl(request.getProfilePictureUrl())
+                .locale(request.getLocale())
+                .timezone(request.getTimezone())
+                .build();
         
         // Publish user creation event
         accountEventProducer.publishUserCreation(event);

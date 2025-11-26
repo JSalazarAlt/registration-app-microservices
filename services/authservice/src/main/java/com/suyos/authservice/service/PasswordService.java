@@ -79,8 +79,8 @@ public class PasswordService {
 
         // Build response
         GenericMessageResponseDTO response = GenericMessageResponseDTO.builder()
-            .message("A password reset link has been sent.")
-            .build();
+                .message("A password reset link has been sent.")
+                .build();
 
         // Return message indicating if password reset link has been sent
         return response;
