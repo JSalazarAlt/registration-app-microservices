@@ -48,16 +48,16 @@ public class AccountEventConsumer {
         
         // Map user creation event data to user creation request
         UserCreationRequestDTO request = UserCreationRequestDTO.builder()
-            .accountId(event.getAccountId())
-            .username(event.getUsername())
-            .email(event.getEmail())
-            .firstName(event.getFirstName())
-            .lastName(event.getLastName())
-            .phone(event.getPhone())
-            .profilePictureUrl(event.getProfilePictureUrl())
-            .locale(event.getLocale())
-            .timezone(event.getTimezone())
-            .build();
+                .accountId(event.getAccountId())
+                .username(event.getUsername())
+                .email(event.getEmail())
+                .firstName(event.getFirstName())
+                .lastName(event.getLastName())
+                .phone(event.getPhone())
+                .profilePictureUrl(event.getProfilePictureUrl())
+                .locale(event.getLocale())
+                .timezone(event.getTimezone())
+                .build();
             
         // Create user's profile
         userService.createUser(request);

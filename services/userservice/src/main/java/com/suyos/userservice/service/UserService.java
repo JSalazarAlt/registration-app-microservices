@@ -77,14 +77,14 @@ public class UserService {
 
         // Build paginated response with all users' profiles
         PagedResponseDTO<UserProfileDTO> response = PagedResponseDTO.<UserProfileDTO>builder()
-            .content(userProfiles)
-            .currentPage(userPage.getNumber())
-            .totalPages(userPage.getTotalPages())
-            .totalElements(userPage.getTotalElements())
-            .size(userPage.getSize())
-            .first(userPage.isFirst())
-            .last(userPage.isLast())
-            .build();
+                .content(userProfiles)
+                .currentPage(userPage.getNumber())
+                .totalPages(userPage.getTotalPages())
+                .totalElements(userPage.getTotalElements())
+                .size(userPage.getSize())
+                .first(userPage.isFirst())
+                .last(userPage.isLast())
+                .build();
         
         // Return all users' profiles paginated
         return response;
