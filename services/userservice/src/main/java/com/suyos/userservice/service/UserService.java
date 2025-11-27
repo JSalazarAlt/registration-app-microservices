@@ -22,6 +22,7 @@ import com.suyos.userservice.model.User;
 import com.suyos.userservice.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for user profile management operations.
@@ -34,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class UserService {
     
     /** Repository for user data access operations */
@@ -101,7 +103,7 @@ public class UserService {
     public UserProfileDTO findUserById(UUID id) {
         // Look up user by ID
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException("ID: " + id));
+            .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
         
         // Map user's profile information from user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(user);
@@ -121,13 +123,16 @@ public class UserService {
     public UserProfileDTO updateUserById(UUID id, UserUpdateRequestDTO userUpdateDTO) {
         // Look up user by ID
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException("ID: " + id));
+            .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
         
         // Update user fields using mapper
         userMapper.updateUserFromDTO(userUpdateDTO, user);
 
         // Persist updated user
         User updatedUser = userRepository.save(user);
+
+        // Log user update event
+        log.info("event=user_updated user_id={}", updatedUser.getId());
 
         // Map user's profile information from updated user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(updatedUser);
@@ -169,7 +174,7 @@ public class UserService {
     public UserProfileDTO findUserByAccountId(UUID accountId) {
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
-            .orElseThrow(() -> new UserNotFoundException("account ID: " + accountId));
+            .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
         
         // Map user's profile information from user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(user);
@@ -203,6 +208,9 @@ public class UserService {
         // Persist created user
         User createdUser = userRepository.save(user);
 
+        // Log user creation event
+        log.info("event=user_created account_id={}", createdUser.getAccountId());
+
         // Map user's profile information from created user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(createdUser);
 
@@ -221,13 +229,16 @@ public class UserService {
     public UserProfileDTO updateUserByAccountId(UUID accountId, UserUpdateRequestDTO userUpdateDTO) {
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
-            .orElseThrow(() -> new UserNotFoundException("account ID: " + accountId));
+            .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
         
         // Update user fields using mapper
         userMapper.updateUserFromDTO(userUpdateDTO, user);
 
         // Persist updated user
         User updatedUser = userRepository.save(user);
+
+        // Log user update event
+        log.info("event=user_updated account_id={}", updatedUser.getAccountId());
 
         // Map user's profile information from updated user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(updatedUser);
@@ -247,7 +258,7 @@ public class UserService {
     public UserProfileDTO softDeleteUserByAccountId(UUID accountId) {
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
-            .orElseThrow(() -> new UserNotFoundException("account ID: " + accountId));
+            .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
         
         // Soft delete user
         user.setDeleted(true);
@@ -255,6 +266,9 @@ public class UserService {
 
         // Persist soft deleted user
         User softDeletedUser = userRepository.save(user);
+
+        // Log user soft deletion event
+        log.info("event=user_soft_deleted account_id={}", softDeletedUser.getAccountId());
 
         // Map user's profile information from updated user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(softDeletedUser);
@@ -277,10 +291,13 @@ public class UserService {
     public void mirrorEmailUpdate(UUID accountId, String newEmail) {
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
-            .orElseThrow(() -> new UserNotFoundException("account ID: " + accountId));
+            .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
         
         // Update email
         user.setEmail(newEmail);
+
+        // Log email mirror event
+        log.info("event=email_mirrored account_id={}", accountId);
 
         // Persist updated user
         userRepository.save(user);
@@ -296,10 +313,13 @@ public class UserService {
     public void mirrorUsernameUpdate(UUID accountId, String newUsername) {
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
-            .orElseThrow(() -> new UserNotFoundException("account ID: " + accountId));
+            .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
         
         // Update username
         user.setUsername(newUsername);
+
+        // Log username mirror event
+        log.info("event=username_mirrored account_id={}", accountId);
 
         // Persist updated user
         userRepository.save(user);
