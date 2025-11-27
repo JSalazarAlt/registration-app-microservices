@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -148,30 +146,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    /**
-     * Configures authentication manager for credential verification.
-     *
-     * <p><b>Behavior:</b></p>
-     * <ul>
-     *   <li>Exposes AuthenticationManager as Spring bean</li>
-     *   <li>Uses configured authentication providers</li>
-     * </ul>
-     *
-     * <p><b>Purpose:</b></p>
-     * <ul>
-     *   <li>Central entry point for credential verification</li>
-     *   <li>Processes authentication requests</li>
-     * </ul>
-     * 
-     * @param config Authentication configuration
-     * @return Configured authentication manager
-     * @throws Exception If manager cannot be created
-     */
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 
     /**
