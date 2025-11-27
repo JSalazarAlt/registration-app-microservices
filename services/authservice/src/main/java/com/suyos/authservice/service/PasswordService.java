@@ -18,6 +18,7 @@ import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for password-related operations.
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class PasswordService {
 
     /** Mapper for converting between account entities and DTOs */
@@ -71,6 +73,9 @@ public class PasswordService {
                 
                 // Issue new token
                 tokenService.issueToken(account, TokenType.PASSWORD_RESET, PASSWORD_TOKEN_LIFETIME_HOURS);
+
+                // Log password reset token issuance event
+                log.info("event=password_reset_token_issued account_id={}", account.getId());
                 
                 // Publish event for Email microservice to send password reset link
                 //
@@ -120,6 +125,9 @@ public class PasswordService {
 
         // Revoke password reset token used
         tokenService.revokeTokenByValue(value);
+
+        // Log password reset event
+        log.info("event=password_reset account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);

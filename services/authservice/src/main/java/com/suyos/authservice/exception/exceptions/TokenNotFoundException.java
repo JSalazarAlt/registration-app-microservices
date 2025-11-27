@@ -9,7 +9,7 @@ public class TokenNotFoundException extends ApiException {
     
     public TokenNotFoundException(String value) {
         super(
-            "Token with value '" + value + "' not found",
+            "Token not found with value=" + value,
             HttpStatus.NOT_FOUND,
             "/errors/token-not-found",
             ErrorCode.TOKEN_NOT_FOUND

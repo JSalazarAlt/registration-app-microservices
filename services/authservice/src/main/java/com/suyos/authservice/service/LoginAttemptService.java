@@ -10,6 +10,7 @@ import com.suyos.authservice.model.Account;
 import com.suyos.authservice.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for handling login attempt tracking and account security.
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LoginAttemptService {
     
     /** Repository for account data access operations */
@@ -44,10 +46,14 @@ public class LoginAttemptService {
         int attempts = account.getFailedLoginAttempts() + 1;
         account.setFailedLoginAttempts(attempts);
 
-        // Lock account if maximum attempts exceeded
+        // Log login failed event
+        log.warn("event=login_failed attempts={} account_id={}", attempts, account.getId());
+
+        // Lock account if maximum attempts exceeded and log account lock event
         if (attempts >= MAX_FAILED_ATTEMPTS) {
             account.setLocked(true);
             account.setLockedUntil(Instant.now().plusSeconds(LOCK_DURATION_HOURS * 3600));
+            log.warn("event=account_locked account_id={}", account.getId());
         }
 
         // Persist updated account

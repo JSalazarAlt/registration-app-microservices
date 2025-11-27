@@ -7,9 +7,9 @@ import com.suyos.common.exception.ErrorCode;
 
 public class AccountNotFoundException extends ApiException {
     
-    public AccountNotFoundException(String id) {
+    public AccountNotFoundException(String detail) {
         super(
-            "Account with ID '" + id + "' not found",
+            "Account not found with " + detail,
             HttpStatus.NOT_FOUND,
             "/errors/account-not-found",
             ErrorCode.ACCOUNT_NOT_FOUND

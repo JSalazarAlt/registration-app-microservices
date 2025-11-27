@@ -36,6 +36,7 @@ import com.suyos.authservice.repository.AccountRepository;
 import com.suyos.common.event.UserCreationEvent;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for authentication-related operations.
@@ -50,6 +51,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class AuthService {
 
     /** Mapper for converting between account entities and DTOs */
@@ -114,6 +116,9 @@ public class AuthService {
         
         // Persist created account
         Account createdAccount = accountRepository.save(account);
+
+        // Log account creation
+        log.info("event=account_created account_id={}", createdAccount.getId());
 
         // Issue email verification token
         tokenService.issueToken(createdAccount, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
@@ -206,6 +211,9 @@ public class AuthService {
         
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
+
+        // Log account authentication
+        log.info("event=account_authenticated account_id={}", updatedAccount.getId());
         
         // Issue refresh and access tokens on successful login
         AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(updatedAccount);
@@ -244,6 +252,9 @@ public class AuthService {
 
         // Persist created account
         Account createdAccount = accountRepository.save(account);
+
+        // Log account creation
+        log.info("event=oauth2_account_created account_id={}", createdAccount.getId());
         
         // Return created account
         return createdAccount;
@@ -309,7 +320,12 @@ public class AuthService {
         
         // Update last login time
         account.setLastLoginAt(Instant.now());
+
+        // Persist updated account
         Account savedAccount = accountRepository.save(account);
+
+        // Log account authentication
+        log.info("event=oauth2_account_authenticated account_id={}", savedAccount.getId());
 
         // Issue refresh and access tokens for successful Google OAuth2 login
         AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(savedAccount);
@@ -351,6 +367,9 @@ public class AuthService {
 
         // Persist updated account
         accountRepository.save(account);
+
+        // Log account logout
+        log.info("event=account_logged_out account_id={}", account.getId());
         
         // Revoke refresh token
         tokenService.revokeTokenByValue(value);
@@ -399,6 +418,9 @@ public class AuthService {
         // Persist updated account
         accountRepository.save(account);
 
+        // Log email verification
+        log.info("event=email_verified account_id={}", account.getId());
+
         // Revoke email verification token used
         tokenService.revokeTokenByValue(value);
 
@@ -429,6 +451,9 @@ public class AuthService {
                 
                 // Issue new email verification token
                 tokenService.issueToken(account, TokenType.EMAIL_VERIFICATION, REFRESH_TOKEN_LIFETIME_HOURS);
+                
+                // Log email verification resend
+                log.info("event=email_verification_resent account_id={}", account.getId());
                 
                 // Publish event for Email microservice to send verification link
                 //

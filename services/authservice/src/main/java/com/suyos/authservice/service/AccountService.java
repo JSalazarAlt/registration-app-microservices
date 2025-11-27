@@ -25,6 +25,7 @@ import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
@@ -39,6 +40,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class AccountService {
 
     /** Mapper for converting between account entities and DTOs */
@@ -114,7 +116,7 @@ public class AccountService {
     public AccountInfoDTO lockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
         // Lock account
         account.setLocked(true);
@@ -122,6 +124,9 @@ public class AccountService {
 
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
+
+        // Log account lock event
+        log.info("event=account_locked account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
@@ -140,7 +145,7 @@ public class AccountService {
     public AccountInfoDTO unlockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
         // Unlock account
         account.setLocked(false);
@@ -148,6 +153,9 @@ public class AccountService {
 
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
+
+        // Log account unlock event
+        log.info("event=account_unlocked account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
@@ -170,7 +178,7 @@ public class AccountService {
     public AccountInfoDTO findAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
@@ -189,7 +197,7 @@ public class AccountService {
     public AccountInfoDTO findAccountByEmail(String email) {
         // Look up account by email
         Account account = accountRepository.findByEmail(email)
-            .orElseThrow(() -> new AccountNotFoundException(email));
+            .orElseThrow(() -> new AccountNotFoundException("email=" + email));
 
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
@@ -208,7 +216,7 @@ public class AccountService {
     public AccountInfoDTO findAccountByUsername(String username) {
         // Look up account by username
         Account account = accountRepository.findByUsername(username)
-            .orElseThrow(() -> new AccountNotFoundException(username));;
+            .orElseThrow(() -> new AccountNotFoundException("username=" + username));
         
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
@@ -232,7 +240,7 @@ public class AccountService {
     public AccountInfoDTO updateAccountById(UUID id, AccountUpdateRequestDTO request) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
         // Update username if update request includes it
         if (request.getUsername() != null) {
@@ -277,6 +285,9 @@ public class AccountService {
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
 
+        // Log account update event
+        log.info("event=account_updated account_id={}", updatedAccount.getId());
+
         // Map account's information from updated account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
 
@@ -297,7 +308,7 @@ public class AccountService {
     public AccountInfoDTO softDeleteAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException(id.toString()));
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
         // Soft delete account
         account.setDeleted(true);
@@ -314,6 +325,9 @@ public class AccountService {
 
         // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
+        
+        // Log account soft deletion event
+        log.info("event=account_soft_deleted account_id={}", softDeletedAccount.getId());
 
         // Return soft deleted account's information
         return accountInfoDTO;

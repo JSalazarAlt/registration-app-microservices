@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.suyos.authservice.repository.TokenRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for token cleanup operations.
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class TokenCleanupService {
 
     /** Repository for token operations */
@@ -30,7 +32,14 @@ public class TokenCleanupService {
      */
     @Scheduled(cron = "0 0 3 * * *")
     public void cleanupExpiredAndRevokedTokens() {
+        // Log cleanup start
+        log.info("event=token_cleanup_started");
+
+        // Delete expired or revoked tokens
         tokenRepository.deleteExpiredOrRevoked(Instant.now());
+
+        // Log cleanup completion
+        log.info("event=token_cleanup_completed");
     }
 
 }

@@ -16,6 +16,7 @@ import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.TokenRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for token management operations.
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class TokenService {
     
     /** Repository for token data access operations */
@@ -68,6 +70,9 @@ public class TokenService {
         // Persist created token
         Token createdToken = tokenRepository.save(token);
 
+        // Log token issuance
+        log.debug("event=token_issued type={} id={}", type, account.getId());
+
         // Return created token
         return createdToken;
     }
@@ -95,6 +100,9 @@ public class TokenService {
 
         // Persist created refresh token
         tokenRepository.save(refreshToken);
+
+        // Log refresh token issuance event
+        log.debug("event=token_issued type=REFRESH account_id={}", account.getId());
 
         // Build authentication response with refresh and access tokens
         AuthenticationResponseDTO response = AuthenticationResponseDTO.builder()
@@ -153,6 +161,9 @@ public class TokenService {
 
         // Persist revoked token
         tokenRepository.save(refreshToken);
+
+        // Log token rotation event
+        log.info("event=refresh_token_rotated account_id={}", refreshToken.getAccount().getId());
 
         // Build authentication response with new refresh and access tokens 
         // (refresh token rotation)
@@ -220,6 +231,9 @@ public class TokenService {
 
         // Persist revoked token
         tokenRepository.save(refreshToken);
+
+        // Log token revocation
+        log.debug("event=token_revoked");
     }
 
     /**
@@ -231,6 +245,9 @@ public class TokenService {
      */
     public void revokeAllTokensByAccountId(UUID accountId) {
         tokenRepository.revokeAllValidByAccountId(accountId);
+
+        // Log all tokens revocation
+        log.info("event=all_tokens_revoked account_id={}", accountId);
     }
 
     /**
@@ -243,6 +260,9 @@ public class TokenService {
      */
     public void revokeAllTokensByAccountIdAndType(UUID accountId, TokenType type) {
         tokenRepository.revokeAllValidByAccountIdAndType(accountId, type);
+
+        // Log tokens revocation
+        log.debug("event=tokens_revoked type={} account_id={}", type, accountId);
     }
 
     // ----------------------------------------------------------------
