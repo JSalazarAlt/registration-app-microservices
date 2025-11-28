@@ -3,6 +3,7 @@ package com.suyos.authservice.controller;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,8 +22,9 @@ import com.suyos.common.dto.response.PagedResponseDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,26 +53,35 @@ public class AccountController {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves all accounts' information.
+     * Retrieves all accounts' information paginated.
      * 
-     * @return All accounts' information
+     * @param page Zero-based page index
+     * @param size Page size
+     * @param sortBy Field to sort by
+     * @param sortDir Sort direction (asc/desc)
+     * @return Paginated list of accounts' information with "200 OK" status
      */
+    @Secured("ROLE_ADMIN")
     @GetMapping
     @Operation(
         summary = "Get accounts paginated", 
-        description = "Retrieves accounts with pagination and sorting"
+        description = "Retrieves accounts with pagination and sorting",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully",
+                content = @Content(schema = @Schema(implementation = PagedResponseDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid pagination or sort parameters"),
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Success - Accounts found"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
-    })
     public ResponseEntity<PagedResponseDTO<AccountInfoDTO>> getAllAccounts(
             @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
             @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir) {
-        // Find all accounts' information
+        // Find accounts' information paginated
         PagedResponseDTO<AccountInfoDTO> accountInfos = accountService.findAllAccounts(page, 
             size, sortBy, sortDir);
         
@@ -79,58 +90,66 @@ public class AccountController {
     }
 
     /**
-     * Retrieves account information by ID.
+     * Retrieves account's information by ID.
      * 
      * @param id Account's ID to search for
-     * @return Account's information
-     * @throws RuntimeException If account not found
+     * @return Account's information with "200 OK" status
      */
+    @Secured("ROLE_ADMIN")
     @GetMapping("/{id}")
     @Operation(
         summary = "Get account by ID",
-        description = "Retrieves account information by ID"
+        description = "Retrieves account information by ID",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Account retrieved successfully",
+                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Success - Account found and returned"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - Access denied"),
-        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
-    })
     public ResponseEntity<AccountInfoDTO> getAccountById(
             @Parameter(description = "Account's ID", required = true)
             @PathVariable UUID id) {
         // Find account's information by id
         AccountInfoDTO accountInfo = accountService.findAccountById(id);
 
-        // Return account information with "200 OK" status
+        // Return account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
     }
 
     /**
-     * Retrieves account information by username.
+     * Retrieves account's information by username.
      * 
      * @param username Username to search for
-     * @return Account's information
-     * @throws RuntimeException If account not found
+     * @return Account's information with "200 OK" status
      */
-    @GetMapping("/{username}")
+    @Secured("ROLE_ADMIN")
+    @GetMapping("/username/{username}")
     @Operation(
         summary = "Get account by username",
-        description = "Retrieves account information by username"
+        description = "Retrieves account information by username",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Account retrieved successfully",
+                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Success - Account found and returned"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - Access denied"),
-        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
-    })
     public ResponseEntity<AccountInfoDTO> getAccountByUsername(
             @Parameter(description = "Account's username", required = true)
             @PathVariable String username) {
         // Find account's information by username
         AccountInfoDTO accountInfo = accountService.findAccountByUsername(username);
 
-        // Return account information with "200 OK" status
+        // Return account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
     }
 
@@ -139,22 +158,25 @@ public class AccountController {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves current logged-in account.
+     * Retrieves account's information of the currently authenticated user.
      * 
-     * @param authHeader Authorization header with Bearer token
-     * @return Logged-in account information
-     * @throws RuntimeException If account not found
+     * @param jwt Authentication principal containing JWT token
+     * @return Authenticated user's account's information with "200 OK" status
      */
     @GetMapping("/me")
     @Operation(
         summary = "Get current logged-in account",
-        description = "Retrieves current logged-in account information"
+        description = "Retrieves current logged-in account information",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Account retrieved successfully",
+                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Success - Account found and returned"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
-    })
     public ResponseEntity<AccountInfoDTO> getLoggedInAccount(@AuthenticationPrincipal Jwt jwt) {
         // Extract logged-in account's ID from access token
         UUID loggedInAccountId = UUID.fromString(jwt.getSubject());
@@ -167,22 +189,27 @@ public class AccountController {
     }
     
     /**
-     * Updates current logged-in account.
+     * Updates account's information of the currently authenticated user.
      * 
-     * @param authHeader Authorization header with Bearer token
-     * @return Updated logged-in account's information
-     * @throws RuntimeException If account not found
+     * @param jwt Authentication principal containing JWT token
+     * @return Updated authenticated user's account's information with 
+     * "200 OK" status
      */
     @PatchMapping("/me")
     @Operation(
         summary = "Update current logged-in account",
-        description = "Updates fields of the currently logged-in account"
+        description = "Updates fields of the currently logged-in account",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Account updated successfully",
+                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or validation errors"),
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Success - Account found and updated"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
-    })
     public ResponseEntity<AccountInfoDTO> updateLoggedInAccount(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody AccountUpdateRequestDTO request) {
@@ -197,22 +224,26 @@ public class AccountController {
     }
 
     /**
-     * Soft deletes current logged-in account.
+     * Soft deletes account's information of the currently authenticated user.
      * 
-     * @param authHeader Authorization header with Bearer token
-     * @return Soft deleted logged-in account's information
-     * @throws RuntimeException If account not found
+     * @param jwt Authentication principal containing JWT token
+     * @return Soft deleted authenticated user's account's information with 
+     * "200 OK" status
      */
     @DeleteMapping("/me")
     @Operation(
         summary = "Soft delete current logged-in account",
-        description = "Soft deletes the currently logged-in account"
+        description = "Soft deletes the currently logged-in account",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Account soft deleted successfully",
+                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Success - Account found and deleted"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-        @ApiResponse(responseCode = "404", description = "Not Found - Account not found")
-    })
     public ResponseEntity<AccountInfoDTO> deleteLoggedInAccount(@AuthenticationPrincipal Jwt jwt) {
         // Extract logged-in account ID from access token
         UUID loggedInAccountId = UUID.fromString(jwt.getSubject());

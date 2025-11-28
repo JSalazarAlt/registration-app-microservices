@@ -2,19 +2,18 @@ package com.suyos.authservice.exception.exceptions;
 
 import org.springframework.http.HttpStatus;
 
-import com.suyos.authservice.model.TokenType;
 import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
-public class InvalidTokenException extends ApiException {
-    
-    public InvalidTokenException(TokenType tokenType) {
+public class InvalidRefreshTokenException extends ApiException {
+
+    public InvalidRefreshTokenException() {
         super(
-            "Invalid " + tokenType.name().toLowerCase().replace("_", " ") + " token",
-            HttpStatus.GONE,
+            "Invalid refresh token",
+            HttpStatus.UNAUTHORIZED,
             "/errors/invalid-token",
             ErrorCode.INVALID_TOKEN
         );
     }
-
+    
 }

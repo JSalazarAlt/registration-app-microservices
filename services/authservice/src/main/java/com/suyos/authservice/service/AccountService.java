@@ -65,11 +65,11 @@ public class AccountService {
     /**
      * Finds all accounts paginated.
      * 
-     * @param page Page number to search for
-     * @param size Size of page
-     * @param sortBy Sort
-     * @param sortDir Sort direction
-     * @return All accounts' information
+     * @param page Zero-based page index
+     * @param size Page size
+     * @param sortBy Field to sort by
+     * @param sortDir Sort direction (asc/desc)
+     * @return Paginated list of accounts' information
      */
     public PagedResponseDTO<AccountInfoDTO> findAllAccounts(int page, int size, 
         String sortBy, String sortDir) {
@@ -102,7 +102,7 @@ public class AccountService {
                 .last(accountPage.isLast())
                 .build();
         
-        // Return all accounts' information paginated
+        // Return paginated list of accounts' information
         return response;
     }
 
@@ -180,6 +180,9 @@ public class AccountService {
         Account account = accountRepository.findById(id)
             .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
+        // Log account found by ID event
+        log.info("event=account_found_by_id account_id={}", account.getId());
+
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
 
@@ -198,6 +201,9 @@ public class AccountService {
         // Look up account by email
         Account account = accountRepository.findByEmail(email)
             .orElseThrow(() -> new AccountNotFoundException("email=" + email));
+        
+        // Log account found by email event
+        log.info("event=account_found_by_email account_id={}", account.getId());
 
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
@@ -217,6 +223,9 @@ public class AccountService {
         // Look up account by username
         Account account = accountRepository.findByUsername(username)
             .orElseThrow(() -> new AccountNotFoundException("username=" + username));
+        
+        // Log account found by username event
+        log.info("event=account_found_by_username account_id={}", account.getId());
         
         // Map account's information from account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);

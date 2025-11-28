@@ -23,6 +23,7 @@ import com.suyos.authservice.exception.exceptions.AccountDisabledException;
 import com.suyos.authservice.exception.exceptions.AccountLockedException;
 import com.suyos.authservice.exception.exceptions.EmailNotVerifiedException;
 import com.suyos.authservice.exception.exceptions.EmailAlreadyRegisteredException;
+import com.suyos.authservice.exception.exceptions.EmailAlreadyVerifiedException;
 import com.suyos.authservice.exception.exceptions.InvalidCredentialsException;
 import com.suyos.authservice.exception.exceptions.InvalidPasswordException;
 import com.suyos.authservice.exception.exceptions.InvalidTokenException;
@@ -94,7 +95,7 @@ public class AuthService {
      * user's profile
      * @return Created account's information
      * @throws UsernameAlreadyTakenException If username is already in use
-    * @throws EmailAlreadyRegisteredException If email is already registered
+     * @throws EmailAlreadyRegisteredException If email is already registered
      */
     public AccountInfoDTO createAccount(RegistrationRequestDTO request) {
         // Check if username is already taken
@@ -178,29 +179,31 @@ public class AuthService {
             throw new EmailNotVerifiedException(account.getEmail());
         }
 
-        // Ensure account is not deleted
-        if (account.getDeleted()) {
-            throw new AccountDeletedException();
-        }
-
         // Ensure account is not locked
         if (account.getLocked()) {
             if (account.getLockedUntil() != null && account.getLockedUntil().isBefore(Instant.now())) {
-                // Auto-unlock expired locks
+                // Auto-unlock account for expired locks
                 account.setLocked(false);
                 account.setLockedUntil(null);
                 account.setFailedLoginAttempts(0);
                 accountRepository.save(account);
+                log.info("event=account_auto_unlocked account_id={}", account.getId());
             } else {
+                // Communicate remaining lock time
                 Duration remainingLockTime = Duration.between(Instant.now(), account.getLockedUntil());
                 throw new AccountLockedException(String.valueOf(remainingLockTime.toMinutes()));
             }
+        }
+
+        // Reactivate account if was soft deleted
+        if (account.getDeleted()) {
+            account.setDeleted(false);
         }
         
         // Verify password match
         if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
             loginAttemptService.recordFailedAttempt(account);
-            throw new InvalidPasswordException();
+            throw new InvalidCredentialsException();
         }
         
         // Update login tracking fields on successful login
@@ -283,7 +286,9 @@ public class AuthService {
                     existingAccount.setOauth2Provider("google");
                     existingAccount.setOauth2ProviderId(request.getProviderId());
                     existingAccount.setEmailVerified(true);
-                    return accountRepository.save(existingAccount);
+                    Account updatedExistingAccount = accountRepository.save(existingAccount);
+                    log.info("event=oauth2_account_linked account_id={} provider=google", updatedExistingAccount.getId());
+                    return updatedExistingAccount;
                 })
             )
             // Create new account if not found
@@ -298,24 +303,26 @@ public class AuthService {
         if (!account.getEmailVerified()) {
             throw new EmailNotVerifiedException(account.getEmail());
         }
-
-        // Ensure account is not deleted
-        if (account.getDeleted()) {
-            throw new AccountDeletedException();
-        }
-
+        
         // Ensure account is not locked
         if (account.getLocked()) {
             if (account.getLockedUntil() != null && account.getLockedUntil().isBefore(Instant.now())) {
-                // Auto-unlock expired locks
+                // Auto-unlock account for expired locks
                 account.setLocked(false);
                 account.setLockedUntil(null);
                 account.setFailedLoginAttempts(0);
                 accountRepository.save(account);
+                log.info("evento=oauth2_account_auto_unlocked account_id={}", account.getId());
             } else {
+                // Communicate remaining lock time
                 Duration remainingLockTime = Duration.between(Instant.now(), account.getLockedUntil());
                 throw new AccountLockedException(String.valueOf(remainingLockTime.toMinutes()));
             }
+        }
+
+        // Reactivate account if was soft deleted
+        if (account.getDeleted()) {
+            account.setDeleted(false);
         }
         
         // Update last login time
@@ -409,7 +416,7 @@ public class AuthService {
 
         // Check if email is not already verified
         if(account.getEmailVerified()) {
-            throw new EmailAlreadyRegisteredException(account.getEmail());
+            throw new EmailAlreadyVerifiedException(account.getEmail());
         }
 
         // Set email as verified
