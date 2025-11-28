@@ -68,7 +68,7 @@ public class AuthController {
      */
     @PostMapping("/register")
     @Operation(
-        summary = "Register new account", 
+        summary = "Register account", 
         description = "Creates a new account with the provided registration data",
         responses = {
             @ApiResponse(
@@ -89,7 +89,7 @@ public class AuthController {
     }
 
     /**
-     * Authenticates account and returns refresh and access tokens.
+     * Authenticates an account and returns refresh and access tokens.
      * 
      * @param request Login credentials
      * @return Refresh and access tokens with "200 OK" status
@@ -97,7 +97,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(
         summary = "Login account", 
-        description = "Authenticates account credentials and returns refresh and access tokens",
+        description = "Authenticates an account using its credentials",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Login successful", 
@@ -123,8 +123,8 @@ public class AuthController {
     // ----------------------------------------------------------------
 
     /**
-     * Authenticates account using Google OAuth2 and returns refresh and access
-     * tokens.
+     * Authenticates an account using Google OAuth2 credentials and returns
+     * refresh and access tokens.
      *
      * @param request Google OAuth2 authentication request
      * @return Refresh and access tokens with "200 OK" status
@@ -132,7 +132,7 @@ public class AuthController {
     @PostMapping("/oauth2/google")
     @Operation(
         summary = "Google OAuth2 register and login account",
-        description = "Authenticates account using Google OAuth2 and returns refresh and access tokens",
+        description = "Authenticates an account using Google OAuth2 credentials",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Login successful",
@@ -157,7 +157,7 @@ public class AuthController {
     // ----------------------------------------------------------------
 
     /**
-     * Deauthenticates account and revokes refresh token.
+     * Deauthenticates an account and revokes the refresh token.
      * 
      * @param request Refresh token request value
      * @return logout response with "204 No Content" status
@@ -165,7 +165,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(
         summary = "Logout account",
-        description = "Invalidates account's refresh token and JWT access token",
+        description = "Deauthenticates an account and revokes refresh and access tokens",
         responses = {
             @ApiResponse(responseCode = "204", description = "Logout successful"),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
@@ -174,7 +174,7 @@ public class AuthController {
         }
     )
     public ResponseEntity<Void> logoutAccount(@RequestBody RefreshTokenRequestDTO request) {
-        // Deauthenticate account revoking refresh token
+        // Deauthenticate account and revoke refresh token
         authService.deauthenticateAccount(request);
         
         // Return logout response with "204 No Content" status
@@ -186,7 +186,7 @@ public class AuthController {
     // ----------------------------------------------------------------
 
     /**
-     * Refreshes access token using the refresh token and rotates the refresh
+     * Refreshes an access token using a refresh token and rotates the refresh
      * token.
      * 
      * @param request Refresh token request
@@ -194,8 +194,8 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     @Operation(
-        summary = "Refresh JWT token",
-        description = "Generates new JWT token using valid refresh token",
+        summary = "Refresh access token",
+        description = "Issues new JWT access token using valid refresh token",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Token refreshed successfully",
@@ -219,7 +219,7 @@ public class AuthController {
     // ----------------------------------------------------------------
 
     /**
-     * Verifies email address and revokes email verification token.
+     * Verifies an email address and revokes used email verification token.
      * 
      * @param request Email verification token value
      * @return Account's information with "200 OK" status
@@ -247,7 +247,8 @@ public class AuthController {
     }
 
     /**
-     * Resends email vefication link and revokes old email verification tokens.
+     * Resends an email verification link to the associated account and revokes
+     * old email verification tokens.
      * 
      * @param request Email to which send the link 
      * @return Message of verification link sent with "200 OK" status
@@ -278,7 +279,7 @@ public class AuthController {
     // ----------------------------------------------------------------
 
     /**
-     * Sends password reset link to the associated account and revokes old
+     * Sends a password reset link to the associated account and revokes old
      * password reset tokens.
      *
      * @param request Email to which send the link
@@ -307,7 +308,7 @@ public class AuthController {
     }
 
     /**
-     * Resets account's password.
+     * Resets an account's password using a valid password reset token.
      *
      * @param request Password reset token value and new password
      * @return Account's information with "200 OK" status

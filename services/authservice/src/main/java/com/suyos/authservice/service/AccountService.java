@@ -33,7 +33,7 @@ import java.util.List;
  * 
  * <p>Handles account retrieval, update, and deletion operations. Provides
  * methods for locating accounts (e.g., by email or username) and supports 
- * soft deletion for audit and recovery purposes.</p>
+ * soft-deletion for audit and recovery purposes.</p>
  *
  * @author Joel Salazar
  */
@@ -63,7 +63,7 @@ public class AccountService {
     // ----------------------------------------------------------------
 
     /**
-     * Finds all accounts paginated.
+     * Finds a paginated list of all accounts' information
      * 
      * @param page Zero-based page index
      * @param size Page size
@@ -305,13 +305,13 @@ public class AccountService {
     }
 
     /**
-     * Soft deletes an account by ID.
+     * Soft-deletes an account by ID.
      * 
-     * <p>Performs a soft deletion by marking the account as deleted and
+     * <p>Performs a soft-deletion by marking the account as deleted and
      * setting the deletion timestamp.</p>
      * 
-     * @param id Account's ID to soft delete
-     * @return Soft deleted account's information
+     * @param id Account's ID to soft-delete
+     * @return Soft-deleted account's information
      * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO softDeleteAccountById(UUID id) {
@@ -319,26 +319,26 @@ public class AccountService {
         Account account = accountRepository.findById(id)
             .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
-        // Soft delete account
+        // Soft-delete account
         account.setDeleted(true);
         account.setDeletedAt(Instant.now());
 
         // Update last logout timestamp
         account.setLastLogoutAt(Instant.now());
 
-        // Persist soft deleted account
+        // Persist soft-deleted account
         Account softDeletedAccount = accountRepository.save(account);
 
-        // Map account's information from soft deleted account
+        // Map account's information from soft-deleted account
         AccountInfoDTO accountInfoDTO = accountMapper.toAccountInfoDTO(softDeletedAccount);
 
         // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
         
-        // Log account soft deletion event
+        // Log account soft-deletion event
         log.info("event=account_soft_deleted account_id={}", softDeletedAccount.getId());
 
-        // Return soft deleted account's information
+        // Return soft-deleted account's information
         return accountInfoDTO;
     }
 

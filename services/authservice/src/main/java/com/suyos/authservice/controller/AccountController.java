@@ -53,7 +53,7 @@ public class AccountController {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves all accounts' information paginated.
+     * Retrieves a paginated list of all accounts' information
      * 
      * @param page Zero-based page index
      * @param size Page size
@@ -64,10 +64,11 @@ public class AccountController {
     @Secured("ROLE_ADMIN")
     @GetMapping
     @Operation(
-        summary = "Get accounts paginated", 
-        description = "Retrieves accounts with pagination and sorting",
+        summary = "Get all accounts", 
+        description = "Retrieves a paginated list of accounts with sorting options",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully",
+            @ApiResponse(
+                responseCode = "200", description = "Accounts retrieved successfully",
                 content = @Content(schema = @Schema(implementation = PagedResponseDTO.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid pagination or sort parameters"),
@@ -85,12 +86,12 @@ public class AccountController {
         PagedResponseDTO<AccountInfoDTO> accountInfos = accountService.findAllAccounts(page, 
             size, sortBy, sortDir);
         
-        // Return accounts' information with "200 OK" status
+        // Return paginated list of accounts' information with "200 OK" status
         return ResponseEntity.ok(accountInfos);
     }
 
     /**
-     * Retrieves account's information by ID.
+     * Retrieves an account's information by ID.
      * 
      * @param id Account's ID to search for
      * @return Account's information with "200 OK" status
@@ -99,7 +100,7 @@ public class AccountController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Get account by ID",
-        description = "Retrieves account information by ID",
+        description = "Retrieves account's information using its ID",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account retrieved successfully",
@@ -122,7 +123,7 @@ public class AccountController {
     }
 
     /**
-     * Retrieves account's information by username.
+     * Retrieves an account's information by username.
      * 
      * @param username Username to search for
      * @return Account's information with "200 OK" status
@@ -131,7 +132,7 @@ public class AccountController {
     @GetMapping("/username/{username}")
     @Operation(
         summary = "Get account by username",
-        description = "Retrieves account information by username",
+        description = "Retrieves account's information using its username",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account retrieved successfully",
@@ -158,15 +159,15 @@ public class AccountController {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves account's information of the currently authenticated user.
+     * Retrieves the currently authenticated account's information.
      * 
      * @param jwt Authentication principal containing JWT token
-     * @return Authenticated user's account's information with "200 OK" status
+     * @return Authenticated account's information with "200 OK" status
      */
     @GetMapping("/me")
     @Operation(
-        summary = "Get current logged-in account",
-        description = "Retrieves current logged-in account information",
+        summary = "Get authenticated account",
+        description = "Retrieves the authenticated account's information",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account retrieved successfully",
@@ -177,28 +178,28 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> getLoggedInAccount(@AuthenticationPrincipal Jwt jwt) {
-        // Extract logged-in account's ID from access token
-        UUID loggedInAccountId = UUID.fromString(jwt.getSubject());
+    public ResponseEntity<AccountInfoDTO> getAuthenticatedAccount(@AuthenticationPrincipal Jwt jwt) {
+        // Extract authenticated account's ID from access token
+        UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
         
-        // Find logged-in account
-        AccountInfoDTO accountInfo = accountService.findAccountById(loggedInAccountId);
+        // Find authenticated account
+        AccountInfoDTO accountInfo = accountService.findAccountById(authenticatedAccountId);
 
-        // Return logged-in account's information with "200 OK" status
+        // Return authenticated account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
     }
     
     /**
-     * Updates account's information of the currently authenticated user.
+     * Updates the currently authenticated account's information.
      * 
      * @param jwt Authentication principal containing JWT token
-     * @return Updated authenticated user's account's information with 
-     * "200 OK" status
+     * @param request Account's update data
+     * @return Updated authenticated account's information with "200 OK" status
      */
     @PatchMapping("/me")
     @Operation(
-        summary = "Update current logged-in account",
-        description = "Updates fields of the currently logged-in account",
+        summary = "Update authenticated account",
+        description = "Updates the authenticated account's information",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account updated successfully",
@@ -210,30 +211,31 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> updateLoggedInAccount(
+    public ResponseEntity<AccountInfoDTO> updateAuthenticatedAccount(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody AccountUpdateRequestDTO request) {
-        // Extract logged-in account's ID from access token
-        UUID loggedInAccountId = UUID.fromString(jwt.getSubject());
+        // Extract authenticated account's ID from access token
+        UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
-        // Update logged-in account
-        AccountInfoDTO accountInfo = accountService.updateAccountById(loggedInAccountId, request);
+        // Update authenticated account
+        AccountInfoDTO accountInfo = accountService.updateAccountById(authenticatedAccountId, request);
         
-        // Return updated logged-in account's information with "200 OK" status
+        // Return updated authenticated account's information with "200 OK"
+        // status
         return ResponseEntity.ok(accountInfo);
     }
 
     /**
-     * Soft deletes account's information of the currently authenticated user.
+     * Soft-deletes the currently authenticated account's information.
      * 
      * @param jwt Authentication principal containing JWT token
-     * @return Soft deleted authenticated user's account's information with 
-     * "200 OK" status
+     * @return Soft-deleted authenticated account's information with "200 OK"
+     * status
      */
     @DeleteMapping("/me")
     @Operation(
-        summary = "Soft delete current logged-in account",
-        description = "Soft deletes the currently logged-in account",
+        summary = "Soft-delete authenticated account",
+        description = "Soft-deletes the authenticated account's information",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account soft deleted successfully",
@@ -244,14 +246,15 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> deleteLoggedInAccount(@AuthenticationPrincipal Jwt jwt) {
-        // Extract logged-in account ID from access token
-        UUID loggedInAccountId = UUID.fromString(jwt.getSubject());
+    public ResponseEntity<AccountInfoDTO> deleteAuthenticatedAccount(@AuthenticationPrincipal Jwt jwt) {
+        // Extract authenticated account's ID from access token
+        UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
-        // Soft delete logged-in account
-        AccountInfoDTO accountInfo = accountService.softDeleteAccountById(loggedInAccountId);
+        // Soft-delete authenticated account
+        AccountInfoDTO accountInfo = accountService.softDeleteAccountById(authenticatedAccountId);
         
-        // Return soft deleted logged-in account's information with "200 OK" status
+        // Return soft-deleted authenticated account's information with "200 OK"
+        // status
         return ResponseEntity.ok(accountInfo);
     }
 
