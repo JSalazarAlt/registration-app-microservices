@@ -88,13 +88,23 @@ public class SecurityConfig {
             })
             // Define authorization rules for endpoints
             .authorizeHttpRequests(auth -> auth
+                // Public authentication endpoints
                 .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                 .requestMatchers("/api/v1/auth/oauth2/google").permitAll()
+                // Email verification endpoints
                 .requestMatchers("/api/v1/auth/verify-email", "/api/v1/auth/resend-verification").permitAll()
+                // Password reset endpoints
                 .requestMatchers("/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
+                // Refresh token endpoint
                 .requestMatchers("/api/v1/auth/refresh").permitAll()
-                .requestMatchers("/api/v1/auth/logout").authenticated()
+                // OAuth2 endpoints
                 .requestMatchers("/oauth2/**").permitAll()
+                // Prometheus and Grafana endpoints
+                .requestMatchers("/actuator/prometheus").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/info").permitAll()
+                // Protected endpoints
+                .requestMatchers("/api/v1/auth/logout").authenticated()
                 .anyRequest().authenticated())
             // Set stateless session management
             .sessionManagement(session -> 
@@ -207,7 +217,8 @@ public class SecurityConfig {
                 path.equals("/api/v1/auth/forgot-password") ||
                 path.equals("/api/v1/auth/reset-password") ||
                 path.equals("/api/v1/auth/refresh") ||
-                path.startsWith("/oauth2/")) {
+                path.startsWith("/oauth2/") ||
+                path.startsWith("/actuator")) {
                 return null;
             }
             
