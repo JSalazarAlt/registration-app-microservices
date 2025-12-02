@@ -26,6 +26,7 @@ import com.suyos.authservice.exception.exceptions.EmailAlreadyRegisteredExceptio
 import com.suyos.authservice.exception.exceptions.EmailAlreadyVerifiedException;
 import com.suyos.authservice.exception.exceptions.InvalidCredentialsException;
 import com.suyos.authservice.exception.exceptions.InvalidPasswordException;
+import com.suyos.authservice.exception.exceptions.InvalidRefreshTokenException;
 import com.suyos.authservice.exception.exceptions.InvalidTokenException;
 import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
@@ -76,9 +77,6 @@ public class AuthService {
     /** Email verification token lifetime in hours */
     private static final Long EMAIL_TOKEN_LIFETIME_HOURS = 24L;
 
-    /** Refresh token lifetime in hours */
-    private static final Long REFRESH_TOKEN_LIFETIME_HOURS = 720L;
-
     // ----------------------------------------------------------------
     // TRADITIONAL REGISTRATION AND LOGIN
     // ----------------------------------------------------------------
@@ -124,8 +122,14 @@ public class AuthService {
         // Issue email verification token
         tokenService.issueToken(createdAccount, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
 
+        // Generate random UUID for user creation event and timestamp
+        String userCreationEventId = UUID.randomUUID().toString();
+        Instant userCreationEventTimestamp = Instant.now();
+
         // Build user creation event
         UserCreationEvent event = UserCreationEvent.builder()
+                .id(userCreationEventId)
+                .occurredAt(userCreationEventTimestamp)
                 .accountId(account.getId())
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -457,7 +461,7 @@ public class AuthService {
                 tokenService.revokeAllTokensByAccountIdAndType(account.getId(), TokenType.EMAIL_VERIFICATION);
                 
                 // Issue new email verification token
-                tokenService.issueToken(account, TokenType.EMAIL_VERIFICATION, REFRESH_TOKEN_LIFETIME_HOURS);
+                tokenService.issueToken(account, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
                 
                 // Log email verification resend
                 log.info("event=email_verification_resent account_id={}", account.getId());

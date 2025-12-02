@@ -54,7 +54,7 @@ public class User {
     // RELATIONSHIPS
     // ----------------------------------------------------------------
 
-    /** Unique identifier linking to the authentication account */
+    /** Unique identifier linking to account */
     @Column(name = "account_id", nullable = false, unique = true)
     private UUID accountId;
 

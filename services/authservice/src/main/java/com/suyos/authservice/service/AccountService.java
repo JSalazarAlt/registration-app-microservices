@@ -260,9 +260,15 @@ public class AccountService {
 
             // Update username if not taken
             account.setUsername(request.getUsername());
+
+            // Generate random UUID for username update event and timestamp
+            String usernameUpdateEventId = UUID.randomUUID().toString();
+            Instant usernameUpdateEventTimestamp = Instant.now();
             
             // Build account's username update event
             AccountUsernameUpdateEvent usernameEvent = AccountUsernameUpdateEvent.builder()
+                    .id(usernameUpdateEventId)
+                    .occurredAt(usernameUpdateEventTimestamp)
                     .accountId(account.getId())
                     .newUsername(request.getUsername())
                     .build();
@@ -280,9 +286,15 @@ public class AccountService {
             
             // Update email if not registered
             account.setEmail(request.getEmail());
+
+            // Generate random UUID for email update event and timestamp
+            String emailUpdateEventId = UUID.randomUUID().toString();
+            Instant emailUpdateEventTimestamp = Instant.now();
             
             // Build account's email update event
             AccountEmailUpdateEvent emailEvent = AccountEmailUpdateEvent.builder()
+                    .id(emailUpdateEventId)
+                    .occurredAt(emailUpdateEventTimestamp)
                     .accountId(account.getId())
                     .newEmail(request.getEmail())
                     .build();

@@ -1,13 +1,11 @@
 package com.suyos.userservice.event;
 
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
 import com.suyos.common.event.UserCreationEvent;
-import com.suyos.userservice.dto.request.UserCreationRequestDTO;
 import com.suyos.userservice.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -42,28 +40,14 @@ public class AccountEventConsumer {
      * 
      * @param event User creation event containing account and profile data
      */
-    @Async
     @KafkaListener(topics = USER_CREATION_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserCreation(UserCreationEvent event) {
         try {
             // Log user creation event reception for debugging and monitoring
             log.info("Received creation event for user: {}", event.getAccountId());
-            
-            // Map user creation event data to user creation request
-            UserCreationRequestDTO request = UserCreationRequestDTO.builder()
-                    .accountId(event.getAccountId())
-                    .username(event.getUsername())
-                    .email(event.getEmail())
-                    .firstName(event.getFirstName())
-                    .lastName(event.getLastName())
-                    .phone(event.getPhone())
-                    .profilePictureUrl(event.getProfilePictureUrl())
-                    .locale(event.getLocale())
-                    .timezone(event.getTimezone())
-                    .build();
                 
             // Create user's profile
-            userService.createUser(request);
+            userService.createUser(event);
         } catch (Exception e) {
             log.error("Failed to process user creation event for account: {}", event.getAccountId(), e);
         }
@@ -74,7 +58,6 @@ public class AccountEventConsumer {
      * 
      * @param event Username update event containing account ID and new username
      */
-    @Async
     @KafkaListener(topics = ACCOUNT_USERNAME_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountUsernameUpdate(AccountUsernameUpdateEvent event) {
         try {
@@ -82,7 +65,7 @@ public class AccountEventConsumer {
             log.info("Received username updated event for account: {}", event.getAccountId());
             
             // Update user's username
-            userService.mirrorUsernameUpdate(event.getAccountId(), event.getNewUsername());
+            userService.mirrorUsernameUpdate(event);
         } catch (Exception e) {
             log.error("Failed to process username update event for account: {}", event.getAccountId(), e);
         }
@@ -93,7 +76,6 @@ public class AccountEventConsumer {
      * 
      * @param event Email update event containing account ID and new email
      */
-    @Async
     @KafkaListener(topics = ACCOUNT_EMAIL_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountEmailUpdate(AccountEmailUpdateEvent event) {
         try {
@@ -101,7 +83,7 @@ public class AccountEventConsumer {
             log.info("Received email updated event for account: {}", event.getAccountId());
             
             // Update user's email
-            userService.mirrorEmailUpdate(event.getAccountId(), event.getNewEmail());
+            userService.mirrorEmailUpdate(event);
         } catch (Exception e) {
             log.error("Failed to process email update event for account: {}", event.getAccountId(), e);
         }

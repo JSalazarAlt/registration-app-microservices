@@ -37,8 +37,13 @@ public class KafkaProducerConfig {
      */
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
+
         // Build producer configuration map
         Map<String, Object> config = new HashMap<>();
+
+        // ----------------------------------------------------------------
+        // SERIALIZATION SETTINGS
+        // ----------------------------------------------------------------
         
         // Set Kafka broker connection details
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -48,6 +53,22 @@ public class KafkaProducerConfig {
         
         // Configure value serialization (events as JSON)
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+        // ----------------------------------------------------------------
+        // RELIABILITY SETTINGS
+        // ----------------------------------------------------------------
+
+        // Wait until all in-sync replicas have acknowledge the message
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        
+        // Avoid creating duplicate messages when retries occur
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        
+        // Retry sending forever until Kafka becomes available
+        config.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+        
+        // Allow up to 5 Kafka request to be in-flight (send but not yet acknowledged)
+        config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
 
         // Return producer configuration
         return new DefaultKafkaProducerFactory<>(config);

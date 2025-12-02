@@ -12,13 +12,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.userservice.dto.request.UserCreationRequestDTO;
 import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
 import com.suyos.userservice.dto.response.UserProfileDTO;
 import com.suyos.userservice.exception.exceptions.UserNotFoundException;
 import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.event.AccountEmailUpdateEvent;
+import com.suyos.common.event.AccountUsernameUpdateEvent;
+import com.suyos.common.event.UserCreationEvent;
 import com.suyos.userservice.mapper.UserMapper;
+import com.suyos.userservice.model.ProcessedEvent;
 import com.suyos.userservice.model.User;
+import com.suyos.userservice.repository.ProcessedEventRepository;
 import com.suyos.userservice.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +47,9 @@ public class UserService {
     
     /** Mapper for converting between user entities and DTOs */
     private final UserMapper userMapper;
+
+    /** Repository for processed event data access operations */
+    private final ProcessedEventRepository processedEventRepository;
 
     // ----------------------------------------------------------
     // ADMIN
@@ -186,20 +193,24 @@ public class UserService {
     /**
      * Creates a new user profile.
      *
-     * @param accountId Account ID associated with the user
-     * @param username Username of the user
-     * @param email Email of the user
-     * @param request User's registration data
+     * @param event User's registration data
      * @return Created user's profile
      */
-    public UserProfileDTO createUser(UserCreationRequestDTO request) {
+    public UserProfileDTO createUser(UserCreationEvent event) {
+        // Ensure no duplicate event processing
+        if (processedEventRepository.existsById(event.getId())) {
+            log.info("event=duplicate_event_ignored event_id={}", event.getId());
+            return null;
+        }
+
+        // Create new processed event
+        ProcessedEvent newEvent = new ProcessedEvent(event.getId(), event.getOccurredAt());
+
+        // Persist new processed event
+        processedEventRepository.save(newEvent);
+
         // Map user from registration data
-        User user = userMapper.toEntity(request);
-        
-        // Mirror fields managed by Auth microservice
-        user.setAccountId(request.getAccountId());
-        user.setEmail(request.getEmail());
-        user.setUsername(request.getUsername());
+        User user = userMapper.toEntity(event);
 
         // Set acceptance timestamps
         user.setTermsAcceptedAt(Instant.now());
@@ -288,16 +299,28 @@ public class UserService {
      * @param newEmail New email address
      * @throws UserNotFoundException If user not found
      */
-    public void mirrorEmailUpdate(UUID accountId, String newEmail) {
+    public void mirrorEmailUpdate(AccountEmailUpdateEvent event) {
+        // Ensure no duplicate event processing
+        if (processedEventRepository.existsById(event.getId())) {
+            log.info("event=duplicate_event_ignored event_id={}", event.getId());
+            return;
+        }
+
+        // Create new processed event
+        ProcessedEvent newEvent = new ProcessedEvent(event.getId(), event.getOccurredAt());
+
+        // Persist new processed event
+        processedEventRepository.save(newEvent);
+        
         // Look up user by account ID
-        User user = userRepository.findByAccountId(accountId)
-            .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
+        User user = userRepository.findByAccountId(event.getAccountId())
+            .orElseThrow(() -> new UserNotFoundException("account_id=" + event.getAccountId()));
         
         // Update email
-        user.setEmail(newEmail);
+        user.setEmail(event.getNewEmail());
 
         // Log email mirror event
-        log.info("event=email_mirrored account_id={}", accountId);
+        log.info("event=email_mirrored account_id={}", event.getAccountId());
 
         // Persist updated user
         userRepository.save(user);
@@ -310,16 +333,28 @@ public class UserService {
      * @param newUsername New username
      * @throws UserNotFoundException If user not found
      */
-    public void mirrorUsernameUpdate(UUID accountId, String newUsername) {
+    public void mirrorUsernameUpdate(AccountUsernameUpdateEvent event) {
+        // Ensure no duplicate event processing
+        if (processedEventRepository.existsById(event.getId())) {
+            log.info("event=duplicate_event_ignored event_id={}", event.getId());
+            return;
+        }
+
+        // Create new processed event
+        ProcessedEvent newEvent = new ProcessedEvent(event.getId(), event.getOccurredAt());
+
+        // Persist new processed event
+        processedEventRepository.save(newEvent);
+
         // Look up user by account ID
-        User user = userRepository.findByAccountId(accountId)
-            .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
+        User user = userRepository.findByAccountId(event.getAccountId())
+            .orElseThrow(() -> new UserNotFoundException("account_id=" + event.getAccountId()));
         
         // Update username
-        user.setUsername(newUsername);
+        user.setUsername(event.getNewUsername());
 
         // Log username mirror event
-        log.info("event=username_mirrored account_id={}", accountId);
+        log.info("event=username_mirrored account_id={}", event.getAccountId());
 
         // Persist updated user
         userRepository.save(user);

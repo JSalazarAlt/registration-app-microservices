@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
-import com.suyos.userservice.dto.request.UserCreationRequestDTO;
+import com.suyos.common.event.UserCreationEvent;
 import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
 import com.suyos.userservice.dto.response.UserProfileDTO;
 import com.suyos.userservice.model.User;
@@ -24,22 +24,22 @@ import com.suyos.userservice.model.User;
 public interface UserMapper {
 
     /**
-     * Converts a {@link UserCreationRequestDTO} to a {@link User} entity.
+     * Converts a {@link UserCreationEvent} to a {@link User} entity.
      *
-     * @param request User's registration data
+     * @param event User's registration data
      * @return Created user entity
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "username", ignore = true)
-    @Mapping(target = "email", ignore = true)
+    //@Mapping(target = "username", ignore = true)
+    //@Mapping(target = "email", ignore = true)
     @Mapping(target = "termsAcceptedAt", ignore = true)
     @Mapping(target = "privacyPolicyAcceptedAt", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    @Mapping(target = "accountId", ignore = true)
+    //@Mapping(target = "accountId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    User toEntity(UserCreationRequestDTO request);
+    User toEntity(UserCreationEvent event);
 
     /**
      * Updates an existing {@link User} entity with fields from
