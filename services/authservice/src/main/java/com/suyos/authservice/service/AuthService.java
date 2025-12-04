@@ -386,8 +386,8 @@ public class AuthService {
         // Persist updated account
         accountRepository.save(account);
 
-        // Log account logout success
-        log.info("event=account_logged_out account_id={}", account.getId());
+        // Log account deauthentication success
+        log.info("event=account_deauthenticated account_id={}", account.getId());
         
         // Revoke refresh token
         tokenService.revokeTokenByValue(value);

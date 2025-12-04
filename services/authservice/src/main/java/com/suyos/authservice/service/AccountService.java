@@ -63,7 +63,7 @@ public class AccountService {
     // ----------------------------------------------------------------
 
     /**
-     * Finds a paginated list of all accounts' information
+     * Finds a paginated list of all accounts.
      * 
      * @param page Zero-based page index
      * @param size Page size

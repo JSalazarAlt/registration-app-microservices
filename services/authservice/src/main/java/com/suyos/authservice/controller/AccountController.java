@@ -53,7 +53,7 @@ public class AccountController {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves a paginated list of all accounts' information
+     * Retrieves a paginated list of all accounts.
      * 
      * @param page Zero-based page index
      * @param size Page size
@@ -82,7 +82,7 @@ public class AccountController {
             @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
             @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir) {
-        // Find accounts' information paginated
+        // Find paginated list of accounts' information
         PagedResponseDTO<AccountInfoDTO> accountInfos = accountService.findAllAccounts(page, 
             size, sortBy, sortDir);
         

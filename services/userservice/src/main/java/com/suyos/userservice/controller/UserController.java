@@ -53,7 +53,7 @@ public class UserController {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves all users' profiles paginated.
+     * Retrieves a paginated list of all users.
      *
      * @param page Zero-based page index
      * @param size Page size
@@ -82,11 +82,11 @@ public class UserController {
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
             @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir) {
-        // Find users' profiles paginated
+        // Find paginated list of users' profiles
         PagedResponseDTO<UserProfileDTO> users = userService.findAllUsers(
             page, size, sortBy, sortDir);
 
-        // Return paginated users with HTTP 200
+        // Return paginated list of users' profiles with "200 OK" status
         return ResponseEntity.ok(users);
     }
 

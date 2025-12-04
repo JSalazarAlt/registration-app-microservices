@@ -56,13 +56,13 @@ public class UserService {
     // ----------------------------------------------------------
 
     /**
-     * Finds all users paginated.
+     * Finds a paginated list of all users.
      * 
      * @param page Page number to search for
      * @param size Size of page
      * @param sortBy Sort
      * @param sortDir Sort direction
-     * @return All accounts' information
+     * @return Paginated list of users' profiles
      */
     public PagedResponseDTO<UserProfileDTO> findAllUsers(int page, int size, 
         String sortBy, String sortDir) {
@@ -95,7 +95,7 @@ public class UserService {
                 .last(userPage.isLast())
                 .build();
         
-        // Return all users' profiles paginated
+        // Return paginated list of users' profiles
         return response;
     }
 
