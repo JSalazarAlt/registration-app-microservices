@@ -42,14 +42,17 @@ public class AccountEventConsumer {
      */
     @KafkaListener(topics = USER_CREATION_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserCreation(UserCreationEvent event) {
+        // Log user creation event reception for debugging and monitoring
+        log.info("event=kafka_user_creation_received account_id={}", event.getAccountId());
+        
+        // Create user's profile
         try {
-            // Log user creation event reception for debugging and monitoring
-            log.info("Received creation event for user: {}", event.getAccountId());
-                
-            // Create user's profile
             userService.createUser(event);
+            // Log successful user creation event processing
+            log.info("event=user_created account_id={}", event.getAccountId());
         } catch (Exception e) {
-            log.error("Failed to process user creation event for account: {}", event.getAccountId(), e);
+            log.error("event=user_creation_failed account_id={} error={}", event.getAccountId(), e);
+            throw e;
         }
     }
 
@@ -60,14 +63,14 @@ public class AccountEventConsumer {
      */
     @KafkaListener(topics = ACCOUNT_USERNAME_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountUsernameUpdate(AccountUsernameUpdateEvent event) {
+        // Log account's username update event reception for debugging and monitoring
+        log.info("event=username_update_event_reception account_id={}", event.getAccountId());
+        
+        // Update user's username
         try {
-            // Log account's username update event reception for debugging and monitoring
-            log.info("Received username updated event for account: {}", event.getAccountId());
-            
-            // Update user's username
             userService.mirrorUsernameUpdate(event);
         } catch (Exception e) {
-            log.error("Failed to process username update event for account: {}", event.getAccountId(), e);
+            log.error("Failed to process username update event for account_id={}", event.getAccountId(), e);
         }
     }
 
@@ -78,14 +81,14 @@ public class AccountEventConsumer {
      */
     @KafkaListener(topics = ACCOUNT_EMAIL_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountEmailUpdate(AccountEmailUpdateEvent event) {
+        // Log account's email update event reception for debugging and monitoring
+        log.info("event=email_update_event_reception account_id={}", event.getAccountId());
+        
+        // Update user's email
         try {
-            // Log account's email update event reception for debugging and monitoring
-            log.info("Received email updated event for account: {}", event.getAccountId());
-            
-            // Update user's email
             userService.mirrorEmailUpdate(event);
         } catch (Exception e) {
-            log.error("Failed to process email update event for account: {}", event.getAccountId(), e);
+            log.error("event=Failed to process email update event for account_id={}", event.getAccountId(), e);
         }
     }
     

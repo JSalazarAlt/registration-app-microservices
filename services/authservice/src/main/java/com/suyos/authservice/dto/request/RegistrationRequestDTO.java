@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for account registration requests.
  * 
- * <p>Contains account credentials and profile information used to create a
- * new account.</p>
+ * <p>Contains account's information and user's profile information used to
+ * create a new account.</p>
  * 
  * @author Joel Salazar
  */
@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 public class RegistrationRequestDTO {
 
     // ----------------------------------------------------------------
-    // ACCOUNT INFORMATION
+    // ACCOUNT'S INFORMATION
     // ----------------------------------------------------------------
 
     /** Username */
@@ -51,7 +51,7 @@ public class RegistrationRequestDTO {
     private String password;
 
     // ----------------------------------------------------------------
-    // USER PROFILE
+    // USER'S PROFILE
     // ----------------------------------------------------------------
 
     /** First name */

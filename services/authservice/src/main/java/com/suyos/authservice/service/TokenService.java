@@ -233,7 +233,7 @@ public class TokenService {
         tokenRepository.save(refreshToken);
 
         // Log token revocation
-        log.debug("event=token_revoked");
+        log.debug("event=token_revoked type={} value={}", refreshToken.getType(), refreshToken.getValue());
     }
 
     /**
@@ -262,7 +262,7 @@ public class TokenService {
         tokenRepository.revokeAllValidByAccountIdAndType(accountId, type);
 
         // Log tokens revocation
-        log.debug("event=tokens_revoked type={} account_id={}", type, accountId);
+        log.debug("event=all_tokens_revoked type={} account_id={}", type, accountId);
     }
 
     // ----------------------------------------------------------------

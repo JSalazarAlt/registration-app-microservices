@@ -89,13 +89,16 @@ public class AuthService {
      * in use. After creation, publishes a request to the User microservice
      * to create a corresponding user record.</p>
      * 
-     * @param request Registration data containing account's credentials and
+     * @param request Registration data containing account's information and
      * user's profile
      * @return Created account's information
      * @throws UsernameAlreadyTakenException If username is already in use
      * @throws EmailAlreadyRegisteredException If email is already registered
      */
     public AccountInfoDTO createAccount(RegistrationRequestDTO request) {
+        // Log account creation attempt
+        log.info("event=account_creation_attempt email={}", request.getEmail());
+
         // Check if username is already taken
         if (accountRepository.existsByUsername(request.getUsername())) {
             throw new UsernameAlreadyTakenException(request.getUsername());
@@ -116,7 +119,7 @@ public class AuthService {
         // Persist created account
         Account createdAccount = accountRepository.save(account);
 
-        // Log account creation
+        // Log account creation success
         log.info("event=account_created account_id={}", createdAccount.getId());
 
         // Issue email verification token
@@ -168,6 +171,9 @@ public class AuthService {
      * @throws InvalidPasswordException If provided password is incorrect
      */
     public AuthenticationResponseDTO authenticateAccount(AuthenticationRequestDTO request) {
+        // Log account authentication attempt
+        log.info("event=account_authentication_attempt identifier={}", request.getIdentifier());
+
         // Look up account by username or email
         Account account = accountRepository.findByUsername(request.getIdentifier())
             .or(() -> accountRepository.findByEmail(request.getIdentifier()))
@@ -219,7 +225,7 @@ public class AuthService {
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
 
-        // Log account authentication
+        // Log account authentication success
         log.info("event=account_authenticated account_id={}", updatedAccount.getId());
         
         // Issue refresh and access tokens on successful login
@@ -260,7 +266,7 @@ public class AuthService {
         // Persist created account
         Account createdAccount = accountRepository.save(account);
 
-        // Log account creation
+        // Log account creation success
         log.info("event=oauth2_account_created account_id={}", createdAccount.getId());
         
         // Return created account
@@ -297,6 +303,9 @@ public class AuthService {
             )
             // Create new account if not found
             .orElseGet(() -> createGoogleOAuth2Account(request));
+        
+        // Log account authentication attempt
+        log.info("event=oauth2_account_authentication_attempt email_id={}", request.getEmail());
 
         // Ensure account is enabled
         if (!account.getEnabled()) {
@@ -335,7 +344,7 @@ public class AuthService {
         // Persist updated account
         Account savedAccount = accountRepository.save(account);
 
-        // Log account authentication
+        // Log account authentication success
         log.info("event=oauth2_account_authenticated account_id={}", savedAccount.getId());
 
         // Issue refresh and access tokens for successful Google OAuth2 login
@@ -379,7 +388,7 @@ public class AuthService {
         // Persist updated account
         accountRepository.save(account);
 
-        // Log account logout
+        // Log account logout success
         log.info("event=account_logged_out account_id={}", account.getId());
         
         // Revoke refresh token
@@ -404,6 +413,9 @@ public class AuthService {
      * @throws EmailAlreadyRegisteredException If email is already verified
      */
     public AccountInfoDTO verifyEmail(EmailVerificationRequestDTO request) {
+        // Log email verification attempt
+        log.info("event=email_verification_attempt token={}", request.getValue());
+
         // Extract email verification token value from request
         String value = request.getValue();
 
@@ -429,7 +441,7 @@ public class AuthService {
         // Persist updated account
         accountRepository.save(account);
 
-        // Log email verification
+        // Log email verification success
         log.info("event=email_verified account_id={}", account.getId());
 
         // Revoke email verification token used
@@ -453,6 +465,9 @@ public class AuthService {
      * @return Message indicating if email verification link has been sent
      */
     public GenericMessageResponseDTO resendEmailVerification(EmailResendRequestDTO request) {
+        // Log email verification resend attempt
+        log.info("event=email_verification_resend_attempt email={}", request.getEmail());
+
         // Look up account by email
         accountRepository.findByEmail(request.getEmail()).ifPresent(account -> {
             // Ensure account is not verified before issuing new token
@@ -463,7 +478,7 @@ public class AuthService {
                 // Issue new email verification token
                 tokenService.issueToken(account, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
                 
-                // Log email verification resend
+                // Log email verification resend success
                 log.info("event=email_verification_resent account_id={}", account.getId());
                 
                 // Publish event for Email microservice to send verification link

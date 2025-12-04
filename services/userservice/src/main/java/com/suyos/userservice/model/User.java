@@ -59,7 +59,7 @@ public class User {
     private UUID accountId;
 
     // ----------------------------------------------------------------
-    // ACCOUNT INFORMATION
+    // ACCOUNT'S INFORMATION
     // ----------------------------------------------------------------
 
     /** Username (mirrored from Auth microservice) */

@@ -128,6 +128,9 @@ public class UserService {
      * @throws UserNotFoundException If user not found
      */
     public UserProfileDTO updateUserById(UUID id, UserUpdateRequestDTO userUpdateDTO) {
+        // Log user update attempt
+        log.info("event=user_update_attempt user_id={}", id);
+
         // Look up user by ID
         User user = userRepository.findById(id)
             .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
@@ -138,7 +141,7 @@ public class UserService {
         // Persist updated user
         User updatedUser = userRepository.save(user);
 
-        // Log user update event
+        // Log user update success
         log.info("event=user_updated user_id={}", updatedUser.getId());
 
         // Map user's profile information from updated user
@@ -197,6 +200,9 @@ public class UserService {
      * @return Created user's profile
      */
     public UserProfileDTO createUser(UserCreationEvent event) {
+        // Log user creation attempt
+        log.info("event=user_creation_attempt account_id={}", event.getAccountId());
+
         // Ensure no duplicate event processing
         if (processedEventRepository.existsById(event.getId())) {
             log.info("event=duplicate_event_ignored event_id={}", event.getId());
@@ -219,7 +225,7 @@ public class UserService {
         // Persist created user
         User createdUser = userRepository.save(user);
 
-        // Log user creation event
+        // Log user creation success
         log.info("event=user_created account_id={}", createdUser.getAccountId());
 
         // Map user's profile information from created user
@@ -238,6 +244,9 @@ public class UserService {
      * @throws UserNotFoundException If user not found
      */
     public UserProfileDTO updateUserByAccountId(UUID accountId, UserUpdateRequestDTO userUpdateDTO) {
+        // Log user update attempt
+        log.info("event=user_update_attempt account_id={}", accountId);
+
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
             .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
@@ -248,7 +257,7 @@ public class UserService {
         // Persist updated user
         User updatedUser = userRepository.save(user);
 
-        // Log user update event
+        // Log user update success
         log.info("event=user_updated account_id={}", updatedUser.getAccountId());
 
         // Map user's profile information from updated user
@@ -267,6 +276,9 @@ public class UserService {
      * @throws UserNotFoundException If user not found
      */
     public UserProfileDTO softDeleteUserByAccountId(UUID accountId) {
+        // Log user soft-deletion attempt
+        log.info("event=user_soft_deletion_attempt account_id={}", accountId);
+
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
             .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
@@ -278,7 +290,7 @@ public class UserService {
         // Persist soft deleted user
         User softDeletedUser = userRepository.save(user);
 
-        // Log user soft deletion event
+        // Log user soft deletion success
         log.info("event=user_soft_deleted account_id={}", softDeletedUser.getAccountId());
 
         // Map user's profile information from updated user
@@ -300,6 +312,9 @@ public class UserService {
      * @throws UserNotFoundException If user not found
      */
     public void mirrorEmailUpdate(AccountEmailUpdateEvent event) {
+        // Log email mirror attempt
+        log.info("event=email_mirror_attempt account_id={}", event.getAccountId());
+
         // Ensure no duplicate event processing
         if (processedEventRepository.existsById(event.getId())) {
             log.info("event=duplicate_event_ignored event_id={}", event.getId());
@@ -319,7 +334,7 @@ public class UserService {
         // Update email
         user.setEmail(event.getNewEmail());
 
-        // Log email mirror event
+        // Log email mirror success
         log.info("event=email_mirrored account_id={}", event.getAccountId());
 
         // Persist updated user
@@ -334,6 +349,9 @@ public class UserService {
      * @throws UserNotFoundException If user not found
      */
     public void mirrorUsernameUpdate(AccountUsernameUpdateEvent event) {
+        // Log username mirror attempt
+        log.info("event=username_mirror_attempt account_id={}", event.getAccountId());
+
         // Ensure no duplicate event processing
         if (processedEventRepository.existsById(event.getId())) {
             log.info("event=duplicate_event_ignored event_id={}", event.getId());
@@ -353,7 +371,7 @@ public class UserService {
         // Update username
         user.setUsername(event.getNewUsername());
 
-        // Log username mirror event
+        // Log username mirror success
         log.info("event=username_mirrored account_id={}", event.getAccountId());
 
         // Persist updated user

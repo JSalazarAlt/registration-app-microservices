@@ -5,12 +5,15 @@ import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
@@ -32,6 +35,10 @@ public class KafkaConsumerConfig {
     /** */
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
+
+    /** Kafka template for publishing messages to dead letter topic */
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     /**
      * Configures Kafka consumer factory with deserialization settings.
@@ -80,11 +87,17 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = 
             new ConcurrentKafkaListenerContainerFactory<>();
             
-        // Set the consumer factory for message consumption
+        // Set consumer factory for message consumption
         factory.setConsumerFactory(consumerFactory());
+
+        // Configure dead letter publishing recoverer for error handling
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
+
+        // Configure error handler with dead letter publishing
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, new FixedBackOff(2000L, 3L));
         
-        // Configure error handler with retry logic (3 retries, 2 second interval)
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(2000L, 3L)));
+        // Set error handler for listener container factory
+        factory.setCommonErrorHandler(errorHandler);
         
         // Return concurrent listener container factory
         return factory;

@@ -125,7 +125,7 @@ public class AccountService {
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
 
-        // Log account lock event
+        // Log account lock success
         log.info("event=account_locked account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
@@ -154,7 +154,7 @@ public class AccountService {
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
 
-        // Log account unlock event
+        // Log account unlock success
         log.info("event=account_unlocked account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
@@ -180,7 +180,7 @@ public class AccountService {
         Account account = accountRepository.findById(id)
             .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
-        // Log account found by ID event
+        // Log account found by ID success
         log.info("event=account_found_by_id account_id={}", account.getId());
 
         // Map account's information from account
@@ -202,7 +202,7 @@ public class AccountService {
         Account account = accountRepository.findByEmail(email)
             .orElseThrow(() -> new AccountNotFoundException("email=" + email));
         
-        // Log account found by email event
+        // Log account found by email success
         log.info("event=account_found_by_email account_id={}", account.getId());
 
         // Map account's information from account
@@ -224,7 +224,7 @@ public class AccountService {
         Account account = accountRepository.findByUsername(username)
             .orElseThrow(() -> new AccountNotFoundException("username=" + username));
         
-        // Log account found by username event
+        // Log account found by username success
         log.info("event=account_found_by_username account_id={}", account.getId());
         
         // Map account's information from account
@@ -247,6 +247,9 @@ public class AccountService {
      * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO updateAccountById(UUID id, AccountUpdateRequestDTO request) {
+        // Log account update attempt
+        log.info("event=account_update_attempt account_id={}", id);
+
         // Look up account by ID
         Account account = accountRepository.findById(id)
             .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
@@ -306,7 +309,7 @@ public class AccountService {
         // Persist updated account
         Account updatedAccount = accountRepository.save(account);
 
-        // Log account update event
+        // Log account update success
         log.info("event=account_updated account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
@@ -327,6 +330,9 @@ public class AccountService {
      * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoDTO softDeleteAccountById(UUID id) {
+        // Log account soft-deletion attempt
+        log.info("event=account_soft_deletion_attempt account_id={}", id);
+
         // Look up account by ID
         Account account = accountRepository.findById(id)
             .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
@@ -347,7 +353,7 @@ public class AccountService {
         // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
         
-        // Log account soft-deletion event
+        // Log account soft-deletion success
         log.info("event=account_soft_deleted account_id={}", softDeletedAccount.getId());
 
         // Return soft-deleted account's information
