@@ -85,9 +85,9 @@ public class AuthService {
      * Creates a new account with the registration data.
      * 
      * 
-     * <p>Registers a new account if the username and email are not already
-     * in use. After creation, publishes a request to the User microservice
-     * to create a corresponding user record.</p>
+     * <p>Creates a new account if the username and email are not already
+     * in use. After creation, publishes an event to the User microservice
+     * to create the corresponding user record linked to the account.</p>
      * 
      * @param request Registration data containing account's information and
      * user's profile
@@ -158,8 +158,8 @@ public class AuthService {
      * Authenticates account credentials.
      * 
      * <p>Verifies an account using login credentials if enabled, verified,
-     * active, and not locked. Updates login tracking fields and issues new
-     * refresh and access tokens on successful authentication.</p>
+     * and not locked. Updates login tracking fields and issues new refresh
+     * and access tokens on successful authentication.</p>
      * 
      * @param request Login credentials
      * @return Refresh and access tokens
