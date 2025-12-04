@@ -63,7 +63,7 @@ public class AuthController {
     /**
      * Registers a new user account.
      * 
-     * @param request Registration data
+     * @param request Account's information and user's profile
      * @return Created account's information with "201 Created" status
      */
     @PostMapping("/register")
@@ -91,7 +91,7 @@ public class AuthController {
     /**
      * Authenticates an account and returns refresh and access tokens.
      * 
-     * @param request Login credentials
+     * @param request Account's credentials
      * @return Refresh and access tokens with "200 OK" status
      */
     @PostMapping("/login")
@@ -126,7 +126,7 @@ public class AuthController {
      * Authenticates an account using Google OAuth2 credentials and returns
      * refresh and access tokens.
      *
-     * @param request Google OAuth2 authentication request
+     * @param request Account's information and user's profile from Google
      * @return Refresh and access tokens with "200 OK" status
      */
     @PostMapping("/oauth2/google")
@@ -159,7 +159,7 @@ public class AuthController {
     /**
      * Deauthenticates an account and revokes the refresh token.
      * 
-     * @param request Refresh token request value
+     * @param request Refresh token value linked to account
      * @return logout response with "204 No Content" status
      */
     @PostMapping("/logout")
@@ -189,7 +189,7 @@ public class AuthController {
      * Refreshes an access token using a refresh token and rotates the refresh
      * token.
      * 
-     * @param request Refresh token request
+     * @param request Refresh token value linked to account
      * @return New refresh and access tokens with "200 OK" status
      */
     @PostMapping("/refresh")
@@ -221,7 +221,7 @@ public class AuthController {
     /**
      * Verifies an email address and revokes used email verification token.
      * 
-     * @param request Email verification token value
+     * @param request Email verification token value linked to account
      * @return Account's information with "200 OK" status
      */
     @PostMapping("/verify-email")
@@ -250,7 +250,7 @@ public class AuthController {
      * Resends an email verification link to the associated account and revokes
      * old email verification tokens.
      * 
-     * @param request Email to which send the link 
+     * @param request Email address to send email verification link
      * @return Message of verification link sent with "200 OK" status
      */
     @PostMapping("/resend-verification")
@@ -282,7 +282,7 @@ public class AuthController {
      * Sends a password reset link to the associated account and revokes old
      * password reset tokens.
      *
-     * @param request Email to which send the link
+     * @param request Email address to send password reset link
      * @return Message of password reset link sent with "200 OK" status
      */
     @PostMapping("/forgot-password")

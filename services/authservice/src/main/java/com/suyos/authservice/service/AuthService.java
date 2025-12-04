@@ -82,15 +82,13 @@ public class AuthService {
     // ----------------------------------------------------------------
 
     /**
-     * Creates a new account with the registration data.
-     * 
+     * Creates a new account with the registration request.
      * 
      * <p>Creates a new account if the username and email are not already
      * in use. After creation, publishes an event to the User microservice
      * to create the corresponding user record linked to the account.</p>
      * 
-     * @param request Registration request containing account's information
-     * and user's profile
+     * @param request Account's information and user's profile
      * @return Created account's information
      * @throws UsernameAlreadyTakenException If username is already in use
      * @throws EmailAlreadyRegisteredException If email is already registered
@@ -155,13 +153,13 @@ public class AuthService {
     }
 
     /**
-     * Authenticates account credentials.
+     * Authenticates an account using traditional credentials.
      * 
      * <p>Verifies an account using login credentials if enabled, verified,
      * and not locked. Updates login tracking fields and issues new refresh
      * and access tokens on successful authentication.</p>
      * 
-     * @param request Authentication request containing account credentials
+     * @param request Account's credentials
      * @return Refresh and access tokens
      * @throws InvalidCredentialsException If username or email does not match any account
      * @throws AccountDisabledException If account is disabled
@@ -245,8 +243,7 @@ public class AuthService {
      * <p>Creates a new account with the registration data from Google OAuth2 
      * authentication.</p>
      * 
-     * @param request OAuth2 authentication request containing account's
-     * information from Google
+     * @param request Account's information and user's profile from Google
      * @return Created account entity
      */
     private Account createGoogleOAuth2Account(OAuth2AuthenticationRequestDTO request) {
@@ -281,8 +278,7 @@ public class AuthService {
      * with Google OAuth2 credentials. Generates refresh and access tokens
      * for the authenticated account.</p>
      *
-     * @param request OAuth2 authentication request containing account's
-     * information from Google
+     * @param request Account's information and user's profile from Google
      * @return Refresh and access tokens
      * @throws AccountDisabledException If account is disabled
      * @throws EmailNotVerifiedException If account's email is not verified
@@ -366,8 +362,7 @@ public class AuthService {
      * <p>Revokes the associated refresh token during logout and updates the
      * account's last logout timestamp.</p>
      * 
-     * @param request Refresh token request containing token value linked to
-     * account
+     * @param request Refresh token value linked to account
      * @throws InvalidRefreshTokenException If refresh token is invalid
      */
     public void deauthenticateAccount(RefreshTokenRequestDTO request) {
@@ -409,8 +404,7 @@ public class AuthService {
      * account is not already verified. Revokes the used email verification
      * token.</p>
      * 
-     * @param request Email verification request containing token value linked
-     * to account
+     * @param request Email verification token value linked to account
      * @return Verified account's information
      * @throws InvalidEmailVerificationTokenException If email verification 
      * token is invalid
@@ -465,8 +459,7 @@ public class AuthService {
      * account is not already verified. Publishes an event to send the new
      * email verification token using the Email microservice.</p>
      *
-     * @param request Email resend request containing email address to send
-     * email verification link
+     * @param request Email address to send email verification link
      * @return Message indicating if email verification link has been sent
      */
     public GenericMessageResponseDTO resendEmailVerification(EmailResendRequestDTO request) {

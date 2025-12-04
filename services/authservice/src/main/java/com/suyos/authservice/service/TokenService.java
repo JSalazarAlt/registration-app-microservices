@@ -138,7 +138,7 @@ public class TokenService {
     /**
      * Refreshes access token using a valid refresh token (token rotation).
      * 
-     * @param request Current refresh token value
+     * @param request Refresh token value linked to account
      * @return Rotated refresh and access tokens
      * @throws InvalidTokenException If refresh token is invalid
      */
