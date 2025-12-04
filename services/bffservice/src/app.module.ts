@@ -3,9 +3,8 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { ProfileModule } from './profile/profile.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
     imports: [
@@ -13,7 +12,6 @@ import { ProfileModule } from './profile/profile.module';
         HttpModule,
         AuthModule,
         UserModule,
-        ProfileModule,
     ],
     controllers: [AppController],
     providers: [AppService],

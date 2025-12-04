@@ -1,10 +1,13 @@
+import '../otel';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { WinstonLoggerService } from './winston-logger.service';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, {
+        logger: new WinstonLoggerService(),
+    });
     
-    // Enable CORS for frontend communication
     app.enableCors({
         origin: ['http://localhost:5173', 'http://localhost:3000'],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -14,7 +17,7 @@ async function bootstrap() {
     
     const port = process.env.PORT || 3000;
     await app.listen(port);
-    console.log(`BFF Service running on port ${port}`);
+    console.log(`\n🚀 BFF Service is running on http://localhost:${port}\n`);
 }
 
 bootstrap();
