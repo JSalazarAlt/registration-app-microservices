@@ -1,5 +1,6 @@
 package com.suyos.common.event;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -13,8 +14,6 @@ import lombok.NoArgsConstructor;
  * <p>Contains all necessary information to create a corresponding user
  * profile in the User microservice when an account is registered in the
  * Auth microservice.</p>
- * 
- * @author Joel Salazar
  */
 @Data
 @NoArgsConstructor
@@ -23,10 +22,20 @@ import lombok.NoArgsConstructor;
 public class UserCreationEvent {
 
     // ----------------------------------------------------------------
+    // EVENT METADATA
+    // ----------------------------------------------------------------
+
+    /** Unique identifier for the event */
+    private String id;
+
+    /** Timestamp when event ocurred */
+    private Instant occurredAt;
+
+    // ----------------------------------------------------------------
     // ACCOUNT INFORMATION
     // ----------------------------------------------------------------
 
-    /** Account ID from Auth microservice */
+    /** Unique identifier linking to account */
     private UUID accountId;
 
     /** Username */

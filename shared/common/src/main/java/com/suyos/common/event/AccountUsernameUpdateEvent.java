@@ -1,5 +1,6 @@
 package com.suyos.common.event;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -12,16 +13,28 @@ import lombok.NoArgsConstructor;
  * 
  * <p>Notifies the User microservice to synchronize username changes made in
  * the Auth microservice to maintain data consistency across services.</p>
- * 
- * @author Joel Salazar
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class AccountUsernameUpdateEvent {
+
+    // ----------------------------------------------------------------
+    // EVENT METADATA
+    // ----------------------------------------------------------------
+
+    /** Unique identifier for the event */
+    private String id;
+
+    /** Timestamp when event ocurred */
+    private Instant occurredAt;
+
+    // ----------------------------------------------------------------
+    // ACCOUNT INFORMATION
+    // ----------------------------------------------------------------
     
-    /** Account ID from Auth microservice */
+    /** Unique identifier linking to account */
     private UUID accountId;
     
     /** Updated username */
