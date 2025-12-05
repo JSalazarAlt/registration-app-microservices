@@ -8,7 +8,7 @@ The backend follows a microservices architecture with the following services:
 
 ### 🔐 Auth Service (Port 8080)
 - **Purpose**: Authentication and account management
-- **Technology**: Spring Boot, Spring Security, Spring OAuth2 Resource Server
+- **Technology**: Spring Boot, Spring Security, Spring OAuth2 Resource Server, Spring Kafka
 - **Database**: MySQL - Handles account data, authentication tokens
 - **Key Features**:
   - User registration and login
@@ -18,10 +18,14 @@ The backend follows a microservices architecture with the following services:
   - Password encryption with BCrypt
   - Refresh token rotation
   - Account soft deletion
+  - Kafka event producer (async, non-blocking)
+  - Structured logging to ELK stack
+  - Prometheus metrics
+  - Error documentation at `/docs/errors/`
 
 ### 👤 User Service (Port 8081)
 - **Purpose**: User profile management
-- **Technology**: Spring Boot, Spring Data JPA, Spring OAuth2 Resource Server
+- **Technology**: Spring Boot, Spring Data JPA, Spring OAuth2 Resource Server, Spring Kafka
 - **Database**: MySQL - Handles user profile data
 - **Key Features**:
   - User profile CRUD operations
@@ -30,8 +34,12 @@ The backend follows a microservices architecture with the following services:
   - Terms and privacy policy tracking
   - Profile picture management
   - Email/username sync from Auth Service
+  - Kafka event consumer (async with @Async, error handling, 3 retries, 2s backoff)
+  - Structured logging to ELK stack
+  - Prometheus metrics
+  - Error documentation at `/docs/errors/`
 
-### 🌐 BFF Service (Port 3000)
+### 🌐 BFF Service (Port 3001)
 - **Purpose**: Backend-for-Frontend data aggregation
 - **Technology**: NestJS, TypeScript, Axios
 - **Key Features**:
@@ -45,9 +53,14 @@ The backend follows a microservices architecture with the following services:
 
 ### 📦 Common Library
 - **Location**: `shared/common`
-- **Purpose**: Shared DTOs and utilities across microservices
+- **Purpose**: Shared DTOs, Events, and utilities across microservices
 - **Contents**:
   - `PagedResponseDTO` - Generic pagination wrapper
+  - `UserCreationEvent` - User creation event
+  - `AccountUsernameUpdateEvent` - Username update event
+  - `AccountEmailUpdateEvent` - Email update event
+  - `ApiException` - Base exception class
+  - `ErrorCode` - Error code enum
 - **Usage**: Imported as Maven dependency in Auth and User services
 
 ## Getting Started
@@ -58,6 +71,23 @@ The backend follows a microservices architecture with the following services:
 - MySQL 8.0+
 - Node.js 16+ (for BFF service)
 - pnpm (for BFF service)
+- Docker (optional, for Kafka, ELK, Monitoring)
+- Kafka (optional, for event-driven features)
+
+### Infrastructure Setup (Optional)
+```bash
+# Start Kafka
+cd ../infrastructure
+docker-compose up -d
+
+# Start ELK Stack
+cd ../elk
+docker-compose -f docker-compose-elk.yml up -d
+
+# Start Monitoring
+cd ../monitoring
+docker-compose -f docker-compose-monitoring.yml up -d
+```
 
 ### Setup Shared Library
 ```bash
@@ -91,13 +121,24 @@ mvn clean install
 ```
 Frontend → BFF Service → Auth Service (8080)
                       → User Service (8081)
+
+Auth Service → Kafka Topics → User Service (async)
+  - user-creation
+  - account-username-update
+  - account-email-update
+
+All Services → Logstash:5000 → Elasticsearch → Kibana:5601
+All Services → Prometheus:9090 → Grafana:3000
 ```
 
 - Frontend communicates only with BFF Service
 - BFF Service aggregates data from microservices
-- Auth Service creates users in User Service during registration (internal endpoint)
+- Auth Service publishes events to Kafka (async, non-blocking)
+- User Service consumes events from Kafka (async with @Async, error handling, retry logic)
 - Services validate JWT tokens independently using shared RSA public key
-- Services communicate via HTTP REST APIs
+- Services communicate via HTTP REST APIs and Kafka events
+- Structured logs sent to ELK stack for centralized logging
+- Metrics exposed to Prometheus for monitoring
 
 ## Security
 
@@ -108,9 +149,23 @@ Frontend → BFF Service → Auth Service (8080)
 - **Validation**: Each service validates tokens independently using OAuth2 Resource Server
 
 ### Endpoints Security
-- **Public**: `/internal/**`, `/actuator/**`, `/swagger-ui/**`
+- **Public**: `/internal/**`, `/actuator/**`, `/swagger-ui/**`, `/docs/**`
 - **Protected**: All other endpoints require valid JWT token
-- **CORS**: Configured for `http://localhost:5173` and `http://localhost:3000`
+- **CORS**: Configured for `http://localhost:5173` and `http://localhost:3001`
+
+## Error Documentation
+
+Comprehensive error documentation available:
+- **Auth Service**: `authservice/docs/errors/` (17 error types)
+- **User Service**: `userservice/docs/errors/` (1 error type)
+
+Each error document includes:
+- HTTP status code
+- Error code
+- Description
+- Common causes
+- Resolution steps
+- Related endpoints
 
 ## Development
 
@@ -139,7 +194,40 @@ cd userservice && mvn test
 cd bffservice && pnpm test
 ```
 
+### Docker Build
+```bash
+# See ../BUILD.md for detailed commands
+cd authservice && docker build -t authservice:latest .
+cd userservice && docker build -t userservice:latest .
+cd bffservice && docker build -t bffservice:latest .
+```
+
 ## API Documentation
 
-- **Auth Service**: http://localhost:8080/swagger-ui.html
-- **User Service**: http://localhost:8081/swagger-ui.html
+- **Auth Service Swagger**: http://localhost:8080/swagger-ui.html
+- **User Service Swagger**: http://localhost:8081/swagger-ui.html
+- **Auth Service Error Docs**: `authservice/docs/errors/`
+- **User Service Error Docs**: `userservice/docs/errors/`
+
+## Monitoring & Logging
+
+- **Kibana (Logs)**: http://localhost:5601
+- **Prometheus (Metrics)**: http://localhost:9090
+- **Grafana (Dashboards)**: http://localhost:3000
+
+## Event-Driven Architecture
+
+### Kafka Topics
+- `user-creation` - Published when new user registers
+- `account-username-update` - Published when username changes
+- `account-email-update` - Published when email changes
+
+### Producer (Auth Service)
+- Uses `KafkaTemplate.send()` - async by default (non-blocking)
+- Publishes events after account operations
+
+### Consumer (User Service)
+- Uses `@KafkaListener` with `@Async` annotation
+- Async processing with error handling
+- Retry logic: 3 retries with 2 second backoff
+- Non-blocking database operations

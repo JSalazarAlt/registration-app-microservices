@@ -4,9 +4,11 @@ NestJS-based Backend-for-Frontend service that aggregates data from Auth and Use
 
 ## 🚀 Overview
 
-- **Port**: 3001
+- **Port**: 3001 (changed from 3000 to avoid conflict with Grafana)
 - **Technology**: NestJS, TypeScript, Axios
 - **Purpose**: Simplify frontend API consumption by aggregating microservice data
+- **OpenTelemetry**: Distributed tracing with auto-instrumentation
+- **Logging**: Winston with Logstash transport for ELK integration
 
 ## 🎯 Features
 
@@ -46,8 +48,12 @@ pnpm install
 ### Environment Variables
 Create `.env` file:
 ```env
+PORT=3001
 AUTH_SERVICE_URL=http://localhost:8080
 USER_SERVICE_URL=http://localhost:8081
+LOGSTASH_HOST=localhost
+OTEL_SERVICE_NAME=bff-service
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 ```
 
 ## 🛠️ Development
@@ -90,7 +96,7 @@ src/
 ## 🔗 Service Communication
 
 ```
-Frontend (5173) → BFF Service (3000) → Auth Service (8080)
+Frontend (5173) → BFF Service (3001) → Auth Service (8080)
                                       → User Service (8081)
 
 Auth Service → Kafka → User Service (async events)
@@ -105,7 +111,7 @@ docker build -t bffservice:latest .
 
 ### Run
 ```bash
-docker run -p 3000:3000 bffservice:latest
+docker run -p 3001:3001 bffservice:latest
 ```
 
 Multi-stage build with Node.js 18-alpine
