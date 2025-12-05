@@ -15,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.suyos.common.event.AccountEmailUpdateEvent;
+import com.suyos.common.event.AccountUsernameUpdateEvent;
 import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
 import com.suyos.userservice.dto.response.UserProfileDTO;
 import com.suyos.userservice.mapper.UserMapper;
@@ -99,7 +101,7 @@ class UserServiceTest {
      * when user exists in database.</p>
      */
     @Test
-    void getUserProfileById_Success() {
+    void getUserById_Success() {
         // Mock repository to return test user
         when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
         when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
@@ -122,7 +124,7 @@ class UserServiceTest {
      * in database.</p>
      */
     @Test
-    void getUserProfileById_UserNotFound() {
+    void getUserById_UserNotFound() {
         // Mock repository to return empty
         UUID nonExistentId = UUID.randomUUID();
         when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
@@ -140,7 +142,7 @@ class UserServiceTest {
      * when valid update data is provided.</p>
      */
     @Test
-    void updateUserProfileById_Success() {
+    void updateUserById_Success() {
         // Mock dependencies for successful update
         when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
@@ -164,7 +166,7 @@ class UserServiceTest {
      * searching by account ID.</p>
      */
     @Test
-    void getUserProfileByAccountId_Success() {
+    void getUserByAccountId_Success() {
         // Mock repository to return test user
         when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
         when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
@@ -182,7 +184,7 @@ class UserServiceTest {
      * Tests user profile update with non-existing ID.
      */
     @Test
-    void updateUserProfileById_UserNotFound() {
+    void updateUserById_UserNotFound() {
         // Mock repository to return empty
         UUID nonExistentId = UUID.randomUUID();
         when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
@@ -197,7 +199,7 @@ class UserServiceTest {
      * Tests user profile retrieval by account ID with non-existing account.
      */
     @Test
-    void getUserProfileByAccountId_UserNotFound() {
+    void getUserByAccountId_UserNotFound() {
         // Mock repository to return empty
         UUID nonExistentAccountId = UUID.randomUUID();
         when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
@@ -212,7 +214,7 @@ class UserServiceTest {
      * Tests user profile update by account ID.
      */
     @Test
-    void updateUserProfileByAccountId_Success() {
+    void updateUserByAccountId_Success() {
         // Mock dependencies for successful update
         when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
@@ -232,7 +234,7 @@ class UserServiceTest {
      * Tests user profile update by account ID with non-existing account.
      */
     @Test
-    void updateUserProfileByAccountId_UserNotFound() {
+    void updateUserByAccountId_UserNotFound() {
         // Mock repository to return empty
         UUID nonExistentAccountId = UUID.randomUUID();
         when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
@@ -247,14 +249,20 @@ class UserServiceTest {
      * Tests email update from Auth Service.
      */
     @Test
-    void handleEmailUpdateFromAuth_Success() {
+    void handleEmailUpdate_Success() {
         // Mock repository to return test user
+        UUID accountId = testUser.getAccountId();
         String newEmail = "newemail@example.com";
+        String eventId = UUID.randomUUID().toString();
+        Instant occurredAt = Instant.now();
+
+        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(eventId, occurredAt, accountId, newEmail);
+
         when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // Update email from Auth Service
-        userService.mirrorEmailUpdate(testUser.getAccountId(), newEmail);
+        userService.mirrorEmailUpdate(event);
 
         // Verify email was updated
         verify(userRepository).findByAccountId(testUser.getAccountId());
@@ -266,14 +274,20 @@ class UserServiceTest {
      * Tests email update with non-existing account.
      */
     @Test
-    void handleEmailUpdateFromAuth_UserNotFound() {
-        // Mock repository to return empty
+    void handleEmailUpdate_UserNotFound() {
+        // Mock repository to return test user
         UUID nonExistentAccountId = UUID.randomUUID();
+        String newEmail = "newemail@example.com";
+        String eventId = UUID.randomUUID().toString();
+        Instant occurredAt = Instant.now();
+
+        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(eventId, occurredAt, nonExistentAccountId, newEmail);
+        
         when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
 
         // Attempt to update email and expect exception
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.mirrorEmailUpdate(nonExistentAccountId, "new@example.com"));
+            () -> userService.mirrorEmailUpdate(event));
         assertTrue(exception.getMessage().contains("User not found"));
     }
 
@@ -281,14 +295,20 @@ class UserServiceTest {
      * Tests username update from Auth Service.
      */
     @Test
-    void handleUsernameUpdateFromAuth_Success() {
+    void handleUsernameUpdate_Success() {
         // Mock repository to return test user
+        UUID accountId = UUID.randomUUID();
         String newUsername = "newusername";
+        String eventId = UUID.randomUUID().toString();
+        Instant occurredAt = Instant.now();
+
+        AccountUsernameUpdateEvent event = new AccountUsernameUpdateEvent(eventId, occurredAt, accountId, newUsername);
+
         when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // Update username from Auth Service
-        userService.mirrorUsernameUpdate(testUser.getAccountId(), newUsername);
+        userService.mirrorUsernameUpdate(event);
 
         // Verify username was updated
         verify(userRepository).findByAccountId(testUser.getAccountId());
@@ -300,14 +320,20 @@ class UserServiceTest {
      * Tests username update with non-existing account.
      */
     @Test
-    void handleUsernameUpdateFromAuth_UserNotFound() {
+    void handleUsernameUpdate_UserNotFound() {
         // Mock repository to return empty
         UUID nonExistentAccountId = UUID.randomUUID();
+        String newUsername = "newusername";
+        String eventId = UUID.randomUUID().toString();
+        Instant occurredAt = Instant.now();
+
+        AccountUsernameUpdateEvent event = new AccountUsernameUpdateEvent(eventId, occurredAt, nonExistentAccountId, newUsername);
+        
         when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
 
         // Attempt to update username and expect exception
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.mirrorUsernameUpdate(nonExistentAccountId, "newusername"));
+            () -> userService.mirrorUsernameUpdate(event));
         assertTrue(exception.getMessage().contains("User not found"));
     }
 
@@ -339,11 +365,18 @@ class UserServiceTest {
      */
     @Test
     void updateUser_SameEmail() {
+        // Mock repository to return test user
+        UUID accountId = testUser.getAccountId();
         String sameEmail = testUser.getEmail();
+        String eventId = UUID.randomUUID().toString();
+        Instant occurredAt = Instant.now();
+
+        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(eventId, occurredAt, accountId, sameEmail);
+
         when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        userService.mirrorEmailUpdate(testUser.getAccountId(), sameEmail);
+        userService.mirrorEmailUpdate(event);
 
         verify(userRepository).save(testUser);
         assertEquals(sameEmail, testUser.getEmail());
