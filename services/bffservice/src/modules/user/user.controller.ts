@@ -1,50 +1,28 @@
-import { Controller, Get, Put, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Req } from '@nestjs/common';
 import { UserService } from './user.service';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guards';
+import { UserUpdateDTO } from './dto/user-update.dto';
 
 @Controller('api/users')
 export class UserController {
 
     constructor(private readonly userService: UserService) {}
 
-    @Get(':userId')
-    async getUserById(@Param('userId') userId: string) {
-        return this.userService.getUserById(userId);
+    @UseGuards(JwtAuthGuard)
+    @Get('me')
+    async getAuthenticatedUser(@Req() req) {
+        const token = req.headers['authorization'];
+        return this.userService.getAuthenticatedUser(token);
     }
 
-    @Put(':userId')
-    async updateUserById(
-        @Param('userId') userId: string,
-        @Body() updateData: any
+    @UseGuards(JwtAuthGuard)
+    @Put('me')
+    async updateAuthenticatedUser(
+        @Req() req,
+        @Body() updateData: UserUpdateDTO
     ) {
-        return this.userService.updateUserById(userId, updateData);
-    }
-
-    @Get('account/:accountId')
-    async getUserByAccountId(@Param('accountId') accountId: string) {
-        return this.userService.getUserByAccountId(accountId);
-    }
-
-    @Put('account/:accountId')
-    async updateUserByAccountId(
-        @Param('accountId') accountId: string,
-        @Body() updateData: any
-    ) {
-        return this.userService.updateUserByAccountId(accountId, updateData);
-    }
-
-    @Get()
-    async getAllUsers(
-        @Query('page') page = 0,
-        @Query('size') size = 10,
-        @Query('sortBy') sortBy = 'createdAt',
-        @Query('sortDir') sortDir = 'desc'
-    ) {
-        return this.userService.getAllUsers(page, size, sortBy, sortDir);
-    }
-
-    @Get('search')
-    async searchUsers(@Query('name') name: string) {
-        return this.userService.searchUsers(name);
+        const token = req.headers['authorization'];
+        return this.userService.updateAuthenticatedUser(token, updateData);
     }
     
 }

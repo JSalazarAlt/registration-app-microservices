@@ -1,10 +1,8 @@
 /**
  * Data Transfer Object for account authentication requests.
  * 
- * <p>Contains the account identifier and password used to authenticate the
- * user and establish a session.</p>
- * 
- * @author Joel Salazar
+ * Contains the account identifier and password used to authenticate the
+ * user and establish a session.
  */
 export class LoginDTO {
     

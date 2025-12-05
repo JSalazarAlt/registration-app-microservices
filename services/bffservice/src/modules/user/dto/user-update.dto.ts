@@ -6,21 +6,8 @@
  * 
  * @author Joel Salazar
  */
-export class RegistrationDTO {
-
-    // ----------------------------------------------------------------
-    // ACCOUNT'S INFORMATION
-    // ----------------------------------------------------------------
+export class UserUpdateDTO {
     
-    /** Username */
-    username: string;
-
-    /** Username */
-    email: string;
-
-    /** Password */
-    password: string;
-
     // ----------------------------------------------------------------
     // USER'S PROFILE
     // ----------------------------------------------------------------

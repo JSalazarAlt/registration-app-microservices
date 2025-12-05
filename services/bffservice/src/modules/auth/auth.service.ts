@@ -5,17 +5,15 @@ import { firstValueFrom, timeout, retry, catchError } from 'rxjs';
 import { AxiosError } from 'axios';
 import { LoginDTO } from './dto/login.dto';
 import { RegistrationDTO } from './dto/registration.dto';
-import { RefreshTokenDTO } from './dto/refreshToken.dto';
+import { RefreshTokenDTO } from './dto/refresh-token.dto';
 
 /**
  * Service for authentication-related operations.
  *
- * <p>Handles communication with the Auth microservice for account creation,
- * authentication, logout, and token refresh operations. Implements circuit
- * breaker pattern with retry logic and timeout handling for resilient
- * service-to-service communication.</p>
- *
- * @author Joel Salazar
+ * Handles communication with the Auth microservice for registration, login,
+ * logout, and refresh token operations. Implements circuit breaker patterns
+ * with retry logic and timeout handling for resilience in service-to-service 
+ * communication.
  */
 @Injectable()
 export class AuthService {
@@ -50,12 +48,10 @@ export class AuthService {
     /**
      * Forwards a registration request to the Auth microservice.
      *
-     * <p>Creates a new account if the username and email are not already
-     * registered. Implements retry logic and timeout handling for resilient
-     * communication.</p>
+     * Sends the account's information and user's profile to register a new
+     * account and returns the created account's information.
      * 
-     * @param registerData Registration data containing account's credentials 
-     * and user's profile
+     * @param registerData Account's information and user's profile
      * @returns Created account's information
      * @throws HttpException If registration fails or service is unavailable
      */
@@ -64,7 +60,7 @@ export class AuthService {
         this.logger.log(`event=registration_request email=${registerData.email}`);
 
         try {
-            // Send registration request to Auth microservice and retrieve
+            // Send registration request to Auth microservice to retrieve
             // created account's information
             const response = await firstValueFrom(
                 this.httpService.post(`${this.authServiceUrl}/api/v1/auth/register`, registerData).pipe(
@@ -76,13 +72,13 @@ export class AuthService {
                 ),
             );
 
-            // Log successful registration
+            // Log registration success
             this.logger.log(`event=registration_success email=${registerData.email}`);
 
             // Return created account's information
             return response.data;
         } catch (error) {
-            // Log failed registration
+            // Log registration failed
             this.logger.error(`event=registration_failed email=${registerData.email} error=${error.message}`);
             throw error;
         }
@@ -91,9 +87,8 @@ export class AuthService {
     /**
      * Forwards a login request to the Auth microservice.
      *
-     * <p>Verifies an account using login credentials and returns refresh and
-     * access tokens on successful authentication. Implements retry logic and
-     * timeout handling for resilient communication.</p>
+     * Sends login credentials and returns the access and refresh tokens
+     * issued by the Auth microservice.
      *
      * @param loginData Login credentials (username/email and password)
      * @returns Refresh and access tokens
@@ -115,13 +110,13 @@ export class AuthService {
                 ),
             );
             
-            // Log successful login
+            // Log login success
             this.logger.log(`event=login_success identifier=${loginData.identifier}`);
 
             // Return refresh and access tokens
             return response.data;
         } catch (error) {
-            // Log failed login
+            // Log login failed
             this.logger.error(`event=login_failed identifier=${loginData.identifier} error=${error.message}`);
             throw error;
         }
@@ -130,11 +125,9 @@ export class AuthService {
     /**
      * Forwards a logout request to the Auth microservice.
      *
-     * <p>Revokes the provided refresh token, effectively ending the user
-     * session. Implements retry and timeout logic to ensure resilient
-     * communication with downstream services.</p>
+     * Sends a refresh token and returns a new refresh and access tokens.
      *
-     * @param logoutData Object containing the refresh token to revoke
+     * @param logoutData Refresh token value linked to account
      * @returns Logout confirmation message
      * @throws HttpException If communication with Auth service fails
      */
@@ -153,7 +146,7 @@ export class AuthService {
                     }),
                 ),
             );
-            // Log successful logout
+            // Log logout success
             this.logger.log(`event=logout_success`);
 
             // Return logout confirmation
@@ -162,26 +155,27 @@ export class AuthService {
                 message: 'Logout successful'
             };
         } catch (error) {
-            // Log failed logout
+            // Log logout failed
             this.logger.error(`event=logout_failed error=${error.message}`);
             throw error;
         }
     }
 
     /**
-     * Refreshes JWT access token with the Auth microservice.
+     * Forwards a refresh token request to the Auth microservice.
      *
-     * <p>Issues a new access token using a valid refresh token. Implements
-     * retry logic and timeout handling for resilient communication.</p>
+     * Sends a refresh token to be revoked.
      *
-     * @param refreshData Refresh token value
-     * @returns New access token
+     * @param refreshData Refresh token value linked to account
+     * @returns New refresh and access tokens
      * @throws HttpException If token refresh fails or service is unavailable
      */
-    async refreshToken(refreshData: any) {
-        try {
-            this.logger.log(`event=refresh_token_request`);
+    async refreshToken(refreshData: RefreshTokenDTO) {
+        // Log refresh token request
+        this.logger.log(`event=refresh_token_request`);
 
+        try {
+            // Send refresh token request to Auth microservice and retrieve tokens
             const response = await firstValueFrom(
                 this.httpService.post(`${this.authServiceUrl}/api/v1/auth/refresh`, refreshData).pipe(
                     timeout({ each: this.requestTimeout }),
@@ -192,9 +186,51 @@ export class AuthService {
                 ),
             );
 
+            // Log refresh token success
             this.logger.log(`event=refresh_token_success`);
+
+            // Return new refresh and access tokens
             return response.data;
         } catch (error) {
+            // Log refresh token failed
+            this.logger.error(`event=refresh_token_failed error=${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Forwards an email verification token request to the Auth microservice.
+     *
+     * Sends an email verification token to verify the email linked to an
+     * account.
+     *
+     * @param verifyData Email verification token value linked to account
+     * @returns Updated account's information
+     * @throws HttpException If token refresh fails or service is unavailable
+     */
+    async verifyEmail(verifyData: RefreshTokenDTO) {
+        // Log refresh token request
+        this.logger.log(`event=verify_email_request`)
+
+        try {
+            
+            const response = await firstValueFrom(
+                this.httpService.post(`${this.authServiceUrl}/api/v1/auth/verify-email`, verifyData).pipe(
+                    timeout({ each: this.requestTimeout }),
+                    retry(this.maxRetries),
+                    catchError((error: AxiosError) => {
+                        throw this.handleServiceError(error, 'verifyEmail');
+                    }),
+                ),
+            );
+
+            // Log verify email success
+            this.logger.log(`event=verify_email_success`);
+
+            // Return updated account's information
+            return response.data;
+        } catch (error) {
+            // Log verify email failed
             this.logger.error(`event=refresh_token_failed error=${error.message}`);
             throw error;
         }
@@ -203,9 +239,9 @@ export class AuthService {
     /**
      * Handles errors from Auth microservice communication.
      *
-     * <p>Transforms Axios errors into appropriate HTTP exceptions with
-     * meaningful error messages and status codes. Handles network errors,
-     * timeouts, and service unavailability.</p>
+     * Transforms Axios errors into appropriate HTTP exceptions with error
+     * messages and status codes. Handles network errors, timeouts, and
+     * service unavailability.
      *
      * @param error Axios error from HTTP request
      * @param operation Operation name for logging context

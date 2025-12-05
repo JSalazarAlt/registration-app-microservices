@@ -3,21 +3,24 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, timeout, retry, catchError } from 'rxjs';
 import { AxiosError } from 'axios';
+import { JwtService } from '@nestjs/jwt';
+import { UserUpdateDTO } from './dto/user-update.dto';
 
 /**
  * Service for user profile operations.
  *
- * <p>Handles communication with the User microservice for profile retrieval,
+ * Handles communication with the User microservice for profile retrieval,
  * updates, search, and pagination. Implements circuit breaker pattern with
- * retry logic and timeout handling for resilient service-to-service
- * communication.</p>
+ * retry logic and timeout handling for resilience in service-to-service
+ * communication.
  *
  * @author Joel Salazar
  */
 @Injectable()
 export class UserService {
-  /** Logger instance for structured logging */
-  private readonly logger = new Logger(UserService.name);
+
+    /** Logger instance for structured logging */
+    private readonly logger = new Logger(UserService.name);
 
     /** User microservice base URL */
     private readonly userServiceUrl: string;
@@ -37,161 +40,33 @@ export class UserService {
     constructor(
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
+        private readonly jwtService: JwtService
     ) {
         this.userServiceUrl = this.configService.get<string>('USER_SERVICE_URL', 'http://localhost:8081');
         this.requestTimeout = this.configService.get<number>('REQUEST_TIMEOUT', 5000);
         this.maxRetries = this.configService.get<number>('MAX_RETRIES', 3);
     }
 
-    /**
-     * Retrieves user by user ID from the User microservice.
-     *
-     * <p>Fetches user details including personal information,
-     * preferences, and timestamps. Implements retry logic and timeout
-     * handling for resilient communication.</p>
-     *
-     * @param userId User identifier
-     * @returns User information
-     * @throws HttpException If user not found or service is unavailable
-     */
-    async getUserById(userId: string) {
-        try {
-            this.logger.log(`event=get_user_by_id_request user_id=${userId}`);
-
-            const response = await firstValueFrom(
-                this.httpService.get(`${this.userServiceUrl}/api/v1/users/${userId}`).pipe(
-                    timeout({ each: this.requestTimeout }),
-                    retry(this.maxRetries),
-                    catchError((error: AxiosError) => {
-                        throw this.handleServiceError(error, 'getUserById');
-                    }),
-                ),
-            );
-
-            this.logger.log(`event=get_user_by_id_success user_id=${userId}`);
-            return response.data;
-        } catch (error) {
-            this.logger.error(`event=get_user_by_id_failed user_id=${userId} error=${error.message}`);
-            throw error;
-        }
-    }
+    // ----------------------------------------------------------------
+    // ADMIN
+    // ----------------------------------------------------------------
 
     /**
-     * Updates user by user ID with the User microservice.
-     *
-     * <p>Updates user fields including personal information,
-     * preferences, and profile picture. Implements retry logic and timeout
-     * handling for resilient communication.</p>
-     *
-     * @param userId User identifier
-     * @param updateData User update data
-     * @returns Updated user information
-     * @throws HttpException If update fails or service is unavailable
-     */
-    async updateUserById(userId: string, updateData: any) {
-        try {
-            this.logger.log(`event=update_user_by_id_request user_id=${userId}`);
-
-            const response = await firstValueFrom(
-                this.httpService.put(`${this.userServiceUrl}/api/v1/users/${userId}`, updateData).pipe(
-                    timeout({ each: this.requestTimeout }),
-                    retry(this.maxRetries),
-                    catchError((error: AxiosError) => {
-                        throw this.handleServiceError(error, 'updateUserById');
-                    }),
-                ),
-            );
-
-            this.logger.log(`event=update_user_by_id_success user_id=${userId}`);
-            return response.data;
-        } catch (error) {
-            this.logger.error(`event=update_user_by_id_failed user_id=${userId} error=${error.message}`);
-            throw error;
-        }
-    }
-
-    /**
-     * Retrieves user by account ID from the User microservice.
-     *
-     * <p>Fetches user details by their associated account ID. Implements
-     * retry logic and timeout handling for resilient communication.</p>
-     *
-     * @param accountId Account identifier
-     * @returns User information
-     * @throws HttpException If user not found or service is unavailable
-     */
-    async getUserByAccountId(accountId: string) {
-        try {
-            this.logger.log(`event=get_user_by_account_id_request account_id=${accountId}`);
-
-            const response = await firstValueFrom(
-                this.httpService.get(`${this.userServiceUrl}/api/v1/users/account/${accountId}`).pipe(
-                    timeout({ each: this.requestTimeout }),
-                    retry(this.maxRetries),
-                    catchError((error: AxiosError) => {
-                        throw this.handleServiceError(error, 'getUserByAccountId');
-                    }),
-                ),
-            );
-
-            this.logger.log(`event=get_user_by_account_id_success account_id=${accountId}`);
-            return response.data;
-        } catch (error) {
-            this.logger.error(`event=get_user_by_account_id_failed account_id=${accountId} error=${error.message}`);
-            throw error;
-        }
-    }
-
-    /**
-     * Updates user by account ID with the User microservice.
-     *
-     * <p>Updates user fields by their associated account ID. Implements
-     * retry logic and timeout handling for resilient communication.</p>
-     *
-     * @param accountId Account identifier
-     * @param updateData User update data
-     * @returns Updated user information
-     * @throws HttpException If update fails or service is unavailable
-     */
-    async updateUserByAccountId(accountId: string, updateData: any) {
-        try {
-            this.logger.log(`event=update_user_by_account_id_request account_id=${accountId}`);
-
-            const response = await firstValueFrom(
-                this.httpService.put(`${this.userServiceUrl}/api/v1/users/account/${accountId}`, updateData).pipe(
-                    timeout({ each: this.requestTimeout }),
-                    retry(this.maxRetries),
-                    catchError((error: AxiosError) => {
-                        throw this.handleServiceError(error, 'updateUserByAccountId');
-                    }),
-                ),
-            );
-
-            this.logger.log(`event=update_user_by_account_id_success account_id=${accountId}`);
-            return response.data;
-        } catch (error) {
-            this.logger.error(`event=update_user_by_account_id_failed account_id=${accountId} error=${error.message}`);
-            throw error;
-        }
-    }
-
-    /**
-     * Retrieves all users with pagination from the User microservice.
-     *
-     * <p>Fetches paginated list of users with sorting options. Implements
-     * retry logic and timeout handling for resilient communication.</p>
+     * Retrieves a paginated list of all users from User microservice.
      *
      * @param page Page number (zero-based)
      * @param size Page size
      * @param sortBy Field to sort by
      * @param sortDir Sort direction (asc or desc)
-     * @returns Paginated user list
+     * @returns Paginated list of users' profiles
      * @throws HttpException If retrieval fails or service is unavailable
      */
     async getAllUsers(page = 0, size = 10, sortBy = 'createdAt', sortDir = 'desc') {
-        try {
-            this.logger.log(`event=get_all_users_request page=${page} size=${size}`);
+        // Log request to get all users
+        this.logger.log(`event=get_all_users_request page=${page} size=${size}`);
 
+        try {
+            // Send request to User microservice to retrieve users' profiles
             const response = await firstValueFrom(
                 this.httpService.get(`${this.userServiceUrl}/api/v1/users`, {
                 params: { page, size, sortBy, sortDir },
@@ -204,10 +79,14 @@ export class UserService {
                 ),
             );
 
+            // Log success to get all users
             this.logger.log(`event=get_all_users_success page=${page} size=${size}`);
+
+            // Return paginated list of users' profiles
             return response.data;
         } catch (error) {
-            this.logger.error(`event=get_all_users_failed page=${page} size=${size} error=${error.message}`);
+            // Log fail to get all users and throw error
+            this.logger.error(`event=get_all_users_fail page=${page} size=${size} error=${error.message}`);
             throw error;
         }
     }
@@ -215,9 +94,7 @@ export class UserService {
     /**
      * Searches users by name from the User microservice.
      *
-     * <p>Performs case-insensitive search on user first and last names.
-     * Implements retry logic and timeout handling for resilient
-     * communication.</p>
+     * Performs case-insensitive search on user first and last names.
      *
      * @param name Search query for user name
      * @returns List of matching users
@@ -243,6 +120,171 @@ export class UserService {
             return response.data;
         } catch (error) {
             this.logger.error(`event=search_users_failed name=${name} error=${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Retrieves user by ID from the User microservice.
+     *
+     * @param userId User's ID
+     * @returns User's profile
+     * @throws HttpException If user not found or service is unavailable
+     */
+    async getUserById(userId: string) {
+        // Log request to get user by ID
+        this.logger.log(`event=get_user_by_id_request user_id=${userId}`);
+        
+        try {
+            // Send request to User microservice to retrieve user's profile
+            const response = await firstValueFrom(
+                this.httpService.get(`${this.userServiceUrl}/api/v1/users/${userId}`).pipe(
+                    timeout({ each: this.requestTimeout }),
+                    retry(this.maxRetries),
+                    catchError((error: AxiosError) => {
+                        throw this.handleServiceError(error, 'getUserById');
+                    }),
+                ),
+            );
+
+            // Log success to get user by ID
+            this.logger.log(`event=get_user_by_id_success user_id=${userId}`);
+
+            // Return user's profile
+            return response.data;
+        } catch (error) {
+            // Log fail to get user by ID and throw error
+            this.logger.error(`event=get_user_by_id_failed user_id=${userId} error=${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Updates user by user ID with the User microservice.
+     *
+     * @param userId User identifier
+     * @param updateData User update data
+     * @returns Updated user information
+     * @throws HttpException If update fails or service is unavailable
+     */
+    async updateUserById(userId: string, updateData: UserUpdateDTO) {
+        // Log request to update user by ID
+        this.logger.log(`event=update_user_by_id_request user_id=${userId}`);
+
+        try {
+            // Send request to User microservice to update user's profile
+            const response = await firstValueFrom(
+                this.httpService.put(`${this.userServiceUrl}/api/v1/users/${userId}`, updateData).pipe(
+                    timeout({ each: this.requestTimeout }),
+                    retry(this.maxRetries),
+                    catchError((error: AxiosError) => {
+                        throw this.handleServiceError(error, 'updateUserById');
+                    }),
+                ),
+            );
+
+            // Log success to update user by ID
+            this.logger.log(`event=update_user_by_id_success user_id=${userId}`);
+
+            // Return updated user's profile
+            return response.data;
+        } catch (error) {
+            // Log fail to update user by ID and throw error
+            this.logger.error(`event=update_user_by_id_failed user_id=${userId} error=${error.message}`);
+            throw error;
+        }
+    }
+    
+    // ----------------------------------------------------------------
+    // USER MANAGEMENT
+    // ----------------------------------------------------------------
+
+    /**
+     * Retrieves user by account ID from the User microservice.
+     *
+     * @param accountId Account identifier
+     * @returns User information
+     * @throws HttpException If user not found or service is unavailable
+     */
+    async getAuthenticatedUser(token: string) {
+
+        const pureToken = token.startsWith('Bearer ')
+            ? token.substring(7)
+            : token;
+
+        const accountId = this.jwtService.decode(pureToken)?.sub;
+
+        // Log request to get authenticated user
+        this.logger.log(`event=get_authenticated_user_request account_id=${accountId}`);
+
+        try {
+            // Send request to User microservice to retrieve authenticated user's profile
+            const response = await firstValueFrom(
+                this.httpService.get(`${this.userServiceUrl}/api/v1/users/me`,
+                    { headers: { Authorization: token } }
+                ).pipe(
+                    timeout({ each: this.requestTimeout }),
+                    retry(this.maxRetries),
+                    catchError((error: AxiosError) => {
+                        throw this.handleServiceError(error, 'getAuthenticatedUser');
+                    }),
+                ),
+            );
+
+            // Log success to get authenticated user
+            this.logger.log(`event=get_authenticated_user_success account_id=${accountId}`);
+
+            // Return authenticated user's profile
+            return response.data;
+        } catch (error) {
+            // Log fail to get authenticated user and throw error
+            this.logger.error(`event=get_authenticated_user_fail account_id=${accountId} error=${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Updates user by account ID with the User microservice.
+     *
+     * @param accountId Account identifier
+     * @param updateData User update data
+     * @returns Updated user information
+     * @throws HttpException If update fails or service is unavailable
+     */
+    async updateAuthenticatedUser(token: string, updateData: UserUpdateDTO) {
+
+        const pureToken = token.startsWith('Bearer ')
+            ? token.substring(7)
+            : token;
+
+        const accountId = this.jwtService.decode(pureToken)?.sub;
+
+        // Log request to get authenticated user
+        this.logger.log(`event=update_authenticated_user_request account_id=${accountId}`);
+        
+        try {
+            // Send request to User microservice to update authenticated user's profile
+            const response = await firstValueFrom(
+                this.httpService.put(`${this.userServiceUrl}/api/v1/users/me`, 
+                    updateData, 
+                    { headers: { Authorization: token } }
+                ).pipe(
+                    timeout({ each: this.requestTimeout }),
+                    retry(this.maxRetries),
+                    catchError((error: AxiosError) => {
+                        throw this.handleServiceError(error, 'updateAuthenticatedUser');
+                    }),
+                ),
+            );
+
+            // Log success to get authenticated user
+            this.logger.log(`event=update_authenticated_user_success account_id=${accountId}`);
+
+            // Return updated authenticated user's profile
+            return response.data;
+        } catch (error) {
+            // Log fail to get authenticated user
+            this.logger.error(`event=update_authenticated_user_fail account_id=${accountId} error=${error.message}`);
             throw error;
         }
     }
