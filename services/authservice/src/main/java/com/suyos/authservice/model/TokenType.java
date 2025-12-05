@@ -8,8 +8,6 @@ import lombok.Getter;
  * 
  * <p>Defines the various types of tokens used for authentication, each with
  * specific purposes and usage scenarios.</p>
- * 
- * @author Joel Salazar
  */
 @Getter
 @AllArgsConstructor

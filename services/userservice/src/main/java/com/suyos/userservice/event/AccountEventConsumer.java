@@ -15,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
  * Kafka consumer for account events.
  * 
  * <p>Listens to account-related events and updates user profiles.</p>
- * 
- * @author Joel Salazar
  */
 @Component
 @RequiredArgsConstructor

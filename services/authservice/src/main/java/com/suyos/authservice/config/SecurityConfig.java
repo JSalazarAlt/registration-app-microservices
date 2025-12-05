@@ -36,8 +36,6 @@ import lombok.RequiredArgsConstructor;
  * <p>Uses OAuth2 Resource Server for industry-standard JWT validation
  * and OAuth2 Client for Google authentication. Implements custom
  * BearerTokenResolver to skip JWT validation on public endpoints.</p>
- * 
- * @author Joel Salazar
  */
 @Configuration
 @EnableWebSecurity

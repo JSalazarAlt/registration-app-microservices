@@ -8,8 +8,6 @@ import lombok.Getter;
  * 
  * <p>Defines the various roles that can be assigned to accounts, each with
  * specific permissions and access levels.</p>
- * 
- * @author Joel Salazar
  */
 @Getter
 @AllArgsConstructor

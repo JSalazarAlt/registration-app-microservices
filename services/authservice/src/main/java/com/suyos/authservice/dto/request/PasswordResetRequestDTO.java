@@ -11,10 +11,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for password reset requests.
  *
- * <p>Contains the password reset token and the new password used to complete
- * the forgot-password process.</p>
- *
- * @author Joel Salazar
+ * <p>Contains the password reset token and a new password to complete the
+ * forgot-password process.</p>
  */
 @Data
 @NoArgsConstructor

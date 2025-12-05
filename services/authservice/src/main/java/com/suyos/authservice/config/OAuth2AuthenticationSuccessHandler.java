@@ -27,8 +27,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>Integrates with AuthService for account management and token
  * generation. Handles errors gracefully by redirecting to login
  * page with error parameters.</p>
- *
- * @author Joel Salazar
  */
 @Component
 @Slf4j

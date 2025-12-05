@@ -15,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
  * Service for token cleanup operations.
  *
  * <p>Handles cleanup tasks such as removing expired or revoked tokens.</p>
- *
- * @author Joel Salazar
  */
 @Service
 @RequiredArgsConstructor

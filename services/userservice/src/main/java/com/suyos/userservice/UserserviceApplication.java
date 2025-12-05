@@ -11,8 +11,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * <p>Manages user profiles, personal information, and user-related data
  * operations. Works in conjunction with Authentication service to provide
  * complete user management functionality.</p>
- *
- * @author Joel Salazar
  */
 @SpringBootApplication
 @EnableJpaAuditing

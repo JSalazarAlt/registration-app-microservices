@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
  * in client applications.</p>
  * 
  * @param <T> Type of objects contained in the paginated response
- * @author Joel Salazar
  */
 @Data
 @NoArgsConstructor

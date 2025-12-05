@@ -12,10 +12,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for account registration requests.
  * 
- * <p>Contains account's information and user's profile information used to
- * create a new account.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains account's information and user's profile to create a new
+ * account.</p>
  */
 @Data
 @NoArgsConstructor

@@ -47,8 +47,6 @@ import lombok.extern.slf4j.Slf4j;
  * and email verification. Communicates with the User, Email, and Session
  * microservices. Uses {@link TokenService} for token generation and 
  * revocation for authentication and email verification.</p>
- *
- * @author Joel Salazar
  */
 @Service
 @RequiredArgsConstructor

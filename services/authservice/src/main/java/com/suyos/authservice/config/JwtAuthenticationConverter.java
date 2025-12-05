@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
  * <p>Extracts account ID from JWT subject claim and role-based authorities
  * from JWT claims. Enables @AuthenticationPrincipal usage in controllers to
  * access authenticated account information.</p>
- *
- * @author Joel Salazar
  */
 @Component
 public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {

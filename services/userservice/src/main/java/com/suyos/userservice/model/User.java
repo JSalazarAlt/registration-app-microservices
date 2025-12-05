@@ -25,8 +25,6 @@ import lombok.NoArgsConstructor;
  * <p>Maps to the <b>users</b> table and stores user profile, preferences,
  * and acceptance timestamps for legal agreements. Mirrors core identity
  * fields from the Auth microservice and links each user to its account.</p>
- * 
- * @author Joel Salazar
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)

@@ -16,8 +16,6 @@ import com.suyos.authservice.model.Account;
  * 
  * <p>Provides standard CRUD operations for account entities and specific
  * query methods.</p>
- * 
- * @author Joel Salazar
  */
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     

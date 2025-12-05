@@ -15,8 +15,6 @@ import com.suyos.userservice.model.User;
  * 
  * <p>Provides standard CRUD operations for user entities and specific query
  * methods.</p>
- * 
- * @author Joel Salazar
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {

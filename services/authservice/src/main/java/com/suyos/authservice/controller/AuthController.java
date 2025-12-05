@@ -35,8 +35,6 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>Handles account registration and login endpoints and provides JWT-based
  * authentication for the application.</p>
- *
- * @author Joel Salazar
  */
 @RestController
 @RequestMapping("/api/v1/auth")

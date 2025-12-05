@@ -19,12 +19,9 @@ import com.suyos.common.exception.ErrorCode;
 /**
  * Global exception handler for REST controllers.
  *
- * <p>Centralized exception handling for the authentication service. Catches
- * application-specific exceptions, validation errors, and generic exceptions,
- * then transforms them into consistent API error responses with trace IDs
- * for debugging and monitoring.</p>
- *
- * @author Joel Salazar
+ * <p>Centralized exception handling. Catches application-specific exceptions,
+ * validation errors, and generic exceptions, to transform them into consistent
+ * API error responses with trace IDs for debugging and monitoring.</p>
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {

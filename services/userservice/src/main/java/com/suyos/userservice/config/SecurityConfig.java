@@ -27,8 +27,6 @@ import java.util.List;
  * <p>Configures OAuth2 Resource Server to validate JWT tokens issued by
  * AuthService. Each microservice validates tokens independently using the
  * same shared secret key.</p>
- * 
- * @author Joel Salazar
  */
 @Configuration
 @EnableWebSecurity

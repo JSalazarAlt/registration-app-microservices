@@ -17,8 +17,6 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
  * Kafka producer configuration for Auth Service.
  * 
  * <p>Configures Kafka producer to publish account events to topics.</p>
- * 
- * @author Joel Salazar
  */
 @Configuration
 public class KafkaProducerConfig {

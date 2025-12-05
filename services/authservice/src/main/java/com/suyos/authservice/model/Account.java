@@ -26,8 +26,6 @@ import lombok.NoArgsConstructor;
  * 
  * <p>Maps to the <b>accounts</b> table and contains all fields for account
  * management and authentication.</p>
- * 
- * @author Joel Salazar
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)

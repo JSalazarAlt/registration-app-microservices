@@ -7,10 +7,7 @@ import lombok.Getter;
 /**
  * Data Transfer Object for OAuth2 account information from Google.
  * 
- * <p>Contains standardized user details received from an OAuth2 provider
- * used for authentication and account linking.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains basic account's information from an OAuth2 provider.</p>
  */
 @Getter
 @AllArgsConstructor

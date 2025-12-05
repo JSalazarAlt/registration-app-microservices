@@ -16,8 +16,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
  * 
  * <p>Configures OpenAPI 3.0 documentation with JWT authentication support. 
  * Provides comprehensive API documentation accessible via Swagger UI.</p>
- * 
- * @author Joel Salazar
  */
 @Configuration
 public class SwaggerConfig {

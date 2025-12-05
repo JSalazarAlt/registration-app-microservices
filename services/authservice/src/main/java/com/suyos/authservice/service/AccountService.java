@@ -34,8 +34,6 @@ import java.util.List;
  * <p>Handles account retrieval, update, and deletion operations. Provides
  * methods for locating accounts (e.g., by email or username) and supports 
  * soft-deletion for audit and recovery purposes.</p>
- *
- * @author Joel Salazar
  */
 @Service
 @RequiredArgsConstructor

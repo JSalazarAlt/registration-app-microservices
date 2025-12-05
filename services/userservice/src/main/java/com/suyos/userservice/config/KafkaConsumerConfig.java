@@ -22,8 +22,6 @@ import org.springframework.util.backoff.FixedBackOff;
  * Kafka consumer configuration for User Service.
  * 
  * <p>Configures Kafka consumer to listen to account events from topics.</p>
- * 
- * @author Joel Salazar
  */
 @Configuration
 public class KafkaConsumerConfig {

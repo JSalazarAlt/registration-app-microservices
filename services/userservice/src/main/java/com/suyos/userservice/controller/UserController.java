@@ -33,8 +33,6 @@ import lombok.RequiredArgsConstructor;
  * REST controller for user profile operations.
  *
  * <p>Handles user profile retrieval and update endpoints.</p>
- *
- * @author Joel Salazar
  */
 @RestController
 @RequestMapping("/api/v1/users")

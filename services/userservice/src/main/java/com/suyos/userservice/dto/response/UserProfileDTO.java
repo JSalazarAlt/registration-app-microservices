@@ -9,13 +9,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object for user profile information.
+ * Data Transfer Object for user profile.
  * 
- * <p>This DTO is used to transfer user profile data from the API to clients for 
- * display purposes. It contains public user information that can be safely 
- * exposed in API responses without sensitive security data.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains user's profile.</p>
  */
 @Data
 @NoArgsConstructor

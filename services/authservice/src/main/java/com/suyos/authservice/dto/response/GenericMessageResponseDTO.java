@@ -9,8 +9,6 @@ import lombok.Getter;
  * 
  * <p>Contains a simple message string used for confirmations or informational
  * responses.</p>
- * 
- * @author Joel Salazar
  */
 @Getter
 @AllArgsConstructor

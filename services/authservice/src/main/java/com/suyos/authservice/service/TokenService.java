@@ -24,8 +24,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>Handles token generation, refresh, and revocation for flows such 
  * as refresh token rotation, email verification, and password reset. 
  * Uses {@link JwtService} for JWT access token operations.</p>
- * 
- * @author Joel Salazar
  */
 @Service
 @RequiredArgsConstructor

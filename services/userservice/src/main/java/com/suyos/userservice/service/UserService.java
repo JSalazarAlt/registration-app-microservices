@@ -33,8 +33,6 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * <p>Handles user profile retrieval, updates, and profile-related business
  * logic. Focuses on user data management excluding authentication.</p>
- *
- * @author Joel Salazar
  */
 @Service
 @RequiredArgsConstructor

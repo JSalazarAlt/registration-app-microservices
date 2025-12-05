@@ -10,10 +10,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for OAuth2 authentication requests.
  * 
- * <p>Contains information from OAuth2 providers used to authenticate the
- * user during login or account creation.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains information from OAuth2 providers to authenticate an account
+ * during login or account creation.</p>
  */
 @Data
 @NoArgsConstructor

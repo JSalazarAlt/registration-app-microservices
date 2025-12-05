@@ -10,8 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  * <p>Handles user authentication, account management, token generation,
  * and OAuth2 integration. Provides secure authentication endpoints for
  * the application ecosystem.</p>
- *
- * @author Joel Salazar
  */
 @SpringBootApplication
 @EnableJpaAuditing

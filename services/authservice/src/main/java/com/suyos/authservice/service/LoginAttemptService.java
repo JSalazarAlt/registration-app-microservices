@@ -18,8 +18,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>Manages failed login attempts and implements account locking mechanisms.
  * Uses separate transactions to ensure failed attempts are recorded even when
  * authentication fails.</p>
- * 
- * @author Joel Salazar
  */
 @Service
 @RequiredArgsConstructor

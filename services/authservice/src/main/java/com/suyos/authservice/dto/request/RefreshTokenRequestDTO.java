@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for refresh token requests.
  *
- * <p>Contains the refresh token value used to obtain a new access token or
- * invalidate an existing session.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains the refresh token to obtain a new access token or invalidate
+ * an existing session.</p>
  */
 @Data
 @NoArgsConstructor

@@ -10,9 +10,7 @@ import lombok.Getter;
  * Data Transfer Object for authentication responses.
  * 
  * <p>Contains the access and refresh tokens used for session management,
- * along with basic account identifiers.</p>
- * 
- * @author Joel Salazar
+ * and the linked account ID.</p>
  */
 @Getter
 @AllArgsConstructor

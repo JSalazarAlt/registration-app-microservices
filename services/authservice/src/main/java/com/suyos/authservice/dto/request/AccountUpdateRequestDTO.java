@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for account update requests.
  * 
- * <p>Contains the fields a user can modify, such as username and email, used
- * to update account information.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains the fields a user can modify to update their account.</p>
  */
 @Data
 @NoArgsConstructor

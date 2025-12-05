@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for account authentication requests.
  * 
- * <p>Contains the account identifier and password used to authenticate the
- * user and establish a session.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains an account's identifier and password to authenticate the account
+ * and establish a session.</p>
  */
 @Data
 @NoArgsConstructor

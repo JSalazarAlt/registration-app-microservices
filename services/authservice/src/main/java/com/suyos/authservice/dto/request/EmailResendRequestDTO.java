@@ -10,10 +10,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for resend email verification requests.
  * 
- * <p>Contains the account's email address used to send a new email
- * verification link.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains an account's email address to send a new email verification
+ * link.</p>
  */
 @Data
 @NoArgsConstructor

@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
  * Data Transfer Object for user profile update.
  * 
  * <p>Contains the fields of the user profile a user can modify.</p>
- * 
- * @author Joel Salazar
  */
 @Data
 @NoArgsConstructor

@@ -17,8 +17,6 @@ import com.suyos.userservice.model.User;
  * DTOs. MapStruct generates the implementation at compile time,
  * providing type-safe and efficient object mapping without
  * reflection.</p>
- * 
- * @author Joel Salazar
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {

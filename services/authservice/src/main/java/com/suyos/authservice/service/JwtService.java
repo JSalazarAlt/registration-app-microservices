@@ -21,8 +21,6 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * <p>Handles JWT-related functionality such as token creation, validation,
  * and claims extraction. Uses HMAC-SHA256 algorithm for token signing.</p>
- * 
- * @author Joel Salazar
  */
 @Service
 @Slf4j

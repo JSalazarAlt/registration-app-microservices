@@ -12,10 +12,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for user creation.
  * 
- * <p>Contains account credentials and profile information used to create a
- * new user.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains account's information and user's profile data to create a new
+ * user.</p>
  */
 @Data
 @NoArgsConstructor

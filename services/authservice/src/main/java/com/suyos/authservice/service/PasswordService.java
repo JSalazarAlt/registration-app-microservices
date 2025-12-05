@@ -26,8 +26,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>Handles password reset processing and password change operations. Uses
  * {@link TokenService} for generating, validating, and revoking password reset
  * tokens.</p>
- * 
- * @author Joel Salazar
  */
 @Service
 @RequiredArgsConstructor

@@ -15,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * <p>Publishes account-related events to Kafka topics for consumption by
  * other microservices.</p>
- * 
- * @author Joel Salazar
  */
 @Component
 @RequiredArgsConstructor

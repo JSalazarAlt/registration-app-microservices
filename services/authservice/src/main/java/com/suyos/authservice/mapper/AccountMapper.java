@@ -16,8 +16,6 @@ import com.suyos.authservice.model.Account;
  * <p>Defines the mapping contract between the account entity and related 
  * DTOs. MapStruct generates the implementation at compile time, providing
  * type-safe and efficient object mapping without reflection.</p>
- * 
- * @author Joel Salazar
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AccountMapper {

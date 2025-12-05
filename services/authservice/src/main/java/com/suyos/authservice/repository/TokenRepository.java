@@ -17,8 +17,6 @@ import com.suyos.authservice.model.TokenType;
  *
  * <p>Provides standard CRUD operations for account entities. Handles token
  * lookup, revocation, deletion, and cleanup operations.</p>
- *
- * @author Joel Salazar
  */
 public interface TokenRepository extends JpaRepository<Token, UUID> {
 

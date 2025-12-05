@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object for forgot password requests.
  * 
- * <p>Contains the user's email address used to send a password reset link.</p>
- * 
- * @author Joel Salazar
+ * <p>Contains an account's email address to send a password reset link.</p>
  */
 @Data
 @NoArgsConstructor

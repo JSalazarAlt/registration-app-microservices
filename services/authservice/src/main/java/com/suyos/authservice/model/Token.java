@@ -23,8 +23,6 @@ import lombok.NoArgsConstructor;
  * 
  * <p>Maps to the <b>tokens</b> table. Tokens are uniquely associated
  * with an account and used to validate authentication requests.</p>
- * 
- * @author Joel Salazar
  */
 @Entity
 @Table(name = "tokens", indexes = {
