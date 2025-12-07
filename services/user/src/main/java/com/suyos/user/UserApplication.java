@@ -1,0 +1,25 @@
+package com.suyos.user;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+/**
+ * Main application class for the User microservice.
+ *
+ * <p>Manages user profiles, personal information, and user-related data
+ * operations. Works in conjunction with Authentication service to provide
+ * complete user management functionality.</p>
+ */
+@SpringBootApplication
+public class UserApplication {
+
+	/**
+	 * Main method to start the User microservice.
+	 * 
+	 * @param args Command line arguments
+	 */
+	public static void main(String[] args) {
+		SpringApplication.run(UserApplication.class, args);
+	}
+
+}
