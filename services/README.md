@@ -6,7 +6,7 @@ This directory contains the backend microservices for the Registration App.
 
 The backend follows a microservices architecture with the following services:
 
-### 🔐 Auth Service (Port 8080)
+### 🔐 Auth Microservice (Port 8081)
 - **Purpose**: Authentication and account management
 - **Technology**: Spring Boot, Spring Security, Spring OAuth2 Resource Server, Spring Kafka
 - **Database**: MySQL - Handles account data, authentication tokens
@@ -23,7 +23,7 @@ The backend follows a microservices architecture with the following services:
   - Prometheus metrics
   - Error documentation at `/docs/errors/`
 
-### 👤 User Service (Port 8081)
+### 👤 User Microservice (Port 8082)
 - **Purpose**: User profile management
 - **Technology**: Spring Boot, Spring Data JPA, Spring OAuth2 Resource Server, Spring Kafka
 - **Database**: MySQL - Handles user profile data
