@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bffservice
+  name: bff-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: bffservice
+      app: bff-service
   template:
     metadata:
       labels:
-        app: bffservice
+        app: bff-service
     spec:
       containers:
-      - name: bffservice
-        image: bffservice:latest
+      - name: bff-service
+        image: bff-service:latest
         ports:
         - containerPort: 3000
         env:
@@ -33,10 +33,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: bffservice
+  name: bff-service
 spec:
   selector:
-    app: bffservice
+    app: bff-service
   ports:
   - protocol: TCP
     port: 3000

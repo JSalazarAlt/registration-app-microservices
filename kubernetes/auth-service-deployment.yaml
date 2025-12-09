@@ -1,37 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: authservice
+  name: auth-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: authservice
+      app: auth-service
   template:
     metadata:
       labels:
-        app: authservice
+        app: auth-service
     spec:
       containers:
-      - name: authservice
-        image: authservice:latest
+      - name: auth-service
+        image: auth-service:latest
         ports:
         - containerPort: 8080
         env:
         - name: SPRING_DATASOURCE_URL
           valueFrom:
             configMapKeyRef:
-              name: authservice-config
+              name: auth-service-config
               key: database.url
         - name: SPRING_DATASOURCE_USERNAME
           valueFrom:
             secretKeyRef:
-              name: authservice-secret
+              name: auth-service-secret
               key: database.username
         - name: SPRING_DATASOURCE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: authservice-secret
+              name: auth-service-secret
               key: database.password
         resources:
           requests:
@@ -56,10 +56,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: authservice
+  name: auth-service
 spec:
   selector:
-    app: authservice
+    app: auth-service
   ports:
   - protocol: TCP
     port: 8080
