@@ -33,7 +33,7 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("${spring.security.oauth2.resource-server.jwt.public-key}")
+    @Value("${spring.security.oauth2.resourceserver.jwt.public-key-location}")
     private Resource publicKeyResource;
 
     /**

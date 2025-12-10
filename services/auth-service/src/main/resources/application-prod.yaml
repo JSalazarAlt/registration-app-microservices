@@ -29,10 +29,9 @@ spring:
         registration:
           google:
             redirect-uri: https://suyos.com/oauth2/callback/{registrationId}
-      resource-server:
+      resourceserver:
         jwt:
-          public-key: classpath:keys/public.pem
-          expiration: 900000
+          public-key-location: classpath:keys/public.pem
 
 logging:
   level:
