@@ -6,6 +6,12 @@ import com.suyos.authservice.model.TokenType;
 import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
+/**
+ * Exception thrown when a token is invalid, expired, or revoked.
+ * 
+ * <p>Indicates the token of the specified type cannot be used and a
+ * new token must be obtained.</p>
+ */
 public class InvalidTokenException extends ApiException {
     
     public InvalidTokenException(TokenType tokenType) {

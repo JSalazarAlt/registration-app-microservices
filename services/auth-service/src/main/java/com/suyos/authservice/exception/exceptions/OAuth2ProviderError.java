@@ -5,6 +5,12 @@ import org.springframework.http.HttpStatus;
 import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
+/**
+ * Exception thrown when an OAuth2 provider returns an error.
+ * 
+ * <p>Indicates the OAuth2 provider encountered an issue and could
+ * not complete the authentication request.</p>
+ */
 public class OAuth2ProviderError extends ApiException {
 
     public OAuth2ProviderError(String provider) {

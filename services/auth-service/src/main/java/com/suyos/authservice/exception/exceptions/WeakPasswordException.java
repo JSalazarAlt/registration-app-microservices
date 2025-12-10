@@ -5,6 +5,13 @@ import org.springframework.http.HttpStatus;
 import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
+/**
+ * Exception thrown when a password does not meet security
+ * requirements.
+ * 
+ * <p>Indicates the password must contain at least 8 characters with
+ * uppercase, lowercase, and numeric characters.</p>
+ */
 public class WeakPasswordException extends ApiException {
     
     public WeakPasswordException() {

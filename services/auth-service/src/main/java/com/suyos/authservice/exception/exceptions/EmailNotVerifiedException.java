@@ -5,6 +5,13 @@ import org.springframework.http.HttpStatus;
 import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
+/**
+ * Exception thrown when attempting to access account with unverified
+ * email.
+ * 
+ * <p>Indicates the email address must be verified before the account
+ * can be accessed.</p>
+ */
 public class EmailNotVerifiedException extends ApiException {
     
     public EmailNotVerifiedException(String email) {

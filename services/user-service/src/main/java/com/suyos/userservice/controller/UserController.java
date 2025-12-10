@@ -154,6 +154,12 @@ public class UserController {
         return ResponseEntity.ok(userProfile);
     }
 
+    /**
+     * Searches users by a partial or full name match.
+     *
+     * @param name Partial or full first/last name to search
+     * @return List of user profiles matching the query
+     */
     @Secured("ROLE_ADMIN")
     @Operation(
         summary = "Search users by name",
@@ -184,6 +190,12 @@ public class UserController {
     // USER MANAGEMENT
     // ----------------------------------------------------------------
 
+    /**
+     * Retrieves the currently authenticated user's profile.
+     *
+     * @param jwt Authentication principal containing JWT token
+     * @return Authenticated user's profile with "200 OK" status
+     */
     @Operation(
         summary = "Get authenticated user",
         description = "Retrieves the authenticated user's profile.",
@@ -208,6 +220,13 @@ public class UserController {
         return ResponseEntity.ok(userProfile);
     }
 
+    /**
+     * Updates the currently authenticated user's profile.
+     *
+     * @param jwt Authentication principal containing JWT token
+     * @param updateDTO DTO containing updated profile fields
+     * @return Updated authenticated user's profile with "200 OK" status
+     */
     @Operation(
         summary = "Update authenticated user",
         description = "Updates the authenticated user's profile",

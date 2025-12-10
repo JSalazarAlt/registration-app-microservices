@@ -5,6 +5,12 @@ import org.springframework.http.HttpStatus;
 import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
+/**
+ * Exception thrown when password and confirmation do not match.
+ * 
+ * <p>Indicates the password and password confirmation fields contain
+ * different values during registration or password change.</p>
+ */
 public class PasswordMismatchException extends ApiException {
     
     public PasswordMismatchException() {
