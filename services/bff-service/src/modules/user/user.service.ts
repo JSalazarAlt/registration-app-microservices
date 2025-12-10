@@ -42,7 +42,7 @@ export class UserService {
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService
     ) {
-        this.userServiceUrl = this.configService.get<string>('USER_SERVICE_URL', 'http://localhost:8081');
+        this.userServiceUrl = this.configService.get<string>('GATEWAY_URL', 'http://localhost:8080');
         this.requestTimeout = this.configService.get<number>('REQUEST_TIMEOUT', 5000);
         this.maxRetries = this.configService.get<number>('MAX_RETRIES', 3);
     }

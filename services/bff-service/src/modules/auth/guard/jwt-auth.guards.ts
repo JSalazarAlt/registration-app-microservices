@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 /**
@@ -7,15 +7,18 @@ import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
 
-  constructor(private readonly jwtService: JwtService) {}
+    /** Logger instance for structured logging */
+    private readonly logger = new Logger(JwtAuthGuard.name);
 
-  /**
-   * Validates the authorization header and verifies the JWT.
-   *
-   * @param context Execution context for the incoming request.
-   * @returns `true` if the token is valid, otherwise `false`.
-   */
-  canActivate(context: ExecutionContext): boolean {
+    constructor(private readonly jwtService: JwtService) {}
+
+    /**
+     * Validates the authorization header and verifies the JWT.
+     *
+     * @param context Execution context for the incoming request.
+     * @returns `true` if the token is valid, otherwise `false`.
+     */
+    canActivate(context: ExecutionContext): boolean {
         // Get the request fromt context
         const req = context.switchToHttp().getRequest();
 
@@ -23,7 +26,10 @@ export class JwtAuthGuard implements CanActivate {
         const token = this.extractToken(req.headers['authorization']);
 
         // Return false if token not exists
-        if (!token) return false;
+        if (!token) {
+            this.logger.warn(`event=jwt_token_missing`);
+            return false; 
+        } 
 
         try {
             // Verify token signature and expiration
@@ -32,8 +38,10 @@ export class JwtAuthGuard implements CanActivate {
             req.accountId = payload.sub ?? null;
             // Return true
             return true;
-        } catch {
+        } catch (error) {
             // Return false for invalid or expired token
+            // Log registration success
+            this.logger.warn(`event=jwt_validation_failed error=${error.message}`);
             return false;
         }
     }

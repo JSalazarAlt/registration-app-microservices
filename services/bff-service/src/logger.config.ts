@@ -6,7 +6,7 @@ const LogstashTransport = require('winston-logstash/lib/winston-logstash-latest'
 const logstashTransport = new LogstashTransport({
     port: 5000,
     host: process.env.LOGSTASH_HOST || 'localhost',
-    node_name: 'bff',
+    node_name: 'bff-service',
     max_connect_retries: 3,
 });
 
@@ -30,7 +30,7 @@ const logger = winston.createLogger({
                 info.span_id = spanContext.spanId;
                 info.trace_flags = spanContext.traceFlags.toString(16).padStart(2, '0');
             }
-            info.service = 'bff';
+            info.service = 'bff-service';
             return info;
         })(),
         winston.format.json(),

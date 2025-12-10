@@ -2,6 +2,7 @@ import { LoggerService } from '@nestjs/common';
 import logger from './logger.config';
 
 export class WinstonLoggerService implements LoggerService {
+
     log(message: any, context?: string) {
         logger.info(message, { context });
     }
@@ -21,4 +22,5 @@ export class WinstonLoggerService implements LoggerService {
     verbose(message: any, context?: string) {
         logger.verbose(message, { context });
     }
+    s
 }

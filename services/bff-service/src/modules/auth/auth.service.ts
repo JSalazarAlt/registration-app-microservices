@@ -40,7 +40,7 @@ export class AuthService {
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
     ) {
-        this.authServiceUrl = this.configService.get<string>('AUTH_SERVICE_URL', 'http://localhost:8080');
+        this.authServiceUrl = this.configService.get<string>('GATEWAY_URL', 'http://localhost:8080');
         this.requestTimeout = this.configService.get<number>('REQUEST_TIMEOUT', 5000);
         this.maxRetries = this.configService.get<number>('MAX_RETRIES', 3);
     }
