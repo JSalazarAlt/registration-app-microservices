@@ -208,9 +208,12 @@
 
 	</dependencies>
 
-
 	<build>
 		<plugins>
+
+			<!-- ========================================================= -->
+            <!-- Maven Compiler Plugin                                     -->
+            <!-- ========================================================= -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -228,6 +231,10 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+
+			<!-- ========================================================= -->
+            <!-- Spring Boot Maven Plugin                                  -->
+            <!-- ========================================================= -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -240,6 +247,10 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<!-- ========================================================= -->
+            <!-- JaCoCo Maven Plugin                                       -->
+            <!-- ========================================================= -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -279,6 +290,7 @@
 					</execution>
 				</executions>
 			</plugin>
+
 		</plugins>
 	</build>
 
