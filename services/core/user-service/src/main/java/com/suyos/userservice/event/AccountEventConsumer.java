@@ -46,8 +46,6 @@ public class AccountEventConsumer {
         // Create user's profile
         try {
             userService.createUser(event);
-            // Log successful user creation event processing
-            log.info("event=user_created account_id={}", event.getAccountId());
         } catch (Exception e) {
             log.error("event=user_creation_failed account_id={} error={}", event.getAccountId(), e);
             throw e;
