@@ -50,6 +50,10 @@ public class Account {
     @Column(name = "id")
     private UUID id;
 
+    // ----------------------------------------------------------------
+    // CREDENTIALS
+    // ----------------------------------------------------------------
+
     /** Username */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
@@ -57,11 +61,6 @@ public class Account {
     /** Email address */
     @Column(name = "email", nullable = false, unique = true)
     private String email;
-
-    /** Flag indicating if email address has been verified */
-    @Builder.Default
-    @Column(name = "email_verified", nullable = false)
-    private Boolean emailVerified = false;
 
     /** Encrypted password hash */
     @Column(name = "password", nullable = false)
@@ -79,6 +78,11 @@ public class Account {
     // ----------------------------------------------------------------
     // STATUS
     // ----------------------------------------------------------------
+
+    /** Flag indicating if email address has been verified */
+    @Builder.Default
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
 
     /** Flag indicating if account is enabled */
     @Builder.Default
