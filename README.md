@@ -168,7 +168,7 @@ pnpm run start:dev
 
 ### 6. Frontend Setup
 ```bash
-cd web/frontend
+cd apps/web-app
 npm install
 npm run dev
 ```
@@ -349,7 +349,7 @@ USER_SERVICE_URL=http://localhost:8081
 cd services/authservice && docker build -t authservice:latest .
 cd services/userservice && docker build -t userservice:latest .
 cd services/bffservice && docker build -t bffservice:latest .
-cd web/frontend && docker build -t frontend:latest .
+cd apps/web-app && docker build -t web-app:latest .
 ```
 
 ### Kubernetes Deployment
