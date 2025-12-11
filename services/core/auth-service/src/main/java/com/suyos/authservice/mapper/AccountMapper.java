@@ -27,12 +27,14 @@ public interface AccountMapper {
      * @return Created account entity
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "emailVerified", ignore = true)
+    @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "emailVerified", ignore = true)
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "locked", ignore = true)
     @Mapping(target = "lockedUntil", ignore = true)
     @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "mustChangePassword", ignore = true)
     @Mapping(target = "lastPasswordChangedAt", ignore = true)
     @Mapping(target = "lastLoginAt", ignore = true)
@@ -40,11 +42,10 @@ public interface AccountMapper {
     @Mapping(target = "failedLoginAttempts", ignore = true)
     @Mapping(target = "oauth2Provider", ignore = true)
     @Mapping(target = "oauth2ProviderId", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "mfaEnabled", ignore = true)
     @Mapping(target = "mfaEnabledAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "deletedAt", ignore = true)
     Account toEntity(RegistrationRequestDTO request);
 
     /**
@@ -56,12 +57,13 @@ public interface AccountMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
-    @Mapping(target = "emailVerified", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "emailVerified", ignore = true)
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "locked", ignore = true)
     @Mapping(target = "lockedUntil", ignore = true)
     @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "mustChangePassword", ignore = true)
     @Mapping(target = "lastPasswordChangedAt", ignore = true)
     @Mapping(target = "lastLoginAt", ignore = true)
@@ -69,11 +71,10 @@ public interface AccountMapper {
     @Mapping(target = "failedLoginAttempts", ignore = true)
     @Mapping(target = "oauth2Provider", ignore = true)
     @Mapping(target = "oauth2ProviderId", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "mfaEnabled", ignore = true)
     @Mapping(target = "mfaEnabledAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "deletedAt", ignore = true)
     Account updateAccountFromDTO(AccountUpdateRequestDTO request, @MappingTarget Account account);
 
     /**
