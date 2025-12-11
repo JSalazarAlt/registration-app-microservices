@@ -34,3 +34,6 @@ build/
 
 ### Open Telemetry ###
 opentelemetry-javaagent.jar
+
+# Private RS256 Key
+src/main/resources/keys/private.pem
