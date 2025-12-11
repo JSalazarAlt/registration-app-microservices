@@ -28,7 +28,7 @@ public enum TokenType {
     /** Multi-Factor Authentication Token */
     MFA_VERIFICATION("Token used for verifying user identity.");
 
-    /** Description of the token type */
+    /** Description of token type */
     private String description;
 
 }

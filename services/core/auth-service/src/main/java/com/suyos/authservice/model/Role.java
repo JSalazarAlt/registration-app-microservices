@@ -25,7 +25,7 @@ public enum Role {
     /** System role */
     SYSTEM("System account with no restrictions.");
 
-    /** Description of the role */
+    /** Description of role */
     private final String description;
 
 }
