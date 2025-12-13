@@ -44,7 +44,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     /**
      * Finds all tokens by account ID.
      * 
-     * @param accountId Account ID to search for
+     * @param accountId Account ID to search tokens for
      * @return List of tokens associated with the account
      */
     List<Token> findAllByAccountId(UUID accountId);
@@ -58,7 +58,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
      * 
      * <p>Used during account deletion and password changes.</p>
      * 
-     * @param accountId Account ID to search for
+     * @param accountId Account ID to revoke tokens for
      */
     @Modifying
     @Query("""
@@ -74,7 +74,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     /**
      * Revokes all valid tokens by account ID and type.
      * 
-     * @param accountId Account ID to search for
+     * @param accountId Account ID to revoke valid tokens for
      * @param type Token type to revoke
      */
     @Modifying
@@ -96,7 +96,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     /**
      * Deletes all tokens for an account.
      * 
-     * @param accountId Account ID to search for
+     * @param accountId Account ID to delete tokens for
      */
     @Modifying
     @Query("""

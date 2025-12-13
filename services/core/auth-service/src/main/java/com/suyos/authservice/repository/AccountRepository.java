@@ -81,6 +81,12 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     """)
     int lockAccount(UUID id, Instant until);
 
+    /**
+     * Unlocks an account by ID.
+     * 
+     * @param id Account's ID to unlock
+     * @return Optional containing account if found, empty otherwise
+     */
     @Modifying
     @Transactional
     @Query("""

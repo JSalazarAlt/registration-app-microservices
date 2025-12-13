@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Service for user profile management operations.
+ * Service for user management operations.
  * 
  * <p>Handles user profile retrieval, updates, and profile-related business
  * logic. Focuses on user data management excluding authentication.</p>
@@ -226,7 +226,7 @@ public class UserService {
         // Log user creation success
         log.info("event=user_created account_id={}", createdUser.getAccountId());
 
-        // Map user's profile information from created user
+        // Map user's profile from created user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(createdUser);
 
         // Return created user's profile
@@ -305,8 +305,7 @@ public class UserService {
     /**
      * Updates user email (triggered by Auth Service).
      * 
-     * @param accountId Account ID associated with the user
-     * @param newEmail New email address
+     * @param event Account ID associated with the user and new email address
      * @throws UserNotFoundException If user not found
      */
     public void mirrorEmailUpdate(AccountEmailUpdateEvent event) {
@@ -342,8 +341,7 @@ public class UserService {
     /**
      * Updates user username (triggered by Auth Service).
      *
-     * @param accountId Account ID associated with the user
-     * @param newUsername New username
+     * @param event Account ID associated with the user and new username
      * @throws UserNotFoundException If user not found
      */
     public void mirrorUsernameUpdate(AccountUsernameUpdateEvent event) {
