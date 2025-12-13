@@ -40,10 +40,10 @@ public class AccountEventConsumer {
      */
     @KafkaListener(topics = USER_CREATION_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserCreation(UserCreationEvent event) {
-        // Log user creation event reception for debugging and monitoring
+        // Log user creation event reception
         log.info("event=kafka_user_creation_received account_id={}", event.getAccountId());
         
-        // Create user's profile
+        // Create user
         try {
             userService.createUser(event);
         } catch (Exception e) {
@@ -59,7 +59,7 @@ public class AccountEventConsumer {
      */
     @KafkaListener(topics = ACCOUNT_USERNAME_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountUsernameUpdate(AccountUsernameUpdateEvent event) {
-        // Log account's username update event reception for debugging and monitoring
+        // Log account's username update event reception
         log.info("event=username_update_event_reception account_id={}", event.getAccountId());
         
         // Update user's username
