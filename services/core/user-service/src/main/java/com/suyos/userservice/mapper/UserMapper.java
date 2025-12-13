@@ -14,9 +14,7 @@ import com.suyos.userservice.model.User;
  * Mapper for converting between {@link User} entities and DTOs.
  * 
  * <p>Defines the mapping contract between the user entity and related
- * DTOs. MapStruct generates the implementation at compile time,
- * providing type-safe and efficient object mapping without
- * reflection.</p>
+ * DTOs. MapStruct generates the implementation at compile time.</p>
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {

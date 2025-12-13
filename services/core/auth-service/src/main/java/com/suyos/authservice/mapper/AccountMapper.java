@@ -13,9 +13,8 @@ import com.suyos.authservice.model.Account;
 /**
  * Mapper for converting between {@link Account} entities and DTOs.
  * 
- * <p>Defines the mapping contract between the account entity and related 
- * DTOs. MapStruct generates the implementation at compile time, providing
- * type-safe and efficient object mapping without reflection.</p>
+ * <p>Defines the mapping contract between the account entity and related
+ * DTOs. MapStruct generates the implementation at compile time.</p>
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AccountMapper {
