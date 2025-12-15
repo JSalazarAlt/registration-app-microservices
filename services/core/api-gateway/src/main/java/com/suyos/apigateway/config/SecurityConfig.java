@@ -26,7 +26,7 @@ public class SecurityConfig {
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authorizeExchange(ex -> ex
 
-                // === PUBLIC ENDPOINTS FROM AUTH SERVICE ===
+                // Public endpoints from Auth microservice
                 .pathMatchers(
                     "/api/v1/auth/register",
                     "/api/v1/auth/login",
@@ -74,4 +74,5 @@ public class SecurityConfig {
             throw new RuntimeException("Failed to load RSA public key", e);
         }
     }
+
 }

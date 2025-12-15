@@ -15,6 +15,11 @@ spring:
           predicates:
             - Path=/api/v1/users/**
 
+        - id: session-routes
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/sessions/**
+
         - id: bff-routes
           uri: http://localhost:3001
           predicates:
