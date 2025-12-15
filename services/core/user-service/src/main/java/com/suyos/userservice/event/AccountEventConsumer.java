@@ -36,7 +36,7 @@ public class AccountEventConsumer {
     /**
      * Handles user creation event from Auth Service.
      * 
-     * @param event User creation event containing account and profile data
+     * @param event Event's metadatada, account's information and user profile
      */
     @KafkaListener(topics = USER_CREATION_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserCreation(UserCreationEvent event) {
@@ -55,7 +55,7 @@ public class AccountEventConsumer {
     /**
      * Handles account username update event from Auth Service.
      * 
-     * @param event Username update event containing account ID and new username
+     * @param event Event's metadatada, account ID and new username
      */
     @KafkaListener(topics = ACCOUNT_USERNAME_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountUsernameUpdate(AccountUsernameUpdateEvent event) {
@@ -73,7 +73,7 @@ public class AccountEventConsumer {
     /**
      * Handles account email update event from Auth Service.
      * 
-     * @param event Email update event containing account ID and new email
+     * @param event Event's metadatada, account ID and new email
      */
     @KafkaListener(topics = ACCOUNT_EMAIL_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountEmailUpdate(AccountEmailUpdateEvent event) {

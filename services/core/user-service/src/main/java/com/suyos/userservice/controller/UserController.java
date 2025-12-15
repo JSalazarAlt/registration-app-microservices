@@ -79,7 +79,8 @@ public class UserController {
             @Parameter(description = "Page index (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir) {
+            @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir
+    ) {
         // Find paginated list of users' profiles
         PagedResponseDTO<UserProfileDTO> users = userService.findAllUsers(
             page, size, sortBy, sortDir);
@@ -112,7 +113,8 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserProfileDTO> getUserById(
             @Parameter(description = "User's unique ID", required = true)
-            @PathVariable UUID id) {
+            @PathVariable UUID id
+    ) {
         // Find user's profile by id
         UserProfileDTO userProfile = userService.findUserById(id);
 
@@ -146,7 +148,8 @@ public class UserController {
     public ResponseEntity<UserProfileDTO> updateUserById(
             @Parameter(description = "User's unique ID", required = true)
             @PathVariable UUID id,
-            @RequestBody UserUpdateRequestDTO userUpdateDTO) {
+            @RequestBody UserUpdateRequestDTO userUpdateDTO
+    ) {
         // Update user's profile by ID
         UserProfileDTO userProfile = userService.updateUserById(id, userUpdateDTO);
         
@@ -178,7 +181,8 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<List<UserProfileDTO>> searchUsersByName(
             @Parameter(description = "Partial or full name to search", required = true)
-            @RequestParam String name) {
+            @RequestParam String name
+    ) {
         // Search users by name
         List<UserProfileDTO> users = userService.searchUsersByName(name);
         
@@ -209,7 +213,8 @@ public class UserController {
     )
     @GetMapping("/me")
     public ResponseEntity<UserProfileDTO> getAuthenticatedUser(
-        @AuthenticationPrincipal Jwt jwt) {
+        @AuthenticationPrincipal Jwt jwt
+    ) {
         // Extract account ID from JWT token
         UUID accountId = UUID.fromString(jwt.getSubject());
         
@@ -242,7 +247,8 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<UserProfileDTO> updateAuthenticatedUser(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody UserUpdateRequestDTO updateDTO) {
+            @RequestBody UserUpdateRequestDTO updateDTO
+    ) {
         // Extract account ID from JWT token
         UUID accountId = UUID.fromString(jwt.getSubject());
         
