@@ -8,18 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Event published when a new user account is created.
- * 
- * <p>Contains all necessary information to create a corresponding user
- * profile in the User microservice when an account is registered in the
- * Auth microservice.</p>
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserCreationEvent {
+public class SessionCreationEvent {
 
     // ----------------------------------------------------------------
     // EVENT METADATA
@@ -39,35 +32,22 @@ public class UserCreationEvent {
     private UUID accountId;
 
     // ----------------------------------------------------------------
-    // ACCOUNT'S INFORMATION
+    // SESSION'S INFORMATION
     // ----------------------------------------------------------------
 
-    /** Username */
-    private String username;
+    /** Unique identifier of session to be created */
+    private UUID sessionId;
 
-    /** Email address */
-    private String email;
+    /** Reported user agent (e.g., Chrome, Safari, Android, iOS) */
+    private String userAgent;
 
-    // ----------------------------------------------------------------
-    // USER'S PROFILE
-    // ----------------------------------------------------------------
+    /** Client device name */
+    private String deviceName;
 
-    /** First name */
-    private String firstName;
-    
-    /** Last name */
-    private String lastName;
+    /** IP address used during session creation */
+    private String ipAddress;
 
-    /** Phone number */
-    private String phone;
-    
-    /** Profile picture URL */
-    private String profilePictureUrl;
-    
-    /** Preferred language locale */
-    private String locale;
-    
-    /** Preferred timezone */
-    private String timezone;
+    /** Last known IP address */
+    private String lastIpAddress;
     
 }

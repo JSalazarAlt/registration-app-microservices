@@ -130,6 +130,9 @@ public enum ErrorCode {
     /** Request payload or parameters failed validation checks */
     VALIDATION_ERROR("Validation error"),
 
+
+    SESSION_NOT_FOUND("Session not found"),
+
     // ----------------------------------------------------------------
     //  INTERNAL SERVER ERRORS
     // ----------------------------------------------------------------
