@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
  * Data Transfer Object for account authentication requests.
  * 
  * <p>Contains an account's identifier and password to authenticate the account
- * and establish a session.</p>
+ * and the device name from which a user is logging in to create a session.</p>
  */
 @Data
 @NoArgsConstructor
@@ -25,5 +25,9 @@ public class AuthenticationRequestDTO {
     /** Password */
     @NotBlank(message = "Password is required")
     private String password;
+
+    /** Device name from which a user is logging in */
+    @NotBlank(message = "Device name is required")
+    private String deviceName;
 
 }

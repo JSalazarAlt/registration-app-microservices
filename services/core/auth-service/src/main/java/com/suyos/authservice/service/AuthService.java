@@ -35,8 +35,12 @@ import com.suyos.authservice.model.Role;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
+import com.suyos.common.event.SessionCreationEvent;
+import com.suyos.common.event.SessionTerminationEvent;
 import com.suyos.common.event.UserCreationEvent;
+import com.suyos.common.model.SessionTerminationReason;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -121,14 +125,14 @@ public class AuthService {
         // Issue email verification token
         tokenService.issueToken(createdAccount, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
 
-        // Generate random UUID for user creation event and timestamp
-        String userCreationEventId = UUID.randomUUID().toString();
-        Instant userCreationEventTimestamp = Instant.now();
+        // Generate random UUID and timestamp for user creation event
+        String eventId = UUID.randomUUID().toString();
+        Instant eventTimestamp = Instant.now();
 
         // Build user creation event
         UserCreationEvent event = UserCreationEvent.builder()
-                .id(userCreationEventId)
-                .occurredAt(userCreationEventTimestamp)
+                .id(eventId)
+                .occurredAt(eventTimestamp)
                 .accountId(account.getId())
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -166,7 +170,10 @@ public class AuthService {
      * @throws AccountLockedException If account is currently locked
      * @throws InvalidPasswordException If provided password is incorrect
      */
-    public AuthenticationResponseDTO authenticateAccount(AuthenticationRequestDTO request) {
+    public AuthenticationResponseDTO authenticateAccount(
+        AuthenticationRequestDTO request,
+        HttpServletRequest httpRequest
+    ) {
         // Log account authentication attempt
         log.info("event=account_authentication_attempt identifier={}", request.getIdentifier());
 
@@ -223,9 +230,35 @@ public class AuthService {
 
         // Log account authentication success
         log.info("event=account_authenticated account_id={}", updatedAccount.getId());
+
+        // Extract IP address and user agent
+        String ipAddress = extractClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+
+        // Generate new session ID
+        UUID sessionId = UUID.randomUUID();
+
+        // Generate random UUID and timestamp for session creation event
+        String eventId = UUID.randomUUID().toString();
+        Instant eventTimestamp = Instant.now();
+
+        // Build session creation event
+        SessionCreationEvent event = SessionCreationEvent.builder()
+                .id(eventId)
+                .occurredAt(eventTimestamp)
+                .sessionId(sessionId)
+                .accountId(account.getId())
+                .userAgent(userAgent)
+                .deviceName(request.getDeviceName())
+                .ipAddress(ipAddress)
+                .lastIpAddress(ipAddress)
+                .build();
+        
+        // Publish user creation event
+        accountEventProducer.publishSessionCreation(event);
         
         // Issue refresh and access tokens on successful login
-        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(updatedAccount);
+        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(updatedAccount, sessionId);
 
         // Return refresh and access tokens
         return response;
@@ -343,8 +376,11 @@ public class AuthService {
         // Log account authentication success
         log.info("event=oauth2_account_authenticated account_id={}", savedAccount.getId());
 
+        // Generate new session ID
+        UUID sessionId = UUID.randomUUID();
+
         // Issue refresh and access tokens for successful Google OAuth2 login
-        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(savedAccount);
+        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(savedAccount, sessionId);
 
         // Return refresh and access tokens
         return response;
@@ -389,6 +425,25 @@ public class AuthService {
         
         // Revoke refresh token
         tokenService.revokeTokenByValue(value);
+
+        // Retrieve session's ID
+        UUID sessionId = refreshToken.getSessionId();
+
+        // Generate random UUID and timestamp for session termination event
+        String eventId = UUID.randomUUID().toString();
+        Instant eventTimestamp = Instant.now();
+
+        // Build session termination event
+        SessionTerminationEvent event = SessionTerminationEvent.builder()
+                .id(eventId)
+                .occurredAt(eventTimestamp)
+                .sessionId(sessionId)
+                .accountId(account.getId())
+                .reason(SessionTerminationReason.MANUAL)
+                .build();
+        
+        // Publish user creation event
+        accountEventProducer.publishSessionTermination(event);
     }
 
     // ----------------------------------------------------------------
@@ -489,6 +544,18 @@ public class AuthService {
 
         // Return message indicating if email verification link has been sent
         return response;
+    }
+
+    // ----------------------------------------------------------------
+    // HELPERS
+    // ----------------------------------------------------------------
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
 }

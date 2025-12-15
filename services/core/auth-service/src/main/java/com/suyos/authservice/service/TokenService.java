@@ -81,7 +81,7 @@ public class TokenService {
      * @param account Authenticated account
      * @return Refresh and access tokens
      */
-    public AuthenticationResponseDTO issueRefreshAndAccessTokens(Account account) {
+    public AuthenticationResponseDTO issueRefreshAndAccessTokens(Account account, UUID sessionId) {
         // Generate a new access token
         String accessToken = jwtService.generateToken(account);
 
@@ -95,6 +95,11 @@ public class TokenService {
         refreshToken.setAccount(account);
         refreshToken.setIssuedAt(Instant.now());
         refreshToken.setExpiresAt(Instant.now().plusSeconds(30 * 24 * 3600));
+
+        // Set session ID if exists
+        if (sessionId != null) {
+            refreshToken.setSessionId(sessionId);
+        }
 
         // Persist created refresh token
         tokenRepository.save(refreshToken);
@@ -165,7 +170,7 @@ public class TokenService {
 
         // Build authentication response with new refresh and access tokens 
         // (refresh token rotation)
-        AuthenticationResponseDTO response = issueRefreshAndAccessTokens(refreshToken.getAccount());
+        AuthenticationResponseDTO response = issueRefreshAndAccessTokens(refreshToken.getAccount(), null);
 
         // Return new refresh and access tokens
         return response;

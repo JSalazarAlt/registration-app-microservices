@@ -151,7 +151,7 @@ class AuthControllerTest {
     @Test
     void loginAccount_Success() throws Exception {
         // Mock service to return authentication response
-        when(authService.authenticateAccount(any())).thenReturn(authResponseDTO);
+        when(authService.authenticateAccount(any(), any())).thenReturn(authResponseDTO);
 
         // Perform login request
         mockMvc.perform(post("/api/v1/auth/login")
@@ -162,7 +162,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
         
         // Verify service was called
-        verify(authService).authenticateAccount(any());
+        verify(authService).authenticateAccount(any(), any());
     }
 
     /**
@@ -230,7 +230,7 @@ class AuthControllerTest {
      */
     @Test
     void loginAccount_InvalidCredentials() throws Exception {
-        when(authService.authenticateAccount(any()))
+        when(authService.authenticateAccount(any(), any()))
                 .thenThrow(new RuntimeException("Invalid credentials"));
 
         mockMvc.perform(post("/api/v1/auth/login")

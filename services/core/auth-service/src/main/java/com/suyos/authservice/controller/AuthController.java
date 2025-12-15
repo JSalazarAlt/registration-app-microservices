@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -90,6 +91,7 @@ public class AuthController {
      * Authenticates an account and returns refresh and access tokens.
      * 
      * @param request Account's credentials
+     * @param httpRequest Account's credentials
      * @return Refresh and access tokens with "200 OK" status
      */
     @PostMapping("/login")
@@ -108,9 +110,12 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AuthenticationResponseDTO> loginAccount(@Valid @RequestBody AuthenticationRequestDTO request) {
+    public ResponseEntity<AuthenticationResponseDTO> loginAccount(
+        @Valid @RequestBody AuthenticationRequestDTO request,
+        HttpServletRequest httpRequest
+    ) {
         // Authenticate account using traditional login credentials
-        AuthenticationResponseDTO response = authService.authenticateAccount(request);
+        AuthenticationResponseDTO response = authService.authenticateAccount(request, httpRequest);
         
         // Return refresh and access tokens with "200 OK" status
         return ResponseEntity.ok(response);
