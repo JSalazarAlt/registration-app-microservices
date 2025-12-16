@@ -7,8 +7,10 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.suyos.common.event.GlobalSessionTerminationEvent;
 import com.suyos.common.event.SessionCreationEvent;
 import com.suyos.common.event.SessionTerminationEvent;
+import com.suyos.common.model.SessionTerminationReason;
 import com.suyos.sessionservice.dto.SessionInfoDTO;
 import com.suyos.sessionservice.exception.exceptions.SessionNotFoundException;
 import com.suyos.sessionservice.mapper.SessionMapper;
@@ -39,6 +41,31 @@ public class SessionService {
 
     /** Repository for processed event data access operations */
     private final ProcessedEventRepository processedEventRepository;
+
+    // ----------------------------------------------------------------
+    // ADMIN
+    // ----------------------------------------------------------------
+
+    /**
+     * Terminates all sessions for an account by admin operation.
+     *
+     * @param accountId Account's ID to terminate all sessions
+     */
+    @Transactional
+    public void terminateAllSessionsByAccountId(UUID accountId) {
+        // Log session termination attempt
+        log.info("event=global_session_termination_attempt account_id={}", accountId);
+
+        // Terminate all active sessions by account ID
+        sessionRepository.terminateAllActiveByAccountId(accountId, SessionTerminationReason.REVOKED);
+
+        // Log global session termination success
+        log.info("event=sessions_globally_terminated account_id={}", accountId);
+    }
+
+    // ----------------------------------------------------------
+    // SESSION MANAGEMENT
+    // ----------------------------------------------------------
 
     /**
      * Creates a new active session.
@@ -105,6 +132,18 @@ public class SessionService {
         // Log session termination attempt
         log.info("event=session_termination_attempt account_id={}", event.getAccountId());
 
+        // Ensure no duplicate event processing
+        if (processedEventRepository.existsById(event.getId())) {
+            log.info("event=duplicate_event_ignored event_id={}", event.getId());
+            return;
+        }
+
+        // Create new processed event
+        ProcessedEvent newEvent = new ProcessedEvent(event.getId(), event.getOccurredAt());
+
+        // Persist new processed event
+        processedEventRepository.save(newEvent);
+
         // Look up session by account ID
         Session session = sessionRepository.findById(event.getSessionId())
                 .orElseThrow(() -> new SessionNotFoundException("id=" + event.getSessionId()));
@@ -119,20 +158,45 @@ public class SessionService {
         session.setTerminationReason(event.getReason());
         session.setTerminatedAt(Instant.now());
 
+        // Persist terminated session
+        Session terminatedSession = sessionRepository.save(session);
+
         // Log session termination success
-        log.info("event=session_terminated id={} account_id={}", session.getAccountId(), session.getId());
+        log.info("event=session_terminated id={} account_id={}", terminatedSession.getAccountId(), terminatedSession.getId());
     }
 
     /**
-     * Terminates a specific session.
+     * Terminates all sessions for an account by user request.
      *
      * @param accountId Account's ID to terminate all sessions
      */
     @Transactional
-    public void terminateAllSessionsByAccountId(UUID accountId) {
+    public void terminateAllSessionsByAccountId(GlobalSessionTerminationEvent event) {
+        // Log session termination attempt
+        log.info("event=global_session_termination_attempt account_id={}", event.getAccountId());
+
+        // Ensure no duplicate event processing
+        if (processedEventRepository.existsById(event.getId())) {
+            log.info("event=duplicate_event_ignored event_id={}", event.getId());
+            return;
+        }
+
+        // Create new processed event
+        ProcessedEvent newEvent = new ProcessedEvent(event.getId(), event.getOccurredAt());
+
+        // Persist new processed event
+        processedEventRepository.save(newEvent);
+
         // Terminate all active sessions by account ID
-        sessionRepository.terminateAllActiveByAccountId(accountId);
+        sessionRepository.terminateAllActiveByAccountId(event.getAccountId(), event.getReason());
+
+        // Log global session termination success
+        log.info("event=sessions_globally_terminated account_id={}", event.getAccountId());
     }
+
+    // ----------------------------------------------------------
+    // HELPERS
+    // ----------------------------------------------------------
 
     /**
      * Updates the last known IP for a session.

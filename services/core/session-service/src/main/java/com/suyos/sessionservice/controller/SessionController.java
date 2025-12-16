@@ -91,6 +91,7 @@ public class SessionController {
      * @param accountId Account ID
      * @return No content response
      */
+    @Secured("ROLE_ADMIN")
     @DeleteMapping("/account/{accountId}")
     public ResponseEntity<Void> terminateAllSessionsByAccountId(@PathVariable UUID accountId) {
         sessionService.terminateAllSessionsByAccountId(accountId);

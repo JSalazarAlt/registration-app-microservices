@@ -3,6 +3,7 @@ package com.suyos.sessionservice.event;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import com.suyos.common.event.GlobalSessionTerminationEvent;
 import com.suyos.common.event.SessionCreationEvent;
 import com.suyos.common.event.SessionTerminationEvent;
 import com.suyos.sessionservice.service.SessionService;
@@ -29,6 +30,9 @@ public class AccountEventConsumer {
     /** Kafka topic for session termination events */
     private static final String SESSION_TERMINATION_TOPIC = "session-termination";
 
+    /** Kafka topic for global session termination events */
+    private static final String GLOBAL_SESSION_TERMINATION_TOPIC = "global-session-termination";
+
     /**
      * Handles session creation event from Auth Service.
      * 
@@ -54,8 +58,8 @@ public class AccountEventConsumer {
      * @param event Event's metadata and session's 
      */
     @KafkaListener(topics = SESSION_TERMINATION_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
-    public void terminateSession(SessionTerminationEvent event) {
-        // Log account's username update event reception
+    public void handleSessionTermination(SessionTerminationEvent event) {
+        // Log account's session termination event reception
         log.info("event=kafka_session_termination_received account_id={}", event.getAccountId());
         
         // Terminate session
@@ -63,6 +67,24 @@ public class AccountEventConsumer {
             sessionService.terminateSession(event);
         } catch (Exception e) {
             log.error("event=session_termination_failed account_id={}", event.getAccountId(), e);
+        }
+    }
+
+    /**
+     * Handles global session termination event from Auth Service.
+     * 
+     * @param event Event's metadata and session's 
+     */
+    @KafkaListener(topics = GLOBAL_SESSION_TERMINATION_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
+    public void handleGlobalSessionTermination(GlobalSessionTerminationEvent event) {
+        // Log account's global session termination event reception
+        log.info("event=kafka_global_session_termination_received account_id={}", event.getAccountId());
+        
+        // Terminate all sessions for account
+        try {
+            sessionService.terminateAllSessionsByAccountId(event);
+        } catch (Exception e) {
+            log.error("event=global_session_termination_failed account_id={}", event.getAccountId(), e);
         }
     }
     

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import com.suyos.common.model.SessionTerminationReason;
 import com.suyos.sessionservice.model.Session;
 
 /**
@@ -62,11 +63,11 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     @Modifying
     @Query("""
         UPDATE Session s 
-        SET s.active = false, s.terminatedAt = CURRENT_TIMESTAMP
+        SET s.active = false, s.terminationReason =: reason, s.terminationAt = CURRENT_TIMESTAMP
         WHERE s.accountId = :accountId
         AND s.active = true
     """)
-    void terminateAllActiveByAccountId(UUID accountId);
+    void terminateAllActiveByAccountId(UUID accountId, SessionTerminationReason reason);
 
     /**
      * Deletes all sessions for an account.
