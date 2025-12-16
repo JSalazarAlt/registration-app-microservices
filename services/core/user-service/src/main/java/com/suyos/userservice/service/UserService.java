@@ -183,7 +183,10 @@ public class UserService {
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
             .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
-        
+
+        // Log user found by account ID success
+        log.info("event=account_found_by_id account_id={}", accountId);
+
         // Map user's profile information from user
         UserProfileDTO userProfile = userMapper.toUserProfileDTO(user);
         
