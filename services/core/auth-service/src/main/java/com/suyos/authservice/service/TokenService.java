@@ -38,7 +38,44 @@ public class TokenService {
     private final JwtService jwtService;
 
     // ----------------------------------------------------------------
-    // TOKEN GENERATION
+    // LOOKUP
+    // ----------------------------------------------------------------
+
+    /**
+     * Finds a token by value.
+     * 
+     * @param value Token value to search for
+     * @return Token
+     * @throws RuntimeException If token is not found or invalid
+     */
+    public Token findTokenByValue(String value) {
+        // Lookup token by value
+        Token token = tokenRepository.findByValue(value)
+            .orElseThrow(() -> new TokenNotFoundException(value));
+        
+        // Return token
+        return token;
+    }
+
+    /**
+     * Finds a token by value and type.
+     * 
+     * @param value Token value to search for
+     * @param type Type of token to search for
+     * @return Token
+     * @throws RuntimeException If token is not found or invalid
+     */
+    public Token findTokenByValueAndType(String value, TokenType type) {
+        // Lookup token by value and type
+        Token token = tokenRepository.findByValueAndType(value, type)
+            .orElseThrow(() -> new RuntimeException("Token not found"));
+
+        // Return token
+        return token;
+    }
+
+    // ----------------------------------------------------------------
+    // GENERATION
     // ----------------------------------------------------------------
 
     /**
@@ -120,22 +157,7 @@ public class TokenService {
     }
 
     // ----------------------------------------------------------------
-    // TOKEN VALIDATION
-    // ----------------------------------------------------------------
-
-    /**
-     * Checks if a token is valid (not revoked and not expired).
-     * 
-     * @param token Token to validate
-     * @return True if token is valid, false otherwise
-     */
-    public boolean isTokenValid(Token token) {
-        // Return true if token is not revoked and not expired
-        return !token.getRevoked() && token.getExpiresAt().isAfter(Instant.now());
-    }
-
-    // ----------------------------------------------------------------
-    // TOKEN REFRESH
+    // REFRESH
     // ----------------------------------------------------------------
 
     /**
@@ -182,44 +204,7 @@ public class TokenService {
     }
 
     // ----------------------------------------------------------------
-    // TOKEN LOOKUP
-    // ----------------------------------------------------------------
-
-    /**
-     * Finds a token by value.
-     * 
-     * @param value Token value to search for
-     * @return Token
-     * @throws RuntimeException If token is not found or invalid
-     */
-    public Token findTokenByValue(String value) {
-        // Lookup token by value
-        Token token = tokenRepository.findByValue(value)
-            .orElseThrow(() -> new TokenNotFoundException(value));
-        
-        // Return token
-        return token;
-    }
-
-    /**
-     * Finds a token by value and type.
-     * 
-     * @param value Token value to search for
-     * @param type Type of token to search for
-     * @return Token
-     * @throws RuntimeException If token is not found or invalid
-     */
-    public Token findTokenByValueAndType(String value, TokenType type) {
-        // Lookup token by value and type
-        Token token = tokenRepository.findByValueAndType(value, type)
-            .orElseThrow(() -> new RuntimeException("Token not found"));
-
-        // Return token
-        return token;
-    }
-
-    // ----------------------------------------------------------------
-    // TOKEN REVOCATION
+    // REVOCATION
     // ----------------------------------------------------------------
 
     /**
@@ -274,7 +259,7 @@ public class TokenService {
     }
 
     // ----------------------------------------------------------------
-    // TOKEN DELETION
+    // DELETION
     // ----------------------------------------------------------------
 
     /**
@@ -290,6 +275,21 @@ public class TokenService {
         
         // Delete token
         tokenRepository.delete(token);
+    }
+
+    // ----------------------------------------------------------------
+    // VALIDATION
+    // ----------------------------------------------------------------
+
+    /**
+     * Checks if a token is valid (not revoked and not expired).
+     * 
+     * @param token Token to validate
+     * @return True if token is valid, false otherwise
+     */
+    public boolean isTokenValid(Token token) {
+        // Return true if token is not revoked and not expired
+        return !token.getRevoked() && token.getExpiresAt().isAfter(Instant.now());
     }
     
 }

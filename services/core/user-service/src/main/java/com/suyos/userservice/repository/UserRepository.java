@@ -19,6 +19,10 @@ import com.suyos.userservice.model.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
+    // ----------------------------------------------------------------
+    // LOOKUP
+    // ----------------------------------------------------------------
+
     /**
      * Finds a user by account ID.
      *

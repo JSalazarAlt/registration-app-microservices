@@ -81,7 +81,7 @@ public class AuthService {
     private static final Long EMAIL_TOKEN_LIFETIME_HOURS = 24L;
 
     // ----------------------------------------------------------------
-    // TRADITIONAL REGISTRATION AND LOGIN
+    // TRADITIONAL CREATION AND AUTHENTICATION
     // ----------------------------------------------------------------
 
     /**
@@ -267,7 +267,7 @@ public class AuthService {
     }
 
     // ----------------------------------------------------------------
-    // GOOGLE OAUTH2 REGISTRATION AND LOGIN
+    // GOOGLE OAUTH2 CREATION AND AUTHENTICATION
     // ----------------------------------------------------------------
 
     /**
@@ -416,7 +416,7 @@ public class AuthService {
     }
 
     // ----------------------------------------------------------------
-    // LOGOUT
+    // DEAUTHENTICATION
     // ----------------------------------------------------------------
 
     /**

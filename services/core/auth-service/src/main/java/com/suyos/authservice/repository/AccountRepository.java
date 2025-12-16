@@ -72,6 +72,12 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     // LOCK AND UNLOCK
     // ----------------------------------------------------------------
 
+    /**
+     * Locks an account by ID.
+     * 
+     * @param id Account's ID to lock
+     * @return Number of rows affected by the operation
+     */
     @Modifying
     @Transactional
     @Query("""
@@ -85,7 +91,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
      * Unlocks an account by ID.
      * 
      * @param id Account's ID to unlock
-     * @return Optional containing account if found, empty otherwise
+     * @return Number of rows affected by the operation
      */
     @Modifying
     @Transactional
