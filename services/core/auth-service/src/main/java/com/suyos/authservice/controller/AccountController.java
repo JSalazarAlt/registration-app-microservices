@@ -76,10 +76,11 @@ public class AccountController {
         }
     )
     public ResponseEntity<PagedResponseDTO<AccountInfoDTO>> getAllAccounts(
-            @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
-            @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir) {
+        @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
+        @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
+        @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir
+    ) {
         // Find paginated list of accounts' information
         PagedResponseDTO<AccountInfoDTO> accountInfos = accountService.findAllAccounts(page, 
             size, sortBy, sortDir);
@@ -111,8 +112,9 @@ public class AccountController {
         }
     )
     public ResponseEntity<AccountInfoDTO> getAccountById(
-            @Parameter(description = "Account's ID", required = true)
-            @PathVariable UUID id) {
+        @Parameter(description = "Account's ID", required = true)
+        @PathVariable UUID id
+    ) {
         // Find account's information by id
         AccountInfoDTO accountInfo = accountService.findAccountById(id);
 
@@ -143,8 +145,9 @@ public class AccountController {
         }
     )
     public ResponseEntity<AccountInfoDTO> getAccountByUsername(
-            @Parameter(description = "Account's username", required = true)
-            @PathVariable String username) {
+        @Parameter(description = "Account's username", required = true)
+        @PathVariable String username
+    ) {
         // Find account's information by username
         AccountInfoDTO accountInfo = accountService.findAccountByUsername(username);
 
@@ -210,8 +213,9 @@ public class AccountController {
         }
     )
     public ResponseEntity<AccountInfoDTO> updateAuthenticatedAccount(
-            @AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody AccountUpdateRequestDTO request) {
+        @AuthenticationPrincipal Jwt jwt,
+        @Valid @RequestBody AccountUpdateRequestDTO request
+    ) {
         // Extract authenticated account's ID from access token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
