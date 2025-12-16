@@ -90,7 +90,7 @@ public class UserController {
     }
 
     /**
-     * Retrieves a user's profile by ID.
+     * Retrieves a user by ID.
      *
      * @param id User's ID to search for
      * @return User's profile with "200 OK" status
@@ -123,7 +123,7 @@ public class UserController {
     }
 
     /**
-     * Update a user's profile by ID.
+     * Updates a user by ID.
      *
      * @param id User's ID to update
      * @return User's profile with "200 OK" status
@@ -184,7 +184,7 @@ public class UserController {
         @RequestParam String name
     ) {
         // Search users by name
-        List<UserProfileDTO> users = userService.searchUsersByName(name);
+        List<UserProfileDTO> users = userService.findUsersByName(name);
         
         // Return matching users' profile information with "200 OK" status
         return ResponseEntity.ok(users);
@@ -195,7 +195,7 @@ public class UserController {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves the currently authenticated user's profile.
+     * Retrieves the currently authenticated user.
      *
      * @param jwt Authentication principal containing JWT token
      * @return Authenticated user's profile with "200 OK" status
@@ -226,7 +226,7 @@ public class UserController {
     }
 
     /**
-     * Updates the currently authenticated user's profile.
+     * Updates the currently authenticated user.
      *
      * @param jwt Authentication principal containing JWT token
      * @param updateDTO DTO containing updated profile fields

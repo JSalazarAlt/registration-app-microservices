@@ -227,7 +227,7 @@ class UserControllerTest {
         List<UserProfileDTO> users = Arrays.asList(userProfileDTO);
         
         // Mock service to return search results
-        when(userService.searchUsersByName("Test")).thenReturn(users);
+        when(userService.findUsersByName("Test")).thenReturn(users);
 
         // Perform search users request
         mockMvc.perform(get("/api/v1/users/search")
@@ -237,7 +237,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$[0].firstName").value("Test"));
         
         // Verify service was called
-        verify(userService).searchUsersByName("Test");
+        verify(userService).findUsersByName("Test");
     }
 
     /**
@@ -314,7 +314,7 @@ class UserControllerTest {
     @Test
     void searchUsersByName_NoResults() throws Exception {
         // Mock service to return empty list
-        when(userService.searchUsersByName("NonExistent")).thenReturn(List.of());
+        when(userService.findUsersByName("NonExistent")).thenReturn(List.of());
 
         // Perform search users request
         mockMvc.perform(get("/api/v1/users/search")
@@ -324,7 +324,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$").isEmpty());
         
         // Verify service was called
-        verify(userService).searchUsersByName("NonExistent");
+        verify(userService).findUsersByName("NonExistent");
     }
 
     /**
@@ -438,7 +438,7 @@ class UserControllerTest {
      */
     @Test
     void searchUsersByName_EmptyQuery() throws Exception {
-        when(userService.searchUsersByName("")).thenReturn(List.of());
+        when(userService.findUsersByName("")).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/users/search")
                 .param("name", ""))

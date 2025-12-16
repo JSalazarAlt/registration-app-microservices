@@ -50,11 +50,11 @@ public class UserService {
     private final ProcessedEventRepository processedEventRepository;
 
     // ----------------------------------------------------------
-    // ADMIN
+    // USER LOOKUP
     // ----------------------------------------------------------
 
     /**
-     * Finds a paginated list of all users.
+     * Retrieves a paginated list of all users.
      * 
      * @param page Page number to search for
      * @param size Size of page
@@ -98,7 +98,7 @@ public class UserService {
     }
 
     /**
-     * Find a user by ID.
+     * Finds a user by ID.
      * 
      * @param id User's ID to search for
      * @return User's profile information
@@ -118,61 +118,7 @@ public class UserService {
     }
 
     /**
-     * Updates user profile by ID.
-     *
-     * @param id User's ID to update
-     * @param userUpdateDTO User's update data
-     * @return Updated user's profile
-     * @throws UserNotFoundException If user not found
-     */
-    public UserProfileDTO updateUserById(UUID id, UserUpdateRequestDTO userUpdateDTO) {
-        // Log user update attempt
-        log.info("event=user_update_attempt user_id={}", id);
-
-        // Look up user by ID
-        User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
-        
-        // Update user fields using mapper
-        userMapper.updateUserFromDTO(userUpdateDTO, user);
-
-        // Persist updated user
-        User updatedUser = userRepository.save(user);
-
-        // Log user update success
-        log.info("event=user_updated user_id={}", updatedUser.getId());
-
-        // Map user's profile information from updated user
-        UserProfileDTO userProfile = userMapper.toUserProfileDTO(updatedUser);
-
-        // Return updated user's profile
-        return userProfile;
-    }
-
-    /**
-     * Searches for users by their first or last name.
-     * 
-     * <p>Performs a case-insensitive partial match on both first name and last 
-     * name fields, returning all matching users as profile DTOs.</p>
-     *
-     * @param name Name fragment to search for
-     * @return List of matching users' profile
-     */
-    @Transactional(readOnly = true)
-    public List<UserProfileDTO> searchUsersByName(String name) {
-        // 
-        return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name)
-            .stream()
-            .map(userMapper::toUserProfileDTO)
-            .collect(Collectors.toList());
-    }
-
-    // ----------------------------------------------------------
-    // USER PROFILE MANAGEMENT
-    // ----------------------------------------------------------
-
-    /**
-     * Retrieves user profile by account ID.
+     * Finds a user by account ID.
      *
      * @param accountId Account's ID associated with the user
      * @return User's profile
@@ -193,9 +139,31 @@ public class UserService {
         // Return user's profile
         return userProfile;
     }
+
+    /**
+     * Finds a list of users by their first or last name.
+     * 
+     * <p>Performs a case-insensitive partial match on both first name and last 
+     * name fields, returning all matching users as profile DTOs.</p>
+     *
+     * @param name Name fragment to search for
+     * @return List of matching users' profile
+     */
+    @Transactional(readOnly = true)
+    public List<UserProfileDTO> findUsersByName(String name) {
+        // 
+        return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name)
+            .stream()
+            .map(userMapper::toUserProfileDTO)
+            .collect(Collectors.toList());
+    }
+
+    // ----------------------------------------------------------
+    // USER CREATION
+    // ----------------------------------------------------------
     
     /**
-     * Creates a new user profile.
+     * Creates a new user.
      *
      * @param event User's registration data
      * @return Created user's profile
@@ -236,8 +204,44 @@ public class UserService {
         return userProfile;
     }
 
+    // ----------------------------------------------------------
+    // USER UPDATE
+    // ----------------------------------------------------------
+
     /**
-     * Updates user profile by account ID.
+     * Updates a user by ID.
+     *
+     * @param id User's ID to update
+     * @param userUpdateDTO User's update data
+     * @return Updated user's profile
+     * @throws UserNotFoundException If user not found
+     */
+    public UserProfileDTO updateUserById(UUID id, UserUpdateRequestDTO userUpdateDTO) {
+        // Log user update attempt
+        log.info("event=user_update_attempt user_id={}", id);
+
+        // Look up user by ID
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
+        
+        // Update user fields using mapper
+        userMapper.updateUserFromDTO(userUpdateDTO, user);
+
+        // Persist updated user
+        User updatedUser = userRepository.save(user);
+
+        // Log user update success
+        log.info("event=user_updated user_id={}", updatedUser.getId());
+
+        // Map user's profile information from updated user
+        UserProfileDTO userProfile = userMapper.toUserProfileDTO(updatedUser);
+
+        // Return updated user's profile
+        return userProfile;
+    }
+
+    /**
+     * Updates a user by account ID.
      *
      * @param accountId Account ID associated with the user
      * @param userUpdateDTO User's update data
@@ -268,8 +272,12 @@ public class UserService {
         return userProfile;
     }
 
+    // ----------------------------------------------------------
+    // USER SOFT-DELETION
+    // ----------------------------------------------------------
+
     /**
-     * Deletes user profile by account ID.
+     * Soft-deletes a user by account ID.
      *
      * @param accountId Account ID associated with the user
      * @param userUpdateDTO User's update data
@@ -306,7 +314,7 @@ public class UserService {
     // ----------------------------------------------------------
 
     /**
-     * Updates user email (triggered by Auth Service).
+     * Updates a user's email (triggered by Auth Service).
      * 
      * @param event Account ID associated with the user and new email address
      * @throws UserNotFoundException If user not found
@@ -342,7 +350,7 @@ public class UserService {
     }
 
     /**
-     * Updates user username (triggered by Auth Service).
+     * Updates a user's username (triggered by Auth Service).
      *
      * @param event Account ID associated with the user and new username
      * @throws UserNotFoundException If user not found

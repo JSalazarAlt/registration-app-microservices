@@ -191,7 +191,7 @@ public class AccountController {
     }
     
     /**
-     * Updates the currently authenticated account's information.
+     * Updates the currently authenticated account.
      * 
      * @param jwt Authentication principal containing JWT token
      * @param request Account's update data
@@ -228,7 +228,7 @@ public class AccountController {
     }
 
     /**
-     * Soft-deletes the currently authenticated account's information.
+     * Soft-deletes the currently authenticated account.
      * 
      * @param jwt Authentication principal containing JWT token
      * @return Soft-deleted authenticated account's information with "200 OK"

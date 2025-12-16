@@ -57,7 +57,7 @@ public class AccountService {
     private static final int LOCK_DURATION_HOURS = 24;
 
     // ----------------------------------------------------------------
-    // ADMIN
+    // ACCOUNT LOOKUP
     // ----------------------------------------------------------------
 
     /**
@@ -103,68 +103,6 @@ public class AccountService {
         // Return paginated list of accounts' information
         return response;
     }
-
-    /**
-     * Locks an account by ID.
-     * 
-     * @param id Account's ID to lock
-     * @return Account's information
-     * @throws AccountNotFoundException If account is not found
-     */
-    public AccountInfoDTO lockAccountById(UUID id) {
-        // Look up account by ID
-        Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
-
-        // Lock account
-        account.setLocked(true);
-        account.setLockedUntil(Instant.now().plusSeconds(LOCK_DURATION_HOURS * 3600));
-
-        // Persist updated account
-        Account updatedAccount = accountRepository.save(account);
-
-        // Log account lock success
-        log.info("event=account_locked account_id={}", updatedAccount.getId());
-
-        // Map account's information from updated account
-        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
-
-        // Return account's information
-        return accountInfo;
-    }
-
-    /**
-     * Unlocks an account by ID.
-     * 
-     * @param id Account's ID to unlock
-     * @return Account's information
-     * @throws AccountNotFoundException If account is not found
-     */
-    public AccountInfoDTO unlockAccountById(UUID id) {
-        // Look up account by ID
-        Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
-
-        // Unlock account
-        account.setLocked(false);
-        account.setLockedUntil(null);
-
-        // Persist updated account
-        Account updatedAccount = accountRepository.save(account);
-
-        // Log account unlock success
-        log.info("event=account_unlocked account_id={}", updatedAccount.getId());
-
-        // Map account's information from updated account
-        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
-
-        // Return account's information
-        return accountInfo;
-    }
-
-    // ----------------------------------------------------------------
-    // ACCOUNT LOOKUP
-    // ----------------------------------------------------------------
 
     /**
      * Finds an account by ID.
@@ -233,14 +171,14 @@ public class AccountService {
     }
 
     // ----------------------------------------------------------------
-    // ACCOUNT MANAGEMENT
+    // ACCOUNT UPDATE
     // ----------------------------------------------------------------
 
     /**
      * Updates an account by ID.
      * 
      * @param id Account's ID to update
-     * @param request Account's update data
+     * @param request Account's new username and/or new email
      * @return Updated account's information
      * @throws AccountNotFoundException If account is not found
      */
@@ -317,6 +255,10 @@ public class AccountService {
         return accountInfo;
     }
 
+    // ----------------------------------------------------------------
+    // ACCOUNT SOFT-DELETION
+    // ----------------------------------------------------------------
+
     /**
      * Soft-deletes an account by ID.
      * 
@@ -356,6 +298,68 @@ public class AccountService {
 
         // Return soft-deleted account's information
         return accountInfoDTO;
+    }
+
+    // ----------------------------------------------------------------
+    // ACCOUNT LOCK AND UNLOCK
+    // ----------------------------------------------------------------
+
+    /**
+     * Locks an account by ID.
+     * 
+     * @param id Account's ID to lock
+     * @return Account's information
+     * @throws AccountNotFoundException If account is not found
+     */
+    public AccountInfoDTO lockAccountById(UUID id) {
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+
+        // Lock account
+        account.setLocked(true);
+        account.setLockedUntil(Instant.now().plusSeconds(LOCK_DURATION_HOURS * 3600));
+
+        // Persist updated account
+        Account updatedAccount = accountRepository.save(account);
+
+        // Log account lock success
+        log.info("event=account_locked account_id={}", updatedAccount.getId());
+
+        // Map account's information from updated account
+        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+
+        // Return account's information
+        return accountInfo;
+    }
+
+    /**
+     * Unlocks an account by ID.
+     * 
+     * @param id Account's ID to unlock
+     * @return Account's information
+     * @throws AccountNotFoundException If account is not found
+     */
+    public AccountInfoDTO unlockAccountById(UUID id) {
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+
+        // Unlock account
+        account.setLocked(false);
+        account.setLockedUntil(null);
+
+        // Persist updated account
+        Account updatedAccount = accountRepository.save(account);
+
+        // Log account unlock success
+        log.info("event=account_unlocked account_id={}", updatedAccount.getId());
+
+        // Map account's information from updated account
+        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+
+        // Return account's information
+        return accountInfo;
     }
 
     // ----------------------------------------------------------------
