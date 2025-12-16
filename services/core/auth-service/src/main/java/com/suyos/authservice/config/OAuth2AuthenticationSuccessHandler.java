@@ -63,7 +63,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
      * @throws ServletException If servlet processing fails
      */
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+    public void onAuthenticationSuccess(HttpServletRequest httpRequest, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
         
         // Extract OAuth2 user principal
@@ -76,14 +76,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             String providerId = oauth2User.getAttribute("sub");
 
             // Build OAuth2 authentication request DTO
-            OAuth2AuthenticationRequestDTO dto = OAuth2AuthenticationRequestDTO.builder()
+            OAuth2AuthenticationRequestDTO request = OAuth2AuthenticationRequestDTO.builder()
                     .email(email)
                     .name(name)
                     .providerId(providerId)
                     .build();
             
             // Process OAuth2 account (create or link) and generate tokens
-            var authResponse = authService.processGoogleOAuth2Account(dto);
+            var authResponse = authService.processGoogleOAuth2Account(request, httpRequest);
             String token = authResponse.getAccessToken();
             
             // Build redirect URL with authentication data
@@ -95,12 +95,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     .build().toUriString();
             
             // Redirect to frontend OAuth2 callback
-            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            getRedirectStrategy().sendRedirect(httpRequest, response, targetUrl);
             
         } catch (Exception e) {
             // Log error and redirect to login with error flag
             log.error("Google OAuth2 authentication failed", e);
-            getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/login?error=oauth2_failed");
+            getRedirectStrategy().sendRedirect(httpRequest, response, "http://localhost:5173/login?error=oauth2_failed");
         }
     }
     

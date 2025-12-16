@@ -147,9 +147,12 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AuthenticationResponseDTO> googleOAuth2Authentication(@Valid @RequestBody OAuth2AuthenticationRequestDTO request) {
+    public ResponseEntity<AuthenticationResponseDTO> googleOAuth2Authentication(
+        @Valid @RequestBody OAuth2AuthenticationRequestDTO request,
+        HttpServletRequest httpRequest
+    ) {
         // Authenticate account using Google OAuth2 credentials
-        AuthenticationResponseDTO response = authService.processGoogleOAuth2Account(request);
+        AuthenticationResponseDTO response = authService.processGoogleOAuth2Account(request, httpRequest);
 
         // Return refresh and access tokens with "200 OK" status
         return ResponseEntity.ok(response);

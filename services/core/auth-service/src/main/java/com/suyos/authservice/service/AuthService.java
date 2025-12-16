@@ -231,16 +231,16 @@ public class AuthService {
         // Log account authentication success
         log.info("event=account_authenticated account_id={}", updatedAccount.getId());
 
-        // Extract IP address and user agent
-        String ipAddress = extractClientIp(httpRequest);
-        String userAgent = httpRequest.getHeader("User-Agent");
+        // Generate random UUID and timestamp for session creation event
+        String eventId = UUID.randomUUID().toString();
+        Instant eventTimestamp = Instant.now();
 
         // Generate new session ID
         UUID sessionId = UUID.randomUUID();
 
-        // Generate random UUID and timestamp for session creation event
-        String eventId = UUID.randomUUID().toString();
-        Instant eventTimestamp = Instant.now();
+        // Extract IP address and user agent
+        String ipAddress = extractClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
 
         // Build session creation event
         SessionCreationEvent event = SessionCreationEvent.builder()
@@ -316,7 +316,10 @@ public class AuthService {
      * @throws AccountDeletedException If account is deleted
      * @throws AccountLockedException If account is currently locked
      */
-    public AuthenticationResponseDTO processGoogleOAuth2Account(OAuth2AuthenticationRequestDTO request) {
+    public AuthenticationResponseDTO processGoogleOAuth2Account(
+        OAuth2AuthenticationRequestDTO request,
+        HttpServletRequest httpRequest
+    ) {
         // Look up account by OAuth2 credentials or email
         Account account = accountRepository.findByOauth2ProviderAndOauth2ProviderId("google", request.getProviderId())
             .or(() -> accountRepository.findByEmail(request.getEmail())
@@ -376,8 +379,31 @@ public class AuthService {
         // Log account authentication success
         log.info("event=oauth2_account_authenticated account_id={}", savedAccount.getId());
 
+        // Generate random UUID and timestamp for session creation event
+        String eventId = UUID.randomUUID().toString();
+        Instant eventTimestamp = Instant.now();
+
         // Generate new session ID
         UUID sessionId = UUID.randomUUID();
+
+        // Extract IP address and user agent
+        String ipAddress = extractClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+
+        // Build session creation event
+        SessionCreationEvent event = SessionCreationEvent.builder()
+                .id(eventId)
+                .occurredAt(eventTimestamp)
+                .sessionId(sessionId)
+                .accountId(account.getId())
+                .userAgent(userAgent)
+                .deviceName(request.getDeviceName())
+                .ipAddress(ipAddress)
+                .lastIpAddress(ipAddress)
+                .build();
+        
+        // Publish user creation event
+        accountEventProducer.publishSessionCreation(event);
 
         // Issue refresh and access tokens for successful Google OAuth2 login
         AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(savedAccount, sessionId);

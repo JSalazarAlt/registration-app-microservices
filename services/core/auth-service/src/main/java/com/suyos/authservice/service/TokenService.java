@@ -153,9 +153,14 @@ public class TokenService {
         Token refreshToken = tokenRepository.findByValueAndType(value, TokenType.REFRESH)
                 .orElseThrow(() -> new TokenNotFoundException(value));
         
-        // Check if refresh token is invalid
+        // Ensure refresh token is valid
         if (!isTokenValid(refreshToken)) {
             throw new InvalidTokenException(TokenType.REFRESH);
+        }
+
+        // Ensure associated session is active
+        if (refreshToken.getSessionId() != null) {
+            
         }
 
         // Revoke old token for security

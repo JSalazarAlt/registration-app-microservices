@@ -34,5 +34,9 @@ public class OAuth2AuthenticationRequestDTO {
     /** OAuth2 provider ID */
     @NotBlank(message = "Provider ID is required")
     private String providerId;
+
+    /** Client's device name */
+    @NotBlank(message = "Device name is required")
+    private String deviceName;
     
 }
