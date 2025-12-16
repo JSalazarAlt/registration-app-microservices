@@ -60,7 +60,7 @@ public class AccountEventConsumer {
     @KafkaListener(topics = ACCOUNT_USERNAME_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountUsernameUpdate(AccountUsernameUpdateEvent event) {
         // Log account's username update event reception
-        log.info("event=username_update_event_reception account_id={}", event.getAccountId());
+        log.info("event=kafka_username_update_event_reception account_id={}", event.getAccountId());
         
         // Update user's username
         try {
@@ -78,7 +78,7 @@ public class AccountEventConsumer {
     @KafkaListener(topics = ACCOUNT_EMAIL_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountEmailUpdate(AccountEmailUpdateEvent event) {
         // Log account's email update event reception for debugging and monitoring
-        log.info("event=email_update_event_reception account_id={}", event.getAccountId());
+        log.info("event=kafka_email_update_event_reception account_id={}", event.getAccountId());
         
         // Update user's email
         try {
