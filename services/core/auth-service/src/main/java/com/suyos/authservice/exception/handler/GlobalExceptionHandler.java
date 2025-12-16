@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -89,6 +91,58 @@ public class GlobalExceptionHandler {
 
         // Return error response with "400 Bad Request" status
         return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Handles authentication failures thrown by Spring Security.
+     *
+     * <p>Converts {@link AuthenticationException} into a standardized
+     * API error response indicating the caller is unauthenticated.
+     * This occurs when credentials are missing, invalid, or expired.</p>
+     *
+     * @param ex Authentication exception thrown by Spring Security
+     * @param request Current web request
+     * @return Error response with "401 Unauthorized" status
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthException(AuthenticationException ex, WebRequest req) {
+        ApiErrorResponse r = ApiErrorResponse.builder()
+            .type("/errors/unauthorized")
+            .title("Unauthorized")
+            .status(401)
+            .detail("Authentication failed")
+            .path(req.getDescription(false).replace("uri=", ""))
+            .code(ErrorCode.INVALID_TOKEN)
+            .traceId(getTraceId())
+            .timestamp(Instant.now())
+            .build();
+        return ResponseEntity.status(401).body(r);
+    }
+
+    /**
+     * Handles access denied errors thrown by Spring Security.
+     *
+     * <p>Converts {@link AccessDeniedException} into a standardized API
+     * error response indicating the authenticated principal does not have
+     * permission to access the requested resource.</p>
+     *
+     * @param ex Access denied exception thrown by Spring Security
+     * @param request Current web request
+     * @return Error response with "403 Forbidden" status
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex, WebRequest req) {
+        ApiErrorResponse r = ApiErrorResponse.builder()
+            .type("/errors/forbidden")
+            .title("Forbidden")
+            .status(403)
+            .detail("Access denied")
+            .path(req.getDescription(false).replace("uri=", ""))
+            .code(ErrorCode.ACCESS_DENIED)
+            .traceId(getTraceId())
+            .timestamp(Instant.now())
+            .build();
+        return ResponseEntity.status(403).body(r);
     }
 
     /**
