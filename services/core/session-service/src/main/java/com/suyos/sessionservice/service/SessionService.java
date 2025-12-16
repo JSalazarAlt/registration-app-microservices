@@ -64,9 +64,6 @@ public class SessionService {
 
         // Map session from session's information
         Session session = sessionMapper.toEntity(event);
-
-        // Set session's ID
-        session.setId(event.getSessionId());
         
         // Persist created session
         Session createdSession = sessionRepository.save(session);

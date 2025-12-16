@@ -23,7 +23,7 @@ public interface SessionMapper {
      * @param request Account's registration data
      * @return Created account entity
      */
-    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "id", source = "sessionId")
     @Mapping(target = "active", ignore = true)
     @Mapping(target = "terminationReason", ignore = true)
     @Mapping(target = "terminatedAt", ignore = true)
