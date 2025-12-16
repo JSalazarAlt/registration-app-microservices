@@ -1,7 +1,10 @@
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountUsernameUpdateEvent.java
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\ErrorCode.java
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountEmailUpdateEvent.java
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\ApiException.java
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\dto\response\PagedResponseDTO.java
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\ApiErrorResponse.java
-c:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\UserCreationEvent.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountUsernameUpdateEvent.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\SessionCreationEvent.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\model\SessionTerminationReason.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\ErrorCode.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\AccountEmailUpdateEvent.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\SessionTerminationEvent.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\ApiException.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\dto\response\PagedResponseDTO.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\exception\ApiErrorResponse.java
+C:\Users\edjoe\VSCodeProjects\Projects\03_Small_Projects\registration-app-microservices\shared\common\src\main\java\com\suyos\common\event\UserCreationEvent.java

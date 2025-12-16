@@ -8,7 +8,9 @@ import lombok.Getter;
 public enum SessionTerminationReason {
 
     /** Session ended by explicit logout */
-    MANUAL("Session ended by explicit logout"),
+    SINGLE_LOGOUT("Session ended by explicit logout"),
+
+    GLOBAL_LOGOUT("Session ended by explicit global logout"),
 
     /** Session expired due to refresh token expiration */
     EXPIRED("Session expired due to refresh token expiration"),
