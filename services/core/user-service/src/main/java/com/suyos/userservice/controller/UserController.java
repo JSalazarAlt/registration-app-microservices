@@ -76,10 +76,10 @@ public class UserController {
     )
     @GetMapping
     public ResponseEntity<PagedResponseDTO<UserProfileDTO>> getAllUsers(
-            @Parameter(description = "Page index (0-based)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir
+        @Parameter(description = "Page index (0-based)") @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
+        @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
+        @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir
     ) {
         // Find paginated list of users' profiles
         PagedResponseDTO<UserProfileDTO> users = userService.findAllUsers(
@@ -112,8 +112,8 @@ public class UserController {
     )
     @GetMapping("/{id}")
     public ResponseEntity<UserProfileDTO> getUserById(
-            @Parameter(description = "User's unique ID", required = true)
-            @PathVariable UUID id
+        @Parameter(description = "User's unique ID", required = true)
+        @PathVariable UUID id
     ) {
         // Find user's profile by id
         UserProfileDTO userProfile = userService.findUserById(id);
@@ -146,9 +146,9 @@ public class UserController {
     )
     @PutMapping("/{id}")
     public ResponseEntity<UserProfileDTO> updateUserById(
-            @Parameter(description = "User's unique ID", required = true)
-            @PathVariable UUID id,
-            @RequestBody UserUpdateRequestDTO userUpdateDTO
+        @Parameter(description = "User's unique ID", required = true)
+        @PathVariable UUID id,
+        @RequestBody UserUpdateRequestDTO userUpdateDTO
     ) {
         // Update user's profile by ID
         UserProfileDTO userProfile = userService.updateUserById(id, userUpdateDTO);
@@ -180,8 +180,8 @@ public class UserController {
     )
     @GetMapping("/search")
     public ResponseEntity<List<UserProfileDTO>> searchUsersByName(
-            @Parameter(description = "Partial or full name to search", required = true)
-            @RequestParam String name
+        @Parameter(description = "Partial or full name to search", required = true)
+        @RequestParam String name
     ) {
         // Search users by name
         List<UserProfileDTO> users = userService.searchUsersByName(name);
@@ -215,11 +215,11 @@ public class UserController {
     public ResponseEntity<UserProfileDTO> getAuthenticatedUser(
         @AuthenticationPrincipal Jwt jwt
     ) {
-        // Extract account ID from JWT token
-        UUID accountId = UUID.fromString(jwt.getSubject());
+        // Extract authenticated account ID from JWT token
+        UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
         
-        // Find user's profile by account ID
-        UserProfileDTO userProfile = userService.findUserByAccountId(accountId);
+        // Find authenticated user's profile
+        UserProfileDTO userProfile = userService.findUserByAccountId(authenticatedAccountId);
         
         // Return user's profile with "200 OK" status
         return ResponseEntity.ok(userProfile);
@@ -246,14 +246,14 @@ public class UserController {
     )
     @PutMapping("/me")
     public ResponseEntity<UserProfileDTO> updateAuthenticatedUser(
-            @AuthenticationPrincipal Jwt jwt,
-            @RequestBody UserUpdateRequestDTO updateDTO
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody UserUpdateRequestDTO updateDTO
     ) {
-        // Extract account ID from JWT token
-        UUID accountId = UUID.fromString(jwt.getSubject());
+        // Extract authenticated account ID from JWT token
+        UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
         
-        // Update user's profile by account ID
-        UserProfileDTO userProfile = userService.updateUserByAccountId(accountId, updateDTO);
+        // Update authenticated user's profile
+        UserProfileDTO userProfile = userService.updateUserByAccountId(authenticatedAccountId, updateDTO);
         
         // Return updated user's profile with "200 OK" status
         return ResponseEntity.ok(userProfile);
