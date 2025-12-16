@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
+import com.suyos.common.event.GlobalSessionTerminationEvent;
 import com.suyos.common.event.SessionCreationEvent;
 import com.suyos.common.event.SessionTerminationEvent;
 import com.suyos.common.event.UserCreationEvent;
@@ -40,6 +41,9 @@ public class AccountEventProducer {
     
     /** Kafka topic for session termination events */
     private static final String SESSION_TERMINATION_TOPIC = "session-termination";
+
+    /** Kafka topic for global session termination events */
+    private static final String GLOBAL_SESSION_TERMINATION_TOPIC = "global-session-termination";
 
     /**
      * Publishes user's creation event to Kafka topic.
@@ -81,7 +85,7 @@ public class AccountEventProducer {
     }
     
     /**
-     * Publishes sessions's creation event to Kafka topic.
+     * Publishes session's creation event to Kafka topic.
      * 
      * @param event Session's information
      */
@@ -94,9 +98,9 @@ public class AccountEventProducer {
     }
 
     /**
-     * Publishes sessions's termination event to Kafka topic.
+     * Publishes session's termination event to Kafka topic.
      * 
-     * @param event Session's information
+     * @param event Session's ID and termination reason
      */
     public void publishSessionTermination(SessionTerminationEvent event) {
         // Log sessions's creation event publication
@@ -104,6 +108,19 @@ public class AccountEventProducer {
 
         // Send event to Kafka topic with account ID as key
         kafkaTemplate.send(SESSION_TERMINATION_TOPIC, event.getAccountId().toString(), event);
+    }
+
+    /**
+     * Publishes global sessions' termination event to Kafka topic.
+     * 
+     * @param event Account's ID and termination reason
+     */
+    public void publishGlobalSessionTermination(GlobalSessionTerminationEvent event) {
+        // Log sessions's creation event publication
+        log.info("event=kafka_global_session_termination_published account_id={}", event.getAccountId());
+
+        // Send event to Kafka topic with account ID as key
+        kafkaTemplate.send(GLOBAL_SESSION_TERMINATION_TOPIC, event.getAccountId().toString(), event);
     }
 
 }

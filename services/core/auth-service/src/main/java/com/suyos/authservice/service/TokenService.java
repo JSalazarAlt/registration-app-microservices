@@ -241,7 +241,7 @@ public class TokenService {
         tokenRepository.save(refreshToken);
 
         // Log token revocation
-        log.debug("event=token_revoked type={} value={}", refreshToken.getType(), refreshToken.getValue());
+        log.debug("event=token_revoked type={} account_id={}", refreshToken.getType(), refreshToken.getAccount().getId());
     }
 
     /**

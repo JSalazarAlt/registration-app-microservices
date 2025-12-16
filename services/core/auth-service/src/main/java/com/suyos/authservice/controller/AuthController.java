@@ -187,6 +187,31 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Deauthenticates an account and revokes the refresh token.
+     * 
+     * @param request Refresh token value linked to account
+     * @return logout response with "204 No Content" status
+     */
+    @PostMapping("/logout")
+    @Operation(
+        summary = "Logout account",
+        description = "Deauthenticates an account and revokes refresh and access tokens",
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Logout successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
+            @ApiResponse(responseCode = "401", description = "Refresh token revoked or expired"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
+    )
+    public ResponseEntity<Void> globalLogoutAccount(@RequestBody RefreshTokenRequestDTO request) {
+        // Globally deauthenticate account and revoke refresh token
+        authService.globalDeauthenticateAccount(request);
+        
+        // Return logout response with "204 No Content" status
+        return ResponseEntity.noContent().build();
+    }
+
     // ----------------------------------------------------------------
     // TOKEN REFRESH
     // ----------------------------------------------------------------

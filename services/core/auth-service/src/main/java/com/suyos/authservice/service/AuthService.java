@@ -35,6 +35,7 @@ import com.suyos.authservice.model.Role;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
+import com.suyos.common.event.GlobalSessionTerminationEvent;
 import com.suyos.common.event.SessionCreationEvent;
 import com.suyos.common.event.SessionTerminationEvent;
 import com.suyos.common.event.UserCreationEvent;
@@ -86,9 +87,9 @@ public class AuthService {
     /**
      * Creates a new account with the registration request.
      * 
-     * <p>Creates a new account if the username and email are not already
-     * in use. After creation, publishes an event to the User microservice
-     * to create the corresponding user record linked to the account.</p>
+     * <p>Creates a new account if the username and email are not already in
+     * use. Publishes an event, so the User microservice creates a user linked
+     * to the account.</p>
      * 
      * @param request Account's information and user's profile
      * @return Created account's information
@@ -159,7 +160,8 @@ public class AuthService {
      * 
      * <p>Verifies an account using login credentials if enabled, verified,
      * and not locked. Updates login tracking fields and issues new refresh
-     * and access tokens on successful authentication.</p>
+     * and access tokens on successful authentication. Publishes an event, so
+     * the Session microservice creates a session linked to the account.</p>
      * 
      * @param request Account's credentials
      * @return Refresh and access tokens
@@ -254,7 +256,7 @@ public class AuthService {
                 .lastIpAddress(ipAddress)
                 .build();
         
-        // Publish user creation event
+        // Publish session creation event
         accountEventProducer.publishSessionCreation(event);
         
         // Issue refresh and access tokens on successful login
@@ -307,7 +309,8 @@ public class AuthService {
      * 
      * <p>Creates a new account if none exists, or links an existing account
      * with Google OAuth2 credentials. Generates refresh and access tokens
-     * for the authenticated account.</p>
+     * for the authenticated account. Publishes an event, so the Session
+     * microservice creates a session linked to the account.</p>
      *
      * @param request Account's information and user's profile from Google
      * @return Refresh and access tokens
@@ -417,10 +420,11 @@ public class AuthService {
     // ----------------------------------------------------------------
 
     /**
-     * Deauthenticates an account.
+     * Deauthenticates an account from a session.
      * 
      * <p>Revokes the associated refresh token during logout and updates the
-     * account's last logout timestamp.</p>
+     * account's last logout timestamp. Publishes an event, so the Session
+     * microservice terminates the session linked to the account.</p>
      * 
      * @param request Refresh token value linked to account
      * @throws InvalidRefreshTokenException If refresh token is invalid
@@ -468,8 +472,61 @@ public class AuthService {
                 .reason(SessionTerminationReason.SINGLE_LOGOUT)
                 .build();
         
-        // Publish user creation event
+        // Publish session termination event
         accountEventProducer.publishSessionTermination(event);
+    }
+
+    /**
+     * Deauthenticates an account from all sessions.
+     * 
+     * <p>Revokes all associated refresh tokens during logout and updates the
+     * account's last logout timestamp. Publishes an event, so the Session
+     * microservice terminates all the sessions linked to the account.</p>
+     * 
+     * @param request Refresh token value linked to account
+     * @throws InvalidRefreshTokenException If refresh token is invalid
+     */
+    public void globalDeauthenticateAccount(RefreshTokenRequestDTO request) {
+        // Extract refresh token value from request
+        String value = request.getValue();
+
+        // Look up token by value and type
+        Token refreshToken = tokenService.findTokenByValueAndType(value, TokenType.REFRESH);
+
+        // Ensure refresh token is valid
+        if(!tokenService.isTokenValid(refreshToken)) {
+            throw new InvalidTokenException(TokenType.REFRESH);
+        }
+
+        // Get account linked to refresh token
+        Account account = refreshToken.getAccount();
+
+        // Update last logout timestamp
+        account.setLastLogoutAt(Instant.now());
+
+        // Persist updated account
+        accountRepository.save(account);
+
+        // Revoke all refresh tokens linked to account
+        tokenService.revokeAllTokensByAccountIdAndType(account.getId(), TokenType.REFRESH);
+
+        // Log account deauthentication success
+        log.info("event=account_globally_deauthenticated account_id={}", account.getId());
+
+        // Generate random UUID and timestamp for session termination event
+        String eventId = UUID.randomUUID().toString();
+        Instant eventTimestamp = Instant.now();
+
+        // Build global session termination event
+        GlobalSessionTerminationEvent event = GlobalSessionTerminationEvent.builder()
+                .id(eventId)
+                .occurredAt(eventTimestamp)
+                .accountId(account.getId())
+                .reason(SessionTerminationReason.GLOBAL_LOGOUT)
+                .build();
+        
+        // Publish global session termination event
+        accountEventProducer.publishGlobalSessionTermination(event);
     }
 
     // ----------------------------------------------------------------
