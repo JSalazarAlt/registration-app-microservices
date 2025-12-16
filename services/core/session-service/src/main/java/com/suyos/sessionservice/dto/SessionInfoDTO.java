@@ -1,0 +1,63 @@
+package com.suyos.sessionservice.dto;
+
+import java.time.Instant;
+import java.util.UUID;
+
+import com.suyos.common.model.SessionTerminationReason;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * DTO for session information.
+ * 
+ * @author Joel Salazar
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SessionInfoDTO {
+
+    // ----------------------------------------------------------------
+    // IDENTITY
+    // ----------------------------------------------------------------
+
+    /** Unique identifier */
+    private UUID id;
+
+    /** Unique identifier linking to account */
+    private UUID accountId;
+
+    // ----------------------------------------------------------------
+    // SECURITY STATE
+    // ----------------------------------------------------------------
+
+    /** Flag indicating if session is active */
+    private Boolean active;
+
+    /** Reason for session termination */
+    private SessionTerminationReason terminationReason;
+
+    /** Timestamp when session was terminated */
+    private Instant terminatedAt;
+
+    // ----------------------------------------------------------------
+    // DEVICE & NETWORK
+    // ----------------------------------------------------------------
+
+    /** Reported user agent (e.g., Chrome, Safari, Android, iOS) */
+    private String userAgent;
+
+    /** Client device name */
+    private String deviceName;
+
+    /** IP address used during session creation */
+    private String ipAddress;
+
+    /** Last known IP address */
+    private String lastIpAddress;
+
+}
