@@ -439,7 +439,7 @@ public class AuthService {
                 .occurredAt(eventTimestamp)
                 .sessionId(sessionId)
                 .accountId(account.getId())
-                .reason(SessionTerminationReason.MANUAL)
+                .reason(SessionTerminationReason.SINGLE_LOGOUT)
                 .build();
         
         // Publish user creation event
