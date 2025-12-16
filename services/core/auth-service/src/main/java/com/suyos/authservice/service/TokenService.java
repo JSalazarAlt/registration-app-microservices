@@ -170,7 +170,7 @@ public class TokenService {
 
         // Build authentication response with new refresh and access tokens 
         // (refresh token rotation)
-        AuthenticationResponseDTO response = issueRefreshAndAccessTokens(refreshToken.getAccount(), null);
+        AuthenticationResponseDTO response = issueRefreshAndAccessTokens(refreshToken.getAccount(), refreshToken.getSessionId());
 
         // Return new refresh and access tokens
         return response;
