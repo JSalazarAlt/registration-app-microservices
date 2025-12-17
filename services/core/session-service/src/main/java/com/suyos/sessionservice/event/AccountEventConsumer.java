@@ -82,7 +82,7 @@ public class AccountEventConsumer {
         
         // Terminate all sessions for account
         try {
-            sessionService.terminateAllSessionsByAccountId(event);
+            sessionService.terminateAllSessions(event);
         } catch (Exception e) {
             log.error("event=global_session_termination_failed account_id={}", event.getAccountId(), e);
         }

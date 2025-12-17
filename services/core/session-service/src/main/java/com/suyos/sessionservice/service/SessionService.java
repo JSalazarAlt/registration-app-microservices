@@ -43,29 +43,29 @@ public class SessionService {
     private final ProcessedEventRepository processedEventRepository;
 
     // ----------------------------------------------------------------
-    // ADMIN
+    // LOOKUP
     // ----------------------------------------------------------------
 
     /**
-     * Terminates all sessions for an account by admin operation.
+     * Retrieves all sessions for an account.
      *
-     * @param accountId Account's ID to terminate all sessions
+     * @param accountId Account's ID to search sessions for
+     * @return List of active sessions
      */
-    @Transactional
-    public void terminateAllSessionsByAccountId(UUID accountId) {
-        // Log session termination attempt
-        log.info("event=global_session_termination_attempt account_id={}", accountId);
+    public List<SessionInfoDTO> findAllSessionsByAccount(UUID accountId) {
+        // Find all active sessions by account ID
+        List<SessionInfoDTO> sessions = sessionRepository.findAllActiveByAccountId(accountId)
+            .stream()
+            .map(sessionMapper::toSessionInfoDTO)
+            .toList();
 
-        // Terminate all active sessions by account ID
-        sessionRepository.terminateAllActiveByAccountId(accountId, SessionTerminationReason.REVOKED);
-
-        // Log global session termination success
-        log.info("event=sessions_globally_terminated account_id={}", accountId);
+        // Return list of active sessions
+        return sessions;
     }
 
-    // ----------------------------------------------------------
-    // SESSION MANAGEMENT
-    // ----------------------------------------------------------
+    // ----------------------------------------------------------------
+    // CREATION
+    // ----------------------------------------------------------------
 
     /**
      * Creates a new active session.
@@ -105,26 +105,45 @@ public class SessionService {
         return sessionInfo;
     }
 
-    /**
-     * Retrieves all sessions for an account.
-     *
-     * @param accountId Account's ID to search sessions for
-     * @return List of active sessions
-     */
-    public List<SessionInfoDTO> findAllSessionsByAccount(UUID accountId) {
-        // Find all active sessions by account ID
-        List<SessionInfoDTO> sessions = sessionRepository.findAllActiveByAccountId(accountId)
-            .stream()
-            .map(sessionMapper::toSessionInfoDTO)
-            .toList();
+    // ----------------------------------------------------------------
+    // TERMINATION
+    // ----------------------------------------------------------------
 
-        // Return list of active sessions
-        return sessions;
+    /**
+     * Terminates a session by ID for a user request.
+     * 
+     * @param event Account ID associated with the session and termination reason
+     */
+    @Transactional
+    public void terminateSessionById(UUID id) {
+        // Log session termination attempt
+        log.info("event=session_termination_attempt id={}", id);
+
+        // Look up session by account ID
+        Session session = sessionRepository.findById(id)
+                .orElseThrow(() -> new SessionNotFoundException("id=" + id));
+
+        // Ensure sesion is active
+        if (!session.getActive()) {
+            return;
+        }
+
+        // Terminate session
+        session.setActive(false);
+        session.setTerminationReason(SessionTerminationReason.REVOKED);
+        session.setTerminatedAt(Instant.now());
+
+        // Persist terminated session
+        Session terminatedSession = sessionRepository.save(session);
+
+        // Log session termination success
+        log.info("event=session_terminated id={} account_id={} termination_reason={}", 
+            terminatedSession.getAccountId(), terminatedSession.getId(), SessionTerminationReason.REVOKED);
     }
 
     /**
-     * Terminates a specific session.
-     *
+     * Terminates a session by ID for a user request.
+     * 
      * @param event Account ID associated with the session and termination reason
      */
     @Transactional
@@ -155,23 +174,42 @@ public class SessionService {
 
         // Terminate session
         session.setActive(false);
-        session.setTerminationReason(event.getReason());
+        session.setTerminationReason(event.getTerminationReason());
         session.setTerminatedAt(Instant.now());
 
         // Persist terminated session
         Session terminatedSession = sessionRepository.save(session);
 
         // Log session termination success
-        log.info("event=session_terminated id={} account_id={}", terminatedSession.getAccountId(), terminatedSession.getId());
+        log.info("event=session_terminated id={} account_id={} termination_reason={}", 
+            terminatedSession.getAccountId(), terminatedSession.getId(), event.getTerminationReason());
     }
 
     /**
-     * Terminates all sessions for an account by user request.
+     * Terminates all sessions by account's ID for an admin request.
      *
      * @param accountId Account's ID to terminate all sessions
      */
     @Transactional
-    public void terminateAllSessionsByAccountId(GlobalSessionTerminationEvent event) {
+    public void terminateAllSessionsByAccountId(UUID accountId) {
+        // Log session termination attempt
+        log.info("event=global_session_termination_attempt account_id={}", accountId);
+
+        // Terminate all active sessions by account ID
+        sessionRepository.terminateAllActiveByAccountId(accountId, SessionTerminationReason.REVOKED);
+
+        // Log global session termination success
+        log.info("event=sessions_globally_terminated account_id={} termination_reason={}",
+            accountId, SessionTerminationReason.REVOKED);
+    }
+
+    /**
+     * Terminates all sessions by account's ID for a user request.
+     *
+     * @param accountId Account's ID to terminate all sessions
+     */
+    @Transactional
+    public void terminateAllSessions(GlobalSessionTerminationEvent event) {
         // Log session termination attempt
         log.info("event=global_session_termination_attempt account_id={}", event.getAccountId());
 
@@ -188,10 +226,11 @@ public class SessionService {
         processedEventRepository.save(newEvent);
 
         // Terminate all active sessions by account ID
-        sessionRepository.terminateAllActiveByAccountId(event.getAccountId(), event.getReason());
+        sessionRepository.terminateAllActiveByAccountId(event.getAccountId(), event.getTerminationReason());
 
         // Log global session termination success
-        log.info("event=sessions_globally_terminated account_id={}", event.getAccountId());
+        log.info("event=sessions_globally_terminated account_id={} termination_reason={}",
+            event.getAccountId(), event.getTerminationReason());
     }
 
     // ----------------------------------------------------------

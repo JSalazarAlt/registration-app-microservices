@@ -2,7 +2,6 @@ package com.suyos.sessionservice.repository;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,16 +21,12 @@ import com.suyos.sessionservice.model.Session;
  */
 public interface SessionRepository extends JpaRepository<Session, UUID> {
 
-    /**
-     * Finds a session for an account.
-     * 
-     * @param accountId Account ID linked to the session
-     * @return Optional containing session if found, empty otherwise
-     */
-    Optional<Session> findByAccountId(UUID accountId);
+    // ----------------------------------------------------------------
+    // LOOKUP
+    // ----------------------------------------------------------------
 
     /**
-     * Finds all sessions for an account.
+     * Finds all sessions by account's ID.
      * 
      * @param accountId Account ID to search for
      * @return List of sessions associated with the account
@@ -43,7 +38,7 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     List<Session> findAllByAccountId(UUID accountId);
 
     /**
-     * Finds all active sessions for an account.
+     * Finds all active sessions by account's ID.
      * 
      * @param accountId Account ID linked to active sessions
      * @return List of active sessions associated with the account
@@ -55,8 +50,12 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     """)
     List<Session> findAllActiveByAccountId(UUID accountId);
 
+    // ----------------------------------------------------------------
+    // TERMINATION
+    // ----------------------------------------------------------------
+
     /**
-     * Terminates all active sessions for an account.
+     * Terminates all active sessions by account's ID.
      * 
      * @param accountId Account linked to the session to terminate
      */
@@ -69,8 +68,12 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     """)
     void terminateAllActiveByAccountId(UUID accountId, SessionTerminationReason reason);
 
+    // ----------------------------------------------------------------
+    // DELETION
+    // ----------------------------------------------------------------
+    
     /**
-     * Deletes all sessions for an account.
+     * Deletes all sessions for an account by account's ID.
      * 
      * @param accountId Account ID to delete sessions for
      */
@@ -82,7 +85,7 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     void deleteAllByAccountId(UUID accountId);
 
     /**
-     * Deletes expired sessions.
+     * Deletes all expired sessions by account's ID.
      * 
      * @param now Current timestamp
      */
