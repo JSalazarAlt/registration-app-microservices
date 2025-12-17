@@ -136,7 +136,7 @@ public class SessionService {
 
         // Terminate session
         session.setActive(false);
-        session.setTerminationReason(SessionTerminationReason.REVOKED);
+        session.setTerminationReason(SessionTerminationReason.ADMIN_TERMINATED);
         session.setTerminatedAt(Instant.now());
 
         // Persist terminated session
@@ -144,7 +144,7 @@ public class SessionService {
 
         // Log session termination success
         log.info("event=session_terminated id={} account_id={} termination_reason={}", 
-            terminatedSession.getAccountId(), terminatedSession.getId(), SessionTerminationReason.REVOKED);
+            terminatedSession.getAccountId(), terminatedSession.getId(), SessionTerminationReason.ADMIN_TERMINATED);
     }
 
     /**
@@ -202,11 +202,11 @@ public class SessionService {
         log.info("event=global_session_termination_attempt account_id={}", accountId);
 
         // Terminate all active sessions by account ID
-        sessionRepository.terminateAllActiveByAccountId(accountId, SessionTerminationReason.REVOKED);
+        sessionRepository.terminateAllActiveByAccountId(accountId, SessionTerminationReason.ADMIN_TERMINATED);
 
         // Log global session termination success
         log.info("event=sessions_globally_terminated account_id={} termination_reason={}",
-            accountId, SessionTerminationReason.REVOKED);
+            accountId, SessionTerminationReason.ADMIN_TERMINATED);
     }
 
     /**
