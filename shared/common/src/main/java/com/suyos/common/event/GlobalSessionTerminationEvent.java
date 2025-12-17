@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SessionTerminationEvent {
+public class GlobalSessionTerminationEvent {
 
     // ----------------------------------------------------------------
     // EVENT METADATA
@@ -29,9 +29,6 @@ public class SessionTerminationEvent {
     // ----------------------------------------------------------------
     // SESSION'S INFORMATION
     // ----------------------------------------------------------------
-
-    /** Unique identifier of session to be terminated */
-    private UUID sessionId;
 
     /** Unique identifier linking to account */
     private UUID accountId;
