@@ -25,6 +25,7 @@ public interface SessionMapper {
      */
     @Mapping(target = "id", source = "sessionId")
     @Mapping(target = "active", ignore = true)
+    @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "terminationReason", ignore = true)
     @Mapping(target = "terminatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

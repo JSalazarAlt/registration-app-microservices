@@ -65,6 +65,10 @@ public class Session {
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
+    /** Timestamp when session expires */
+    @Column(name = "expires_at", nullable = false)
+    private Instant expiresAt;
+
     /** Reason for session termination */
     @Enumerated(EnumType.STRING)
     @Column(name = "termination_reason")

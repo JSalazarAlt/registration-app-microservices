@@ -42,6 +42,9 @@ public class SessionService {
     /** Repository for processed event data access operations */
     private final ProcessedEventRepository processedEventRepository;
 
+    /** Session lifetime in days */
+    private static final Long SESSION_LIFETIME_DAYS = 30L;
+
     // ----------------------------------------------------------------
     // LOOKUP
     // ----------------------------------------------------------------
@@ -91,6 +94,9 @@ public class SessionService {
 
         // Map session from session's information
         Session session = sessionMapper.toEntity(event);
+
+        // Set session expiration time
+        session.setExpiresAt(Instant.now().plusSeconds(SESSION_LIFETIME_DAYS * 24 * 3600));
         
         // Persist created session
         Session createdSession = sessionRepository.save(session);
