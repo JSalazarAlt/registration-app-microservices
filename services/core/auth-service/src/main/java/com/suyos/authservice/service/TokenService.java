@@ -37,6 +37,9 @@ public class TokenService {
     /** Service for JWT token management */
     private final JwtService jwtService;
 
+    /** Refresh token lifetime in days */
+    private static final Long REFRESH_TOKEN_LIFETIME_DAYS = 30L;
+
     // ----------------------------------------------------------------
     // LOOKUP
     // ----------------------------------------------------------------
@@ -131,7 +134,7 @@ public class TokenService {
         refreshToken.setType(TokenType.REFRESH);
         refreshToken.setAccount(account);
         refreshToken.setIssuedAt(Instant.now());
-        refreshToken.setExpiresAt(Instant.now().plusSeconds(30 * 24 * 3600));
+        refreshToken.setExpiresAt(Instant.now().plusSeconds(REFRESH_TOKEN_LIFETIME_DAYS * 24 * 3600));
 
         // Set session ID if exists
         if (sessionId != null) {
