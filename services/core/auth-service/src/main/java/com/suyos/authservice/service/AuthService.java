@@ -469,7 +469,7 @@ public class AuthService {
                 .occurredAt(eventTimestamp)
                 .sessionId(sessionId)
                 .accountId(account.getId())
-                .reason(SessionTerminationReason.SINGLE_LOGOUT)
+                .terminationReason(SessionTerminationReason.SINGLE_LOGOUT)
                 .build();
         
         // Publish session termination event
@@ -522,7 +522,7 @@ public class AuthService {
                 .id(eventId)
                 .occurredAt(eventTimestamp)
                 .accountId(account.getId())
-                .reason(SessionTerminationReason.GLOBAL_LOGOUT)
+                .terminationReason(SessionTerminationReason.GLOBAL_LOGOUT)
                 .build();
         
         // Publish global session termination event
