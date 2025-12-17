@@ -22,8 +22,11 @@ public enum SessionTerminationReason {
     /** Session invalidated after password change */
     PASSWORD_CHANGED("Session invalidated after password change"),
 
-    /** Session removed because account was deleted */
-    ACCOUNT_DELETED("Session removed because account was deleted");
+    /** Session removed due to account soft-deletion */
+    ACCOUNT_SOFT_DELETED("Session removed because account was soft-deleted"),
+
+    /** Session terminated by admin */
+    ADMIN_TERMINATED("Session terminated by administrator");
 
     /** Description of termination reason */
     private final String description;
