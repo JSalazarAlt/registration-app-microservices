@@ -16,43 +16,38 @@ import lombok.Getter;
 public enum ErrorCode {
 
     // ----------------------------------------------------------------
-    //  ACCOUNT / USER STATE ERRORS
+    //  ACCOUNT MICROSERVICE ERRORS
     // ----------------------------------------------------------------
 
-    /** Account resource does not exist */
-    ACCOUNT_NOT_FOUND("Account not found"),
-
-    /** Account is temporarily locked */
-    ACCOUNT_LOCKED("Account is temporarily locked"),
-
-    /** Account has been disabled by administrator */
-    ACCOUNT_DISABLED("Account has been disabled"),
+    // ACCOUNT STATUS ERRORS
 
     /** Account has been deleted */
     ACCOUNT_DELETED("Account has been deleted"),
 
-    /** User resource does not exist */
-    USER_NOT_FOUND("User not found"),
+    /** Account has been disabled by administrator */
+    ACCOUNT_DISABLED("Account has been disabled"),
 
-    /** Account email has not been verified yet */
-    EMAIL_NOT_VERIFIED("Email address has not been verified"),
+    /** Account is temporarily locked */
+    ACCOUNT_LOCKED("Account is temporarily locked"),
 
-    /** Email already verified */
-    EMAIL_ALREADY_VERIFIED("Email is already verified"),
+    /** Account resource does not exist */
+    ACCOUNT_NOT_FOUND("Account not found"),
 
-    // ----------------------------------------------------------------
-    //  UNIQUE CONSTRAINT ERRORS
-    // ----------------------------------------------------------------
+    // EMAIL AND USERNAME ERRORS
 
     /** Provided email is already registered in the system */
     EMAIL_ALREADY_REGISTERED("Email is already registered"),
 
+    /** Email already verified */
+    EMAIL_ALREADY_VERIFIED("Email is already verified"),
+
+    /** Account email has not been verified yet */
+    EMAIL_NOT_VERIFIED("Email address has not been verified"),
+
     /** Username is already taken by another account */
     USERNAME_ALREADY_TAKEN("Username is already taken"),
 
-    // ----------------------------------------------------------------
-    //  AUTHENTICATION ERRORS
-    // ----------------------------------------------------------------
+    // TOKEN AND SECURITY ERRORS
 
     /** Authentication failed due to invalid credentials (email/username/password) */
     INVALID_CREDENTIALS("Invalid email or password"),
@@ -60,46 +55,16 @@ public enum ErrorCode {
     /** Password is incorrect */
     INVALID_PASSWORD("Invalid password"),
 
-    /** Password does not meet minimum security requirements */
-    WEAK_PASSWORD("Password does not meet security requirements"),
-
-    /** Password and confirmation password do not match */
-    PASSWORD_MISMATCH("Passwords do not match"),
-
-    // ----------------------------------------------------------------
-    //  TOKEN AND SECURITY ERRORS
-    // ----------------------------------------------------------------
-
-    /** Token resource does not exist */
-    TOKEN_NOT_FOUND("Token not found"),
+    /** Provided refresh token is invalid */
+    INVALID_REFRESH_TOKEN("Invalid refresh token"),
 
     /** Provided token is invalid (malformed or signature mismatch) */
     INVALID_TOKEN("Invalid authentication token"),
 
-    /** Provided refresh token is invalid */
-    INVALID_REFRESH_TOKEN("Invalid refresh token"),
+    /** Token resource does not exist */
+    TOKEN_NOT_FOUND("Token not found"),
 
-    /** Invalid email verification token */
-    INVALID_EMAIL_VERIFICATION_TOKEN("Invalid email verification token"),
-
-    /** Invalid password token */
-    INVALID_PASSWORD_TOKEN("Invalid password token"),
-
-    /** Provided token has expired */
-    TOKEN_EXPIRED("Authentication token has expired"),
-
-    /** Provided token has been revoked and is no longer valid */
-    TOKEN_REVOKED("Token has been revoked"),
-
-    /** Refresh token has expired */
-    REFRESH_TOKEN_EXPIRED("Refresh token has expired"),
-
-    /** Caller is not authorized to access the requested resource */
-    ACCESS_DENIED("Access denied"),
-
-    // ----------------------------------------------------------------
-    //  OAUTH2 ERRORS
-    // ----------------------------------------------------------------
+    // OAUTH2 ERRORS
 
     /** OAuth2 authentication process failed */
     OAUTH2_AUTHENTICATION_FAILED("OAuth2 authentication failed"),
@@ -107,9 +72,36 @@ public enum ErrorCode {
     /** OAuth2 provider returned an error */
     OAUTH2_PROVIDER_ERROR("OAuth2 provider error"),
 
+    // PASSWORD ERRORS
+
+    /** Password and confirmation password do not match */
+    PASSWORD_MISMATCH("Passwords do not match"),
+
+    /** Password does not meet minimum security requirements */
+    WEAK_PASSWORD("Password does not meet security requirements"),
+
+    /** Duplicated request */
+    DUPLICATE_REQUEST("Duplicated request"),
+
+    // ----------------------------------------------------------------
+    //  USER MICROSERVICE ERRORS
+    // ----------------------------------------------------------------
+
+    /** User resource does not exist */
+    USER_NOT_FOUND("User not found"),
+
+    // ----------------------------------------------------------------
+    //  SESSION MICROSERVICE ERRORS
+    // ----------------------------------------------------------------
+
+    SESSION_NOT_FOUND("Session not found"),
+
     // ----------------------------------------------------------------
     //  OPERATIONAL / BUSINESS LOGIC ERRORS
     // ----------------------------------------------------------------
+
+    /** Caller is not authorized to access the requested resource */
+    ACCESS_DENIED("Access denied"),
 
     /** Requested operation is not allowed for this resource */
     OPERATION_NOT_ALLOWED("Operation not allowed"),
@@ -129,9 +121,6 @@ public enum ErrorCode {
 
     /** Request payload or parameters failed validation checks */
     VALIDATION_ERROR("Validation error"),
-
-
-    SESSION_NOT_FOUND("Session not found"),
 
     // ----------------------------------------------------------------
     //  INTERNAL SERVER ERRORS
