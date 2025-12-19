@@ -43,7 +43,7 @@ public class SessionService {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves all sessions for an account.
+     * Retrieves all sessions by account ID.
      *
      * @param accountId Account's ID to search sessions for
      * @return List of active sessions
@@ -66,7 +66,7 @@ public class SessionService {
     /**
      * Creates a new active session.
      *
-     * @param event Account's ID associated with the session and session's information
+     * @param request Account's ID associated with the session and session's information
      * @return Created session's information
      */
     public Session createSession(SessionCreationRequestDTO request) {
@@ -96,7 +96,9 @@ public class SessionService {
     /**
      * Terminates a session by ID for a user request.
      * 
-     * @param event Account ID associated with the session and termination reason
+     * @param id Session's ID to terminate
+     * @param accountId Account's ID associated with the session
+     * @param terminationReason Termination reason
      */
     @Transactional
     public void terminateSessionById(UUID id, UUID accountId, SessionTerminationReason terminationReason) {
@@ -129,6 +131,7 @@ public class SessionService {
      * Terminates all sessions by account's ID for an admin request.
      *
      * @param accountId Account's ID to terminate all sessions
+     * @param terminationReason Termination reason
      */
     @Transactional
     public void terminateAllSessionsByAccountId(UUID accountId, SessionTerminationReason terminationReason) {

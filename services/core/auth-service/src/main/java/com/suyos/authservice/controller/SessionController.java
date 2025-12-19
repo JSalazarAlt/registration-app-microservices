@@ -25,10 +25,10 @@ import lombok.RequiredArgsConstructor;
 /**
  * REST controller for session management operations.
  * 
- * <p>Handles.</p>
+ * <p>Handles session retrieval endpoints.</p>
  */
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/sessions")
 @RequiredArgsConstructor
 @Tag(
     name = "Authentication Management", 
@@ -65,7 +65,7 @@ public class SessionController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    @GetMapping("/sessions/{accountId}")
+    @GetMapping("/account/{accountId}")
     public ResponseEntity<List<SessionInfoDTO>> getAllSessionsByAccountId(@PathVariable UUID accountId) {
         return ResponseEntity.ok(sessionService.findAllSessionsByAccountId(accountId));
     }
@@ -95,7 +95,7 @@ public class SessionController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    @GetMapping("/me/sessions")
+    @GetMapping("/me")
     public ResponseEntity<List<SessionInfoDTO>> getAuthenticatedAccountSessions(@AuthenticationPrincipal Jwt jwt) {
         // Extract authenticated account ID from JWT token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());

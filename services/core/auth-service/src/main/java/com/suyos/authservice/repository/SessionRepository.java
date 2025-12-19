@@ -14,8 +14,8 @@ import com.suyos.authservice.model.Session;
 /**
  * Repository interface for Session entity data access operations.
  * 
- * <p>Handles session storage, validation, and cleanup operations for user
- * session management.</p>
+ * <p>Provides standard CRUD operations for session entities. Handles session
+ * termination and cleanup operations.</p>
  * 
  * @author Joel Salazar
  */
