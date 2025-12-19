@@ -128,7 +128,7 @@ class AuthControllerTest {
     @Test
     void registerAccount_Success() throws Exception {
         // Mock service to return account info
-        when(authService.createAccount(any())).thenReturn(accountInfoDTO);
+        when(authService.createAccount(any(), "idempotency-key")).thenReturn(accountInfoDTO);
 
         // Perform registration request
         mockMvc.perform(post("/api/v1/auth/register")
@@ -139,7 +139,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.email").value("test@example.com"));
         
         // Verify service was called
-        verify(authService).createAccount(any());
+        verify(authService).createAccount(any(), "idempotency-key");
     }
 
     /**
@@ -244,7 +244,7 @@ class AuthControllerTest {
      */
     @Test
     void registerAccount_EmailAlreadyExists() throws Exception {
-        when(authService.createAccount(any()))
+        when(authService.createAccount(any(), "idempotency-key"))
                 .thenThrow(new RuntimeException("Email already registered"));
 
         mockMvc.perform(post("/api/v1/auth/register")

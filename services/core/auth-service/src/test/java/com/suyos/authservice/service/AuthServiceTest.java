@@ -128,7 +128,7 @@ class AuthServiceTest {
                 .build()
         );
 
-        AccountInfoDTO result = authService.createAccount(registrationDTO);
+        AccountInfoDTO result = authService.createAccount(registrationDTO, "idempotency-key");
 
         assertNotNull(result);
         assertEquals(testAccount.getUsername(), result.getUsername());
@@ -147,7 +147,7 @@ class AuthServiceTest {
         when(accountRepository.existsByEmail(anyString())).thenReturn(true);
 
         assertThrows(RuntimeException.class, 
-            () -> authService.createAccount(registrationDTO));
+            () -> authService.createAccount(registrationDTO, "idempotency-key"));
         verify(accountRepository, never()).save(any());
     }
 
@@ -268,7 +268,7 @@ class AuthServiceTest {
         when(accountRepository.existsByUsername(anyString())).thenReturn(true);
 
         assertThrows(RuntimeException.class,
-            () -> authService.createAccount(registrationDTO));
+            () -> authService.createAccount(registrationDTO, "idempotency-key"));
 
         verify(accountRepository, never()).save(any());
     }
@@ -387,7 +387,7 @@ class AuthServiceTest {
                 .build()
         );
 
-        authService.createAccount(registrationDTO);
+        authService.createAccount(registrationDTO, "idempotency-key");
 
         verify(passwordEncoder).encode("password123");
         verify(accountRepository).save(argThat(account -> 

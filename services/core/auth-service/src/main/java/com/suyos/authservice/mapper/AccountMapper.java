@@ -52,7 +52,8 @@ public interface AccountMapper {
      * {@link AccountUpdateRequestDTO}.
      * 
      * @param request Account's update data
-     * @param account Updated account entity
+     * @param account Account entity to be updated
+     * @return Updated account entity
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)

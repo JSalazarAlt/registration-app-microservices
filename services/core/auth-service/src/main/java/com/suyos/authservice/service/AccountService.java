@@ -23,8 +23,6 @@ import com.suyos.authservice.repository.AccountRepository;
 import com.suyos.common.dto.response.PagedResponseDTO;
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
-import com.suyos.common.event.GlobalSessionTerminationEvent;
-import com.suyos.common.model.SessionTerminationReason;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -294,21 +292,6 @@ public class AccountService {
         
         // Log account soft-deletion success
         log.info("event=account_soft_deleted account_id={}", softDeletedAccount.getId());
-
-        // Generate random UUID and timestamp for session termination event
-        String eventId = UUID.randomUUID().toString();
-        Instant eventTimestamp = Instant.now();
-
-        // Build global session termination event
-        GlobalSessionTerminationEvent event = GlobalSessionTerminationEvent.builder()
-                .id(eventId)
-                .occurredAt(eventTimestamp)
-                .accountId(softDeletedAccount.getId())
-                .terminationReason(SessionTerminationReason.ACCOUNT_SOFT_DELETED)
-                .build();
-        
-        // Publish global session termination event
-        accountEventProducer.publishGlobalSessionTermination(event);
 
         // Return soft-deleted account's information
         return accountInfoDTO;

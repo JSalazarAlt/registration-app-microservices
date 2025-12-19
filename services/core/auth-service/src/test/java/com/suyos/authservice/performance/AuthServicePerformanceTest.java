@@ -189,7 +189,7 @@ class AuthServicePerformanceTest {
                                 .password("Password123!")
                                 .build();
                         
-                        authService.createAccount(request);
+                        authService.createAccount(request, "idempotency-key");
                         successCount.incrementAndGet();
                     } catch (Exception e) {
                         // Ignore

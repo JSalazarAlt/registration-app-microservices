@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -79,9 +80,12 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> registerAccount(@Valid @RequestBody RegistrationRequestDTO request) {
+    public ResponseEntity<AccountInfoDTO> registerAccount(
+        @Valid @RequestBody RegistrationRequestDTO request,
+        @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
+    ) {
         // Create new account using registration data
-        AccountInfoDTO accountInfo = authService.createAccount(request);
+        AccountInfoDTO accountInfo = authService.createAccount(request, idempotencyKey);
         
         // Return created account's information with "201 Created" status
         return ResponseEntity.status(HttpStatus.CREATED).body(accountInfo);
@@ -171,7 +175,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(
         summary = "Logout account",
-        description = "Deauthenticates an account and revokes refresh and access tokens",
+        description = "Deauthenticates an account from a single session and revokes refresh and access tokens",
         responses = {
             @ApiResponse(responseCode = "204", description = "Logout successful"),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
@@ -193,10 +197,10 @@ public class AuthController {
      * @param request Refresh token value linked to account
      * @return logout response with "204 No Content" status
      */
-    @PostMapping("/logout")
+    @PostMapping("/global-logout")
     @Operation(
-        summary = "Logout account",
-        description = "Deauthenticates an account and revokes refresh and access tokens",
+        summary = "Globally logout account",
+        description = "Deauthenticates an account from all sessions and revokes all refresh and access tokens",
         responses = {
             @ApiResponse(responseCode = "204", description = "Logout successful"),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
@@ -304,7 +308,7 @@ public class AuthController {
         // Return message of verification link sent with "200 OK" status
         return ResponseEntity.ok(response);
     }
-
+    
     // ----------------------------------------------------------------
     // PASSWORD MANAGEMENT
     // ----------------------------------------------------------------

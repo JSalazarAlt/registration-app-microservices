@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.suyos.authservice.dto.internal.SessionCreationRequestDTO;
 import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RegistrationRequestDTO;
 import com.suyos.authservice.dto.request.EmailResendRequestDTO;
@@ -21,6 +22,7 @@ import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.exception.exceptions.AccountDeletedException;
 import com.suyos.authservice.exception.exceptions.AccountDisabledException;
 import com.suyos.authservice.exception.exceptions.AccountLockedException;
+import com.suyos.authservice.exception.exceptions.DuplicateRequestException;
 import com.suyos.authservice.exception.exceptions.EmailNotVerifiedException;
 import com.suyos.authservice.exception.exceptions.EmailAlreadyRegisteredException;
 import com.suyos.authservice.exception.exceptions.EmailAlreadyVerifiedException;
@@ -32,14 +34,12 @@ import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.Role;
+import com.suyos.authservice.model.Session;
+import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
-import com.suyos.common.event.GlobalSessionTerminationEvent;
-import com.suyos.common.event.SessionCreationEvent;
-import com.suyos.common.event.SessionTerminationEvent;
 import com.suyos.common.event.UserCreationEvent;
-import com.suyos.common.model.SessionTerminationReason;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -71,8 +71,14 @@ public class AuthService {
     /** Service for token management */
     private final TokenService tokenService;
 
+    /** Service for session management */
+    private final SessionService sessionService;
+
     /** Service for handling failed login attempts and account locking */
     private final LoginAttemptService loginAttemptService;
+
+    /** Service for handling duplicate requests using idempotency keys */
+    private final IdempotencyService idempotencyService;
     
     /** Password encoder for secure password hashing */
     private final PasswordEncoder passwordEncoder;
@@ -96,9 +102,17 @@ public class AuthService {
      * @throws UsernameAlreadyTakenException If username is already in use
      * @throws EmailAlreadyRegisteredException If email is already registered
      */
-    public AccountInfoDTO createAccount(RegistrationRequestDTO request) {
+    public AccountInfoDTO createAccount(RegistrationRequestDTO request, String idempotencyKey) {
         // Log account creation attempt
         log.info("event=account_creation_attempt email={}", request.getEmail());
+
+        // Check idempotency in Redis
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            boolean allowed = idempotencyService.checkAndLock(idempotencyKey, Duration.ofMinutes(10));
+            if (!allowed) {
+                throw new DuplicateRequestException();
+            }
+        }
 
         // Check if username is already taken
         if (accountRepository.existsByUsername(request.getUsername())) {
@@ -150,6 +164,11 @@ public class AuthService {
 
         // Map account's information from created account
         AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(createdAccount);
+
+        // Mark idempotency key as complete in Redis
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            idempotencyService.markComplete(idempotencyKey, accountInfo.toString(), Duration.ofMinutes(10));
+        }
     
         // Return created account's information
         return accountInfo;
@@ -159,9 +178,8 @@ public class AuthService {
      * Authenticates an account using traditional credentials.
      * 
      * <p>Verifies an account using login credentials if enabled, verified,
-     * and not locked. Updates login tracking fields and issues new refresh
-     * and access tokens on successful authentication. Publishes an event, so
-     * the Session microservice creates a session linked to the account.</p>
+     * and not locked. Updates login tracking fields, creates a new session,
+     * and issues refresh and access tokens on successful authentication.</p>
      * 
      * @param request Account's credentials
      * @return Refresh and access tokens
@@ -233,32 +251,26 @@ public class AuthService {
         // Log account authentication success
         log.info("event=account_authenticated account_id={}", updatedAccount.getId());
 
-        // Generate random UUID and timestamp for session creation event
-        String eventId = UUID.randomUUID().toString();
-        Instant eventTimestamp = Instant.now();
-
-        // Generate new session ID
-        UUID sessionId = UUID.randomUUID();
-
         // Extract IP address and user agent
         String ipAddress = extractClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        // Build session creation event
-        SessionCreationEvent event = SessionCreationEvent.builder()
-                .id(eventId)
-                .occurredAt(eventTimestamp)
-                .sessionId(sessionId)
+        // Build session creation request
+        SessionCreationRequestDTO session = SessionCreationRequestDTO.builder()
                 .accountId(account.getId())
+                .expiresAt(null)
                 .userAgent(userAgent)
                 .deviceName(request.getDeviceName())
                 .ipAddress(ipAddress)
                 .lastIpAddress(ipAddress)
                 .build();
         
-        // Publish session creation event
-        accountEventProducer.publishSessionCreation(event);
-        
+        // Create a new session
+        Session createdSession = sessionService.createSession(session);
+
+        // Retreve ID of newly created session to issue tokens
+        UUID sessionId = createdSession.getId();
+
         // Issue refresh and access tokens on successful login
         AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(updatedAccount, sessionId);
 
@@ -382,31 +394,25 @@ public class AuthService {
         // Log account authentication success
         log.info("event=oauth2_account_authenticated account_id={}", savedAccount.getId());
 
-        // Generate random UUID and timestamp for session creation event
-        String eventId = UUID.randomUUID().toString();
-        Instant eventTimestamp = Instant.now();
-
-        // Generate new session ID
-        UUID sessionId = UUID.randomUUID();
-
         // Extract IP address and user agent
         String ipAddress = extractClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        // Build session creation event
-        SessionCreationEvent event = SessionCreationEvent.builder()
-                .id(eventId)
-                .occurredAt(eventTimestamp)
-                .sessionId(sessionId)
+        // Build session creation request
+        SessionCreationRequestDTO session = SessionCreationRequestDTO.builder()
                 .accountId(account.getId())
+                .expiresAt(null)
                 .userAgent(userAgent)
                 .deviceName(request.getDeviceName())
                 .ipAddress(ipAddress)
                 .lastIpAddress(ipAddress)
                 .build();
         
-        // Publish user creation event
-        accountEventProducer.publishSessionCreation(event);
+        // Create a new session
+        Session createdSession = sessionService.createSession(session);
+
+        // Retreve ID of newly created session to issue tokens
+        UUID sessionId = createdSession.getId();
 
         // Issue refresh and access tokens for successful Google OAuth2 login
         AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(savedAccount, sessionId);
@@ -459,21 +465,11 @@ public class AuthService {
         // Retrieve session's ID
         UUID sessionId = refreshToken.getSessionId();
 
-        // Generate random UUID and timestamp for session termination event
-        String eventId = UUID.randomUUID().toString();
-        Instant eventTimestamp = Instant.now();
+        // Define session termination reason
+        SessionTerminationReason terminationReason = SessionTerminationReason.SINGLE_LOGOUT;
 
-        // Build session termination event
-        SessionTerminationEvent event = SessionTerminationEvent.builder()
-                .id(eventId)
-                .occurredAt(eventTimestamp)
-                .sessionId(sessionId)
-                .accountId(account.getId())
-                .terminationReason(SessionTerminationReason.SINGLE_LOGOUT)
-                .build();
-        
-        // Publish session termination event
-        accountEventProducer.publishSessionTermination(event);
+        // Terminate the associated session
+        sessionService.terminateSessionById(sessionId, account.getId(), terminationReason);
     }
 
     /**
@@ -513,20 +509,11 @@ public class AuthService {
         // Log account deauthentication success
         log.info("event=account_globally_deauthenticated account_id={}", account.getId());
 
-        // Generate random UUID and timestamp for session termination event
-        String eventId = UUID.randomUUID().toString();
-        Instant eventTimestamp = Instant.now();
+        // Define session termination reason
+        SessionTerminationReason terminationReason = SessionTerminationReason.GLOBAL_LOGOUT;
 
-        // Build global session termination event
-        GlobalSessionTerminationEvent event = GlobalSessionTerminationEvent.builder()
-                .id(eventId)
-                .occurredAt(eventTimestamp)
-                .accountId(account.getId())
-                .terminationReason(SessionTerminationReason.GLOBAL_LOGOUT)
-                .build();
-        
-        // Publish global session termination event
-        accountEventProducer.publishGlobalSessionTermination(event);
+        // Terminate the associated session
+        sessionService.terminateAllSessionsByAccountId(account.getId(), terminationReason);
     }
 
     // ----------------------------------------------------------------
@@ -638,6 +625,8 @@ public class AuthService {
         if (xForwardedFor != null && !xForwardedFor.isBlank()) {
             return xForwardedFor.split(",")[0].trim();
         }
+
+        // Return request's IP address
         return request.getRemoteAddr();
     }
 
