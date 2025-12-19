@@ -62,11 +62,11 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     @Modifying
     @Query("""
         UPDATE Session s 
-        SET s.active = false, s.terminationReason =: reason, s.terminatedAt = CURRENT_TIMESTAMP
+        SET s.active = false, s.terminationReason = :terminationReason, s.terminatedAt = CURRENT_TIMESTAMP
         WHERE s.accountId = :accountId
         AND s.active = true
     """)
-    void terminateAllActiveByAccountId(UUID accountId, SessionTerminationReason reason);
+    void terminateAllActiveByAccountId(UUID accountId, SessionTerminationReason terminationReason);
 
     // ----------------------------------------------------------------
     // DELETION
@@ -93,7 +93,7 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     @Query("""
         DELETE FROM Session s 
         WHERE s.active = false
-        AND s.terminatedAt <: cutoffDate  
+        AND s.terminatedAt < :cutoffDate  
     """)
     void deleteAllInactive(Instant cutoffDate);
     
