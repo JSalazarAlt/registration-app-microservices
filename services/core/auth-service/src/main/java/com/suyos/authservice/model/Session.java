@@ -57,7 +57,7 @@ public class Session {
     private UUID accountId;
 
     // ----------------------------------------------------------------
-    // SECURITY STATE
+    // STATE
     // ----------------------------------------------------------------
 
     /** Flag indicating if session is active */

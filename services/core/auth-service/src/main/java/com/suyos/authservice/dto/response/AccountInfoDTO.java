@@ -9,7 +9,7 @@ import lombok.Getter;
 /**
  * Data Transfer Object for basic account information.
  *
- * <p>Contains basic account's information.</p>
+ * <p>Contains account's ID, username, email, and some flags.</p>
  */
 @Getter
 @AllArgsConstructor

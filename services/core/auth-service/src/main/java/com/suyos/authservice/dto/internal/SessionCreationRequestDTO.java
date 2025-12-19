@@ -8,6 +8,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO for session creation requests.
+ * 
+ * <p>Contains sessions's device and network information and account's ID
+ * linked to session.</p>
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +28,7 @@ public class SessionCreationRequestDTO {
     private UUID accountId;
 
     // ----------------------------------------------------------------
-    // SESSION'S INFORMATION
+    // DEVICE & NETWORK
     // ----------------------------------------------------------------
 
     /** Timestamp when session expires */

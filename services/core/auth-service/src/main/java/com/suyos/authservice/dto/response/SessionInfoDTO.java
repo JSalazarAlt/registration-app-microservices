@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 /**
  * DTO for session information.
  * 
- * @author Joel Salazar
+ * <p>Contains sessions's state, device and network information.</p>
  */
 @Data
 @NoArgsConstructor
@@ -32,7 +32,7 @@ public class SessionInfoDTO {
     private UUID accountId;
 
     // ----------------------------------------------------------------
-    // SECURITY STATE
+    // STATE
     // ----------------------------------------------------------------
 
     /** Flag indicating if session is active */
