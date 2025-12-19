@@ -1,0 +1,100 @@
+{
+	"info": {
+		"_postman_id": "d7090fc9-6672-4970-bc21-851d5932738c",
+		"name": "Registration App - User Service - Admin",
+		"description": "Collection of endpoints to test the User microservice of the Registration App with an account with role USER. It should be used with the \"Registration App - Microservices\" environment.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45824170",
+		"_collection_link": "https://joelsalazar-637845.postman.co/workspace/c641ebbe-98ba-4bb6-8ed9-ce33a53d5ea5/collection/45824170-d7090fc9-6672-4970-bc21-851d5932738c?action=share&source=collection_link&creator=45824170"
+	},
+	"item": [
+		{
+			"name": "1.1 Get Authenticated User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{user_url}}/api/v1/users/me",
+					"host": [
+						"{{user_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1.2 Get All Users",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{user_url}}/api/v1/users",
+					"host": [
+						"{{user_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2 Update Authenticated User",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Admin\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url}}/api/v1/users/me",
+					"host": [
+						"{{user_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"me"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
