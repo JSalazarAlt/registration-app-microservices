@@ -18,7 +18,7 @@ export class UserController {
     @UseGuards(JwtAuthGuard)
     @Put('me')
     async updateAuthenticatedUser(
-        @Req() req,
+        @Req() req: Request,
         @Body() updateData: UserUpdateDTO
     ) {
         const token = req.headers['authorization'];
