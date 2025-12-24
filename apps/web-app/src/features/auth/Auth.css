@@ -1,0 +1,19 @@
+.auth {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 320px;
+    margin: 100px auto;
+}
+
+.auth input {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #000;
+}
+
+.auth button {
+    padding: 10px;
+}
