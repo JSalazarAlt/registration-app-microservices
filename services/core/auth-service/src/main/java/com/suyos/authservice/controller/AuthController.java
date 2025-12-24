@@ -39,7 +39,7 @@ import lombok.RequiredArgsConstructor;
  * authentication for the application.</p>
  */
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(
     name = "Authentication Management", 

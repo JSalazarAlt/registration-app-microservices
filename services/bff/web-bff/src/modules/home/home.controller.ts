@@ -3,7 +3,7 @@ import { HomeService } from './home.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guards';
 //import { UserUpdateDTO } from './dto/user-update.dto';
 
-@Controller('api/home')
+@Controller('api/v1/home')
 export class HomeController {
 
     constructor(private readonly homeService: HomeService) {}

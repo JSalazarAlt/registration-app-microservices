@@ -3,14 +3,14 @@ import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guards';
 import { UserUpdateDTO } from './dto/user-update.dto';
 
-@Controller('api/users')
+@Controller('api/v1/users')
 export class UserController {
 
     constructor(private readonly userService: UserService) {}
 
     @UseGuards(JwtAuthGuard)
     @Get('me')
-    async getAuthenticatedUser(@Req() req) {
+    async getAuthenticatedUser(@Req() req: Request) {
         const token = req.headers['authorization'];
         return this.userService.getAuthenticatedUser(token);
     }

@@ -22,7 +22,7 @@ export class AuthService {
     private readonly logger = new Logger(AuthService.name);
 
     /** Auth microservice base URL */
-    private readonly authServiceUrl: string;
+    private readonly apiGatewayUrl: string;
 
     /** HTTP request timeout in milliseconds */
     private readonly requestTimeout: number;
@@ -40,10 +40,14 @@ export class AuthService {
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
     ) {
-        this.authServiceUrl = this.configService.get<string>('GATEWAY_URL', 'http://localhost:8080');
+        this.apiGatewayUrl = this.configService.get<string>('GATEWAY_URL', 'http://localhost:8080');
         this.requestTimeout = this.configService.get<number>('REQUEST_TIMEOUT', 5000);
         this.maxRetries = this.configService.get<number>('MAX_RETRIES', 3);
     }
+
+    // ----------------------------------------------------------------
+    // TRADITIONAL REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
 
     /**
      * Forwards a registration request to the Auth microservice.
@@ -63,7 +67,7 @@ export class AuthService {
             // Send registration request to Auth microservice to retrieve
             // created account's information
             const response = await firstValueFrom(
-                this.httpService.post(`${this.authServiceUrl}/api/v1/auth/register`, registerData).pipe(
+                this.httpService.post(`${this.apiGatewayUrl}/api/auth/register`, registerData).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -101,7 +105,7 @@ export class AuthService {
         try {
             // Send login request to Auth microservice and retrieve tokens
             const response = await firstValueFrom(
-                this.httpService.post(`${this.authServiceUrl}/api/v1/auth/login`, loginData).pipe(
+                this.httpService.post(`${this.apiGatewayUrl}/api/auth/login`, loginData).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -122,6 +126,16 @@ export class AuthService {
         }
     }
 
+    // ----------------------------------------------------------------
+    // GOOGLE OAUTH2 REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
+
+
+
+    // ----------------------------------------------------------------
+    // LOGOUT
+    // ----------------------------------------------------------------
+
     /**
      * Forwards a logout request to the Auth microservice.
      *
@@ -131,14 +145,17 @@ export class AuthService {
      * @returns Logout confirmation message
      * @throws HttpException If communication with Auth service fails
      */
-    async logout(logoutData: RefreshTokenDTO) {
+    async logout(token: string, logoutData: RefreshTokenDTO) {
         // Log logout request
         this.logger.log(`event=logout_request`);
-
+        
         try {
             // Send logout request to Auth microservice
             await firstValueFrom(
-                this.httpService.post(`${this.authServiceUrl}/api/v1/auth/logout`, logoutData).pipe(
+                this.httpService.post(`${this.apiGatewayUrl}/api/auth/logout`, 
+                    { value: logoutData.refreshToken },
+                    { headers: { Authorization: token } }
+                ).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -150,16 +167,55 @@ export class AuthService {
             this.logger.log(`event=logout_success`);
 
             // Return logout confirmation
-            return {
-                statusCode: 204,
-                message: 'Logout successful'
-            };
+            return;
         } catch (error) {
             // Log logout failed
             this.logger.error(`event=logout_failed error=${error.message}`);
             throw error;
         }
     }
+
+    /**
+     * Forwards a logout request to the Auth microservice.
+     *
+     * Sends a refresh token and returns a new refresh and access tokens.
+     *
+     * @param logoutData Refresh token value linked to account
+     * @returns Logout confirmation message
+     * @throws HttpException If communication with Auth service fails
+     */
+    async globalLogout(token: string, logoutData: RefreshTokenDTO) {
+        // Log logout request
+        this.logger.log(`event=global_logout_request`);
+
+        try {
+            // Send logout request to Auth microservice
+            await firstValueFrom(
+                this.httpService.post(`${this.apiGatewayUrl}/api/auth/global-logout`, logoutData,
+                    { headers: { Authorization: token } }
+                ).pipe(
+                    timeout({ each: this.requestTimeout }),
+                    retry(this.maxRetries),
+                    catchError((error: AxiosError) => {
+                        throw this.handleServiceError(error, 'logout');
+                    }),
+                ),
+            );
+            // Log logout success
+            this.logger.log(`event=global_logout_success`);
+
+            // Return logout confirmation
+            return;
+        } catch (error) {
+            // Log logout failed
+            this.logger.error(`event=global_logout_failed error=${error.message}`);
+            throw error;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // TOKEN REFRESH
+    // ----------------------------------------------------------------
 
     /**
      * Forwards a refresh token request to the Auth microservice.
@@ -177,7 +233,7 @@ export class AuthService {
         try {
             // Send refresh token request to Auth microservice and retrieve tokens
             const response = await firstValueFrom(
-                this.httpService.post(`${this.authServiceUrl}/api/v1/auth/refresh`, refreshData).pipe(
+                this.httpService.post(`${this.apiGatewayUrl}/api/auth/refresh`, refreshData).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -198,6 +254,10 @@ export class AuthService {
         }
     }
 
+    // ----------------------------------------------------------------
+    // EMAIL MANAGEMENT
+    // ----------------------------------------------------------------
+
     /**
      * Forwards an email verification token request to the Auth microservice.
      *
@@ -215,7 +275,7 @@ export class AuthService {
         try {
             
             const response = await firstValueFrom(
-                this.httpService.post(`${this.authServiceUrl}/api/v1/auth/verify-email`, verifyData).pipe(
+                this.httpService.post(`${this.apiGatewayUrl}/api/auth/verify-email`, verifyData).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -235,6 +295,16 @@ export class AuthService {
             throw error;
         }
     }
+
+    // ----------------------------------------------------------------
+    // PASSWORD MANAGEMENT
+    // ----------------------------------------------------------------
+
+
+
+    // ----------------------------------------------------------------
+    // HELPERS
+    // ----------------------------------------------------------------
 
     /**
      * Handles errors from Auth microservice communication.

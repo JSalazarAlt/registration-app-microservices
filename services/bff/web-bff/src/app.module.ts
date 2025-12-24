@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { HomeModule } from './modules/home/home.module';
+import { ProfileModule } from './modules/profile/profile.module';
+import { SessionModule } from './modules/sessions/session.module';
 
 @Module({
     imports: [
@@ -13,7 +15,9 @@ import { HomeModule } from './modules/home/home.module';
         HttpModule,
         AuthModule,
         UserModule,
-        HomeModule
+        HomeModule,
+        ProfileModule,
+        SessionModule
     ],
     controllers: [AppController],
     providers: [AppService],

@@ -95,14 +95,14 @@ public class SecurityConfig {
             // Define authorization rules for endpoints
             .authorizeHttpRequests(auth -> auth
                 // Public authentication endpoints
-                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
-                .requestMatchers("/api/v1/auth/oauth2/google").permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/oauth2/google").permitAll()
                 // Email verification endpoints
-                .requestMatchers("/api/v1/auth/verify-email", "/api/v1/auth/resend-verification").permitAll()
+                .requestMatchers("/api/auth/verify-email", "/api/auth/resend-verification").permitAll()
                 // Password reset endpoints
-                .requestMatchers("/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
+                .requestMatchers("/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                 // Refresh token endpoint
-                .requestMatchers("/api/v1/auth/refresh").permitAll()
+                .requestMatchers("/api/auth/refresh").permitAll()
                 // OAuth2 endpoints
                 .requestMatchers("/oauth2/**").permitAll()
                 // Prometheus and Grafana endpoints
@@ -110,7 +110,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/info").permitAll()
                 // Protected endpoints
-                .requestMatchers("/api/v1/auth/logout").authenticated()
+                .requestMatchers("/api/auth/logout").authenticated()
                 .anyRequest().authenticated())
             // Set stateless session management
             .sessionManagement(session -> 
@@ -215,14 +215,14 @@ public class SecurityConfig {
             String path = request.getRequestURI();
             
             // Skip JWT validation for public endpoints
-            if (path.equals("/api/v1/auth/register") || 
-                path.equals("/api/v1/auth/login") ||
-                path.equals("/api/v1/auth/oauth2/google") ||
-                path.equals("/api/v1/auth/verify-email") ||
-                path.equals("/api/v1/auth/resend-verification") ||
-                path.equals("/api/v1/auth/forgot-password") ||
-                path.equals("/api/v1/auth/reset-password") ||
-                path.equals("/api/v1/auth/refresh") ||
+            if (path.equals("/api/auth/register") || 
+                path.equals("/api/auth/login") ||
+                path.equals("/api/auth/oauth2/google") ||
+                path.equals("/api/auth/verify-email") ||
+                path.equals("/api/auth/resend-verification") ||
+                path.equals("/api/auth/forgot-password") ||
+                path.equals("/api/auth/reset-password") ||
+                path.equals("/api/auth/refresh") ||
                 path.startsWith("/oauth2/") ||
                 path.startsWith("/actuator")) {
                 return null;

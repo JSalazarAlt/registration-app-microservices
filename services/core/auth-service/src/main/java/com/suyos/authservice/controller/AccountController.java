@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
  * <p>Handles account retrieval and update endpoints.</p>
  */
 @RestController
-@RequestMapping("/api/v1/accounts")
+@RequestMapping("/api/accounts")
 @RequiredArgsConstructor
 @Tag(
     name = "Account Management", 

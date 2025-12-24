@@ -7,7 +7,6 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.suyos.authservice.dto.internal.SessionCreationRequestDTO;
 import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
 import com.suyos.authservice.dto.request.RegistrationRequestDTO;
@@ -436,6 +435,9 @@ public class AuthService {
      * @throws InvalidRefreshTokenException If refresh token is invalid
      */
     public void deauthenticateAccount(RefreshTokenRequestDTO request) {
+        // Log account deauthentication attempt
+        log.info("event=account_deauthentication_attempt refresh_token={}", request.getValue());
+
         // Extract refresh token value from request
         String value = request.getValue();
 
@@ -483,6 +485,9 @@ public class AuthService {
      * @throws InvalidRefreshTokenException If refresh token is invalid
      */
     public void globalDeauthenticateAccount(RefreshTokenRequestDTO request) {
+        // Log account global deauthentication attempt
+        log.info("event=account_global_deauthentication_attempt refresh_token={}", request.getValue());
+
         // Extract refresh token value from request
         String value = request.getValue();
 
@@ -506,7 +511,7 @@ public class AuthService {
         // Revoke all refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(account.getId(), TokenType.REFRESH);
 
-        // Log account deauthentication success
+        // Log account global deauthentication success
         log.info("event=account_globally_deauthenticated account_id={}", account.getId());
 
         // Define session termination reason

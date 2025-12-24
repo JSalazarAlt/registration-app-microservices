@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
  * <p>Handles session retrieval endpoints.</p>
  */
 @RestController
-@RequestMapping("/api/v1/sessions")
+@RequestMapping("/api/sessions")
 @RequiredArgsConstructor
 @Tag(
     name = "Authentication Management", 

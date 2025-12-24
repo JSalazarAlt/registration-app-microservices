@@ -15,10 +15,10 @@ import { JwtService } from '@nestjs/jwt';
  * communication.
  */
 @Injectable()
-export class HomeService {
+export class ProfileService {
 
     /** Logger instance for structured logging */
-    private readonly logger = new Logger(HomeService.name);
+    private readonly logger = new Logger(ProfileService.name);
 
     /** User microservice base URL */
     private readonly apiGatewayUrl: string;
@@ -52,71 +52,56 @@ export class HomeService {
      * @returns User information
      * @throws HttpException If user not found or service is unavailable
      */
-    async getHomeData(token: string) {
+    async getProfileData(token: string) {
         const pureToken = token.startsWith('Bearer ')
             ? token.substring(7)
             : token;
 
         const accountId = this.jwtService.decode(pureToken)?.sub;
 
-        this.logger.log(`event=get_home_data_request account_id=${accountId}`);
+        this.logger.log(`event=get_profile_data_request account_id=${accountId}`);
 
         const headers = { Authorization: token };
 
         try {
-            const [userResponse, accountResponse, sessionsResponse] = await Promise.all([
-            firstValueFrom(
-                this.httpService.get(
-                `${this.apiGatewayUrl}/api/users/me`,
-                { headers },
-                ).pipe(
-                timeout({ each: this.requestTimeout }),
-                retry(this.maxRetries),
-                catchError((e: AxiosError) =>
-                    throwError(() => this.handleServiceError(e, 'users/me')),
-                ),
-                ),
-            ),
+            const [accountResponse, userResponse] = await Promise.all([
 
-            firstValueFrom(
-                this.httpService.get(
-                `${this.apiGatewayUrl}/api/accounts/me`,
-                { headers },
-                ).pipe(
-                timeout({ each: this.requestTimeout }),
-                retry(this.maxRetries),
-                catchError((e: AxiosError) =>
-                    throwError(() => this.handleServiceError(e, 'accounts/me')),
+                firstValueFrom(
+                    this.httpService.get(
+                        `${this.apiGatewayUrl}/api/accounts/me`,
+                        { headers },
+                    ).pipe(
+                        timeout({ each: this.requestTimeout }),
+                        retry(this.maxRetries),
+                        catchError((e: AxiosError) =>
+                            throwError(() => this.handleServiceError(e, 'accounts/me')),
+                        ),
+                    ),
                 ),
-                ),
-            ),
 
-            firstValueFrom(
-                this.httpService.get(
-                `${this.apiGatewayUrl}/api/sessions/me`,
-                { headers },
-                ).pipe(
-                timeout({ each: this.requestTimeout }),
-                retry(this.maxRetries),
-                catchError((e: AxiosError) =>
-                    throwError(() => this.handleServiceError(e, 'sessions/me')),
+                firstValueFrom(
+                    this.httpService.get(
+                        `${this.apiGatewayUrl}/api/users/me`,
+                        { headers },
+                    ).pipe(
+                        timeout({ each: this.requestTimeout }),
+                        retry(this.maxRetries),
+                        catchError((e: AxiosError) =>
+                            throwError(() => this.handleServiceError(e, 'users/me')),
+                        ),
+                    ),
                 ),
-                ),
-            ),
             ]);
 
-            this.logger.log(`event=get_home_data_success account_id=${accountId}`);
+            this.logger.log(`event=get_profile_data_success account_id=${accountId}`);
 
             return {
-                user: userResponse.data,
                 account: accountResponse.data,
-                sessions: sessionsResponse.data,
+                user: userResponse.data
             };
 
         } catch (error) {
-            this.logger.error(
-            `event=get_home_data_fail account_id=${accountId} error=${error.message}`,
-            );
+            this.logger.error(`event=get_profile_data_fail account_id=${accountId} error=${error.message}`);
             throw error;
         }
     }

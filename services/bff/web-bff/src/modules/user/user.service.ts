@@ -68,7 +68,7 @@ export class UserService {
         try {
             // Send request to User microservice to retrieve users' profiles
             const response = await firstValueFrom(
-                this.httpService.get(`${this.userServiceUrl}/api/v1/users`, {
+                this.httpService.get(`${this.userServiceUrl}/api/users`, {
                 params: { page, size, sortBy, sortDir },
                 }).pipe(
                     timeout({ each: this.requestTimeout }),
@@ -105,7 +105,7 @@ export class UserService {
             this.logger.log(`event=search_users_request name=${name}`);
 
             const response = await firstValueFrom(
-                this.httpService.get(`${this.userServiceUrl}/api/v1/users/search`, {
+                this.httpService.get(`${this.userServiceUrl}/api/users/search`, {
                 params: { name },
                 }).pipe(
                     timeout({ each: this.requestTimeout }),
@@ -138,7 +138,7 @@ export class UserService {
         try {
             // Send request to User microservice to retrieve user's profile
             const response = await firstValueFrom(
-                this.httpService.get(`${this.userServiceUrl}/api/v1/users/${userId}`).pipe(
+                this.httpService.get(`${this.userServiceUrl}/api/users/${userId}`).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -174,7 +174,7 @@ export class UserService {
         try {
             // Send request to User microservice to update user's profile
             const response = await firstValueFrom(
-                this.httpService.put(`${this.userServiceUrl}/api/v1/users/${userId}`, updateData).pipe(
+                this.httpService.put(`${this.userServiceUrl}/api/users/${userId}`, updateData).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -220,7 +220,7 @@ export class UserService {
         try {
             // Send request to User microservice to retrieve authenticated user's profile
             const response = await firstValueFrom(
-                this.httpService.get(`${this.userServiceUrl}/api/v1/users/me`,
+                this.httpService.get(`${this.userServiceUrl}/api/users/me`,
                     { headers: { Authorization: token } }
                 ).pipe(
                     timeout({ each: this.requestTimeout }),
@@ -265,7 +265,7 @@ export class UserService {
         try {
             // Send request to User microservice to update authenticated user's profile
             const response = await firstValueFrom(
-                this.httpService.put(`${this.userServiceUrl}/api/v1/users/me`, 
+                this.httpService.put(`${this.userServiceUrl}/api/users/me`, 
                     updateData, 
                     { headers: { Authorization: token } }
                 ).pipe(

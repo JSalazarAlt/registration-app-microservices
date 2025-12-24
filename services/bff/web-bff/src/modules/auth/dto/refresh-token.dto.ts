@@ -7,6 +7,6 @@
 export class RefreshTokenDTO {
 
     /** Refresh token value */
-    value: string;
+    refreshToken: string;
 
 }
