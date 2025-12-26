@@ -29,13 +29,15 @@ public class SecurityConfig {
                 // Public endpoints from Auth microservice
                 .pathMatchers(
                     "/api/auth/register",
-                    "/api/auth/login",
+                    "/api/auth/login/web",
+                    "/api/auth/login/mobile",
                     "/api/auth/oauth2/google",
                     "/api/auth/verify-email",
                     "/api/auth/resend-verification",
                     "/api/auth/forgot-password",
                     "/api/auth/reset-password",
-                    "/api/auth/refresh"
+                    "/api/auth/refresh/web",
+                    "/api/auth/refresh/mobile"
                 ).permitAll()
 
                 // OAuth2 open endpoints
