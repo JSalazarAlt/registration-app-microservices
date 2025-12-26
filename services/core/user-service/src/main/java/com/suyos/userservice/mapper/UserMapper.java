@@ -6,8 +6,8 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
 import com.suyos.common.event.UserCreationEvent;
-import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
-import com.suyos.userservice.dto.response.UserProfileDTO;
+import com.suyos.userservice.dto.request.UserUpdateRequest;
+import com.suyos.userservice.dto.response.UserProfileResponse;
 import com.suyos.userservice.model.User;
 
 /**
@@ -39,7 +39,7 @@ public interface UserMapper {
 
     /**
      * Updates an existing {@link User} entity with fields from
-     * {@link UserUpdateRequestDTO}.
+     * {@link UserUpdateRequest}.
      * 
      * @param userUpdateDTO User's update data
      * @param user Updated user entity
@@ -54,14 +54,14 @@ public interface UserMapper {
     @Mapping(target = "accountId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    void updateUserFromDTO(UserUpdateRequestDTO userUpdateDTO, @MappingTarget User user);
+    void updateUserFromDTO(UserUpdateRequest userUpdateDTO, @MappingTarget User user);
 
     /**
-     * Converts a {@link User} entity to a {@link UserProfileDTO}.
+     * Converts a {@link User} entity to a {@link UserProfileResponse}.
      *
      * @param user User entity
      * @return User's profile information
      */
-    UserProfileDTO toUserProfileDTO(User user);
+    UserProfileResponse toUserProfileDTO(User user);
 
 }

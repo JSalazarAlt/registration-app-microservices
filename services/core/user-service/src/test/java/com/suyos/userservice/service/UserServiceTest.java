@@ -17,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
-import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
-import com.suyos.userservice.dto.response.UserProfileDTO;
+import com.suyos.userservice.dto.request.UserUpdateRequest;
+import com.suyos.userservice.dto.response.UserProfileResponse;
 import com.suyos.userservice.mapper.UserMapper;
 import com.suyos.userservice.model.User;
 import com.suyos.userservice.repository.UserRepository;
@@ -48,10 +48,10 @@ class UserServiceTest {
     private User testUser;
     
     /** Test user profile DTO */
-    private UserProfileDTO testUserDTO;
+    private UserProfileResponse testUserDTO;
     
     /** Test user update DTO */
-    private UserUpdateRequestDTO updateDTO;
+    private UserUpdateRequest updateDTO;
 
     /**
      * Sets up test data before each test.
@@ -75,7 +75,7 @@ class UserServiceTest {
                 .build();
         
         // Build test user profile DTO
-        testUserDTO = UserProfileDTO.builder()
+        testUserDTO = UserProfileResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
@@ -85,7 +85,7 @@ class UserServiceTest {
                 .build();
         
         // Build test update DTO
-        updateDTO = UserUpdateRequestDTO.builder()
+        updateDTO = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .lastName("Name")
                 .phone("0987654321")
@@ -105,7 +105,7 @@ class UserServiceTest {
         when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
 
         // Get user profile
-        UserProfileDTO result = userService.findUserById(testUser.getId());
+        UserProfileResponse result = userService.findUserById(testUser.getId());
 
         // Verify user profile was retrieved successfully
         assertNotNull(result);
@@ -147,7 +147,7 @@ class UserServiceTest {
         when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
 
         // Update user profile
-        UserProfileDTO result = userService.updateUserById(testUser.getId(), updateDTO);
+        UserProfileResponse result = userService.updateUserById(testUser.getId(), updateDTO);
 
         // Verify user profile was updated successfully
         assertNotNull(result);
@@ -170,7 +170,7 @@ class UserServiceTest {
         when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
 
         // Get user profile by account ID
-        UserProfileDTO result = userService.findUserByAccountId(testUser.getAccountId());
+        UserProfileResponse result = userService.findUserByAccountId(testUser.getAccountId());
 
         // Verify user profile was retrieved successfully
         assertNotNull(result);
@@ -219,7 +219,7 @@ class UserServiceTest {
         when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
 
         // Update user profile by account ID
-        UserProfileDTO result = userService.updateUserByAccountId(testUser.getAccountId(), updateDTO);
+        UserProfileResponse result = userService.updateUserByAccountId(testUser.getAccountId(), updateDTO);
 
         // Verify user profile was updated successfully
         assertNotNull(result);
@@ -342,7 +342,7 @@ class UserServiceTest {
      */
     @Test
     void updateUserProfile_PartialUpdate() {
-        UserUpdateRequestDTO partialUpdate = UserUpdateRequestDTO.builder()
+        UserUpdateRequest partialUpdate = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .build();
 
@@ -350,7 +350,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
 
-        UserProfileDTO result = userService.updateUserById(testUser.getId(), partialUpdate);
+        UserProfileResponse result = userService.updateUserById(testUser.getId(), partialUpdate);
 
         assertNotNull(result);
         verify(userMapper).updateUserFromDTO(partialUpdate, testUser);

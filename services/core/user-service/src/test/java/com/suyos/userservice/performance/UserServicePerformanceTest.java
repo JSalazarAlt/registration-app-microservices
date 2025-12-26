@@ -1,7 +1,7 @@
 package com.suyos.userservice.performance;
 
 import com.suyos.common.event.UserCreationEvent;
-import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
+import com.suyos.userservice.dto.request.UserUpdateRequest;
 import com.suyos.userservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -181,7 +181,7 @@ class UserServicePerformanceTest {
                     Instant requestStart = Instant.now();
 
                     // Build update request
-                    UserUpdateRequestDTO updateDTO = UserUpdateRequestDTO.builder()
+                    UserUpdateRequest updateDTO = UserUpdateRequest.builder()
                             .firstName("Updated" + index)
                             .lastName("User" + index)
                             .build();

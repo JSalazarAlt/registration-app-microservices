@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserCreationRequestDTO {
+public class UserCreationRequest {
 
     // ----------------------------------------------------------------
     // ACCOUNT INFORMATION

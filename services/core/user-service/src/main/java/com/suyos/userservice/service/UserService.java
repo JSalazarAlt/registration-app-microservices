@@ -16,8 +16,8 @@ import com.suyos.common.dto.response.PagedResponseDTO;
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
 import com.suyos.common.event.UserCreationEvent;
-import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
-import com.suyos.userservice.dto.response.UserProfileDTO;
+import com.suyos.userservice.dto.request.UserUpdateRequest;
+import com.suyos.userservice.dto.response.UserProfileResponse;
 import com.suyos.userservice.exception.exceptions.UserNotFoundException;
 import com.suyos.userservice.mapper.UserMapper;
 import com.suyos.userservice.model.ProcessedEvent;
@@ -62,7 +62,7 @@ public class UserService {
      * @param sortDir Sort direction
      * @return Paginated list of users' profiles
      */
-    public PagedResponseDTO<UserProfileDTO> findAllUsers(int page, int size, 
+    public PagedResponseDTO<UserProfileResponse> findAllUsers(int page, int size, 
         String sortBy, String sortDir) {
         // Define dynamic sorting rules
         Sort sort = Sort.by(sortBy);
@@ -77,13 +77,13 @@ public class UserService {
         Page<User> userPage = userRepository.findAll(pageable);
         
         // Map accounts' information from accounts
-        List<UserProfileDTO> userProfiles = userPage.getContent()
+        List<UserProfileResponse> userProfiles = userPage.getContent()
             .stream()
             .map(userMapper::toUserProfileDTO)
             .toList();
 
         // Build paginated response with all users' profiles
-        PagedResponseDTO<UserProfileDTO> response = PagedResponseDTO.<UserProfileDTO>builder()
+        PagedResponseDTO<UserProfileResponse> response = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(userProfiles)
                 .currentPage(userPage.getNumber())
                 .totalPages(userPage.getTotalPages())
@@ -105,13 +105,13 @@ public class UserService {
      * @throws UserNotFoundException If user not found
      */
     @Transactional(readOnly = true)
-    public UserProfileDTO findUserById(UUID id) {
+    public UserProfileResponse findUserById(UUID id) {
         // Look up user by ID
         User user = userRepository.findById(id)
             .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
         
         // Map user's profile information from user
-        UserProfileDTO userProfile = userMapper.toUserProfileDTO(user);
+        UserProfileResponse userProfile = userMapper.toUserProfileDTO(user);
         
         // Return user's profile
         return userProfile;
@@ -125,7 +125,7 @@ public class UserService {
      * @throws UserNotFoundException If user not found
      */
     @Transactional(readOnly = true)
-    public UserProfileDTO findUserByAccountId(UUID accountId) {
+    public UserProfileResponse findUserByAccountId(UUID accountId) {
         // Look up user by account ID
         User user = userRepository.findByAccountId(accountId)
             .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
@@ -134,7 +134,7 @@ public class UserService {
         log.info("event=account_found_by_id account_id={}", accountId);
 
         // Map user's profile information from user
-        UserProfileDTO userProfile = userMapper.toUserProfileDTO(user);
+        UserProfileResponse userProfile = userMapper.toUserProfileDTO(user);
         
         // Return user's profile
         return userProfile;
@@ -150,7 +150,7 @@ public class UserService {
      * @return List of matching users' profile
      */
     @Transactional(readOnly = true)
-    public List<UserProfileDTO> findUsersByName(String name) {
+    public List<UserProfileResponse> findUsersByName(String name) {
         // 
         return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name)
             .stream()
@@ -168,7 +168,7 @@ public class UserService {
      * @param event User's registration data
      * @return Created user's profile
      */
-    public UserProfileDTO createUser(UserCreationEvent event) {
+    public UserProfileResponse createUser(UserCreationEvent event) {
         // Log user creation attempt
         log.info("event=user_creation_attempt account_id={}", event.getAccountId());
 
@@ -198,7 +198,7 @@ public class UserService {
         log.info("event=user_created account_id={}", createdUser.getAccountId());
 
         // Map user's profile from created user
-        UserProfileDTO userProfile = userMapper.toUserProfileDTO(createdUser);
+        UserProfileResponse userProfile = userMapper.toUserProfileDTO(createdUser);
 
         // Return created user's profile
         return userProfile;
@@ -216,7 +216,7 @@ public class UserService {
      * @return Updated user's profile
      * @throws UserNotFoundException If user not found
      */
-    public UserProfileDTO updateUserById(UUID id, UserUpdateRequestDTO userUpdateDTO) {
+    public UserProfileResponse updateUserById(UUID id, UserUpdateRequest userUpdateDTO) {
         // Log user update attempt
         log.info("event=user_update_attempt user_id={}", id);
 
@@ -234,7 +234,7 @@ public class UserService {
         log.info("event=user_updated user_id={}", updatedUser.getId());
 
         // Map user's profile information from updated user
-        UserProfileDTO userProfile = userMapper.toUserProfileDTO(updatedUser);
+        UserProfileResponse userProfile = userMapper.toUserProfileDTO(updatedUser);
 
         // Return updated user's profile
         return userProfile;
@@ -248,7 +248,7 @@ public class UserService {
      * @return Updated user's profile information
      * @throws UserNotFoundException If user not found
      */
-    public UserProfileDTO updateUserByAccountId(UUID accountId, UserUpdateRequestDTO userUpdateDTO) {
+    public UserProfileResponse updateUserByAccountId(UUID accountId, UserUpdateRequest userUpdateDTO) {
         // Log user update attempt
         log.info("event=user_update_attempt account_id={}", accountId);
 
@@ -266,7 +266,7 @@ public class UserService {
         log.info("event=user_updated account_id={}", updatedUser.getAccountId());
 
         // Map user's profile information from updated user
-        UserProfileDTO userProfile = userMapper.toUserProfileDTO(updatedUser);
+        UserProfileResponse userProfile = userMapper.toUserProfileDTO(updatedUser);
 
         // Return updated user's profile
         return userProfile;
@@ -284,7 +284,7 @@ public class UserService {
      * @return Updated user's profile information
      * @throws UserNotFoundException If user not found
      */
-    public UserProfileDTO softDeleteUserByAccountId(UUID accountId) {
+    public UserProfileResponse softDeleteUserByAccountId(UUID accountId) {
         // Log user soft-deletion attempt
         log.info("event=user_soft_deletion_attempt account_id={}", accountId);
 
@@ -303,7 +303,7 @@ public class UserService {
         log.info("event=user_soft_deleted account_id={}", softDeletedUser.getAccountId());
 
         // Map user's profile information from updated user
-        UserProfileDTO userProfile = userMapper.toUserProfileDTO(softDeletedUser);
+        UserProfileResponse userProfile = userMapper.toUserProfileDTO(softDeletedUser);
 
         // Return soft deleted user's profile
         return userProfile;

@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
+import com.suyos.userservice.dto.request.UserUpdateRequest;
 import com.suyos.userservice.model.User;
 import com.suyos.userservice.repository.UserRepository;
 
@@ -111,7 +111,7 @@ class UserControllerIntegrationTest {
     @Test
     void updateUserById_Success() throws Exception {
         // Build update DTO
-        UserUpdateRequestDTO updateDTO = UserUpdateRequestDTO.builder()
+        UserUpdateRequest updateDTO = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .lastName("Name")
                 .phone("0987654321")
@@ -177,7 +177,7 @@ class UserControllerIntegrationTest {
         UUID nonExistentId = UUID.randomUUID();
         
         // Build update DTO
-        UserUpdateRequestDTO updateDTO = UserUpdateRequestDTO.builder()
+        UserUpdateRequest updateDTO = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .build();
 
@@ -197,7 +197,7 @@ class UserControllerIntegrationTest {
         UUID nonExistentAccountId = UUID.randomUUID();
         
         // Build update DTO
-        UserUpdateRequestDTO updateDTO = UserUpdateRequestDTO.builder()
+        UserUpdateRequest updateDTO = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .build();
 
@@ -256,7 +256,7 @@ class UserControllerIntegrationTest {
     @Test
     void updateUserById_PartialUpdate() throws Exception {
         // Build update DTO with only first name
-        UserUpdateRequestDTO updateDTO = UserUpdateRequestDTO.builder()
+        UserUpdateRequest updateDTO = UserUpdateRequest.builder()
                 .firstName("OnlyFirstName")
                 .build();
 
@@ -276,7 +276,7 @@ class UserControllerIntegrationTest {
     @Test
     void updateUserByAccountId_Success() throws Exception {
         // Build update DTO
-        UserUpdateRequestDTO updateDTO = UserUpdateRequestDTO.builder()
+        UserUpdateRequest updateDTO = UserUpdateRequest.builder()
                 .firstName("AccountUpdated")
                 .lastName("ByAccountId")
                 .build();

@@ -20,8 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.suyos.common.dto.response.PagedResponseDTO;
-import com.suyos.userservice.dto.request.UserUpdateRequestDTO;
-import com.suyos.userservice.dto.response.UserProfileDTO;
+import com.suyos.userservice.dto.request.UserUpdateRequest;
+import com.suyos.userservice.dto.response.UserProfileResponse;
 import com.suyos.userservice.service.UserService;
 
 /**
@@ -46,10 +46,10 @@ class UserControllerTest {
     private UserService userService;
     
     /** Test user profile DTO */
-    private UserProfileDTO userProfileDTO;
+    private UserProfileResponse userProfileDTO;
     
     /** Test user update DTO */
-    private UserUpdateRequestDTO userUpdateDTO;
+    private UserUpdateRequest userUpdateDTO;
     
     /** Test user ID */
     private UUID userId;
@@ -67,7 +67,7 @@ class UserControllerTest {
         accountId = UUID.randomUUID();
         
         // Build test user profile DTO
-        userProfileDTO = UserProfileDTO.builder()
+        userProfileDTO = UserProfileResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
@@ -78,7 +78,7 @@ class UserControllerTest {
                 .build();
         
         // Build test update DTO
-        userUpdateDTO = UserUpdateRequestDTO.builder()
+        userUpdateDTO = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .lastName("Name")
                 .phone("0987654321")
@@ -116,7 +116,7 @@ class UserControllerTest {
     @Test
     void updateUserById_Success() throws Exception {
         // Build updated profile
-        UserProfileDTO updatedProfile = UserProfileDTO.builder()
+        UserProfileResponse updatedProfile = UserProfileResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
@@ -163,7 +163,7 @@ class UserControllerTest {
     @Test
     void updateProfileByAccountId_Success() throws Exception {
         // Build updated profile
-        UserProfileDTO updatedProfile = UserProfileDTO.builder()
+        UserProfileResponse updatedProfile = UserProfileResponse.builder()
                 .id(userId)
                 .firstName("Updated")
                 .lastName("Name")
@@ -189,8 +189,8 @@ class UserControllerTest {
     @Test
     void getAllUsersPaginated_Success() throws Exception {
         // Build paginated response
-        List<UserProfileDTO> users = Arrays.asList(userProfileDTO);
-        PagedResponseDTO<UserProfileDTO> pagedResponse = PagedResponseDTO.<UserProfileDTO>builder()
+        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
+        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(users)
                 .currentPage(0)
                 .totalPages(1)
@@ -224,7 +224,7 @@ class UserControllerTest {
     @Test
     void searchUsersByName_Success() throws Exception {
         // Build search results
-        List<UserProfileDTO> users = Arrays.asList(userProfileDTO);
+        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
         
         // Mock service to return search results
         when(userService.findUsersByName("Test")).thenReturn(users);
@@ -333,7 +333,7 @@ class UserControllerTest {
     @Test
     void getAllUsersPaginated_EmptyResults() throws Exception {
         // Build empty paginated response
-        PagedResponseDTO<UserProfileDTO> pagedResponse = PagedResponseDTO.<UserProfileDTO>builder()
+        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(List.of())
                 .currentPage(0)
                 .totalPages(0)
@@ -366,7 +366,7 @@ class UserControllerTest {
      */
     @Test
     void updateUserById_InvalidData() throws Exception {
-        UserUpdateRequestDTO invalidDTO = UserUpdateRequestDTO.builder()
+        UserUpdateRequest invalidDTO = UserUpdateRequest.builder()
                 .phone("invalid")  // Invalid phone format
                 .build();
 
@@ -381,8 +381,8 @@ class UserControllerTest {
      */
     @Test
     void getAllUsersPaginated_CustomParams() throws Exception {
-        List<UserProfileDTO> users = Arrays.asList(userProfileDTO);
-        PagedResponseDTO<UserProfileDTO> pagedResponse = PagedResponseDTO.<UserProfileDTO>builder()
+        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
+        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(users)
                 .currentPage(2)
                 .totalPages(5)
@@ -413,8 +413,8 @@ class UserControllerTest {
      */
     @Test
     void getAllUsersPaginated_DefaultParams() throws Exception {
-        List<UserProfileDTO> users = Arrays.asList(userProfileDTO);
-        PagedResponseDTO<UserProfileDTO> pagedResponse = PagedResponseDTO.<UserProfileDTO>builder()
+        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
+        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(users)
                 .currentPage(0)
                 .totalPages(1)

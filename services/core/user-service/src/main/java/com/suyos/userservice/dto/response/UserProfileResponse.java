@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserProfileDTO {
+public class UserProfileResponse {
 
     /** User's unique identifier */
     private UUID id;
