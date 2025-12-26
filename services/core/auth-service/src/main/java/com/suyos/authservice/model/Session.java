@@ -98,6 +98,14 @@ public class Session {
     @Column(name = "last_ip_address")
     private String lastIpAddress;
 
+    /** Geographical location of client device */
+    @Column(name = "location")
+    private String location;
+
+    /** Timestamp of last successful authenticated request */
+    @Column(name = "last_accessed_at")
+    private Instant lastAccessedAt;
+
     // ----------------------------------------------------------------
     // AUDITORY
     // ----------------------------------------------------------------

@@ -17,8 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
-import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -95,14 +93,14 @@ public class SecurityConfig {
             // Define authorization rules for endpoints
             .authorizeHttpRequests(auth -> auth
                 // Public authentication endpoints
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login/web", "/api/auth/login/mobile").permitAll()
                 .requestMatchers("/api/auth/oauth2/google").permitAll()
                 // Email verification endpoints
                 .requestMatchers("/api/auth/verify-email", "/api/auth/resend-verification").permitAll()
                 // Password reset endpoints
                 .requestMatchers("/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                 // Refresh token endpoint
-                .requestMatchers("/api/auth/refresh").permitAll()
+                .requestMatchers("/api/auth/refresh/web", "/api/auth/refresh/mobile").permitAll()
                 // OAuth2 endpoints
                 .requestMatchers("/oauth2/**").permitAll()
                 // Prometheus and Grafana endpoints
@@ -124,8 +122,7 @@ public class SecurityConfig {
                 .successHandler(oauth2SuccessHandler))
             // Configure OAuth2 Resource Server for JWT validation
             .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
-                .bearerTokenResolver(bearerTokenResolver()))
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
             .build();
     }
 
@@ -193,44 +190,6 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * Configures custom bearer token resolver.
-     * 
-     * <p>Returns null for public endpoints to skip JWT validation,
-     * allowing unauthenticated access to registration, login, and
-     * password reset endpoints.</p>
-     * 
-     * @return Custom bearer token resolver
-     */
-    @Bean
-    public BearerTokenResolver bearerTokenResolver() {
-        // Create default resolver
-        DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
-        resolver.setAllowUriQueryParameter(false);
-        
-        // Return custom resolver that skips public endpoints
-        return request -> {
-            String path = request.getRequestURI();
-            
-            // Skip JWT validation for public endpoints
-            if (path.equals("/api/auth/register") || 
-                path.equals("/api/auth/login") ||
-                path.equals("/api/auth/oauth2/google") ||
-                path.equals("/api/auth/verify-email") ||
-                path.equals("/api/auth/resend-verification") ||
-                path.equals("/api/auth/forgot-password") ||
-                path.equals("/api/auth/reset-password") ||
-                path.equals("/api/auth/refresh") ||
-                path.startsWith("/oauth2/") ||
-                path.startsWith("/actuator")) {
-                return null;
-            }
-            
-            // Resolve bearer token for protected endpoints
-            return resolver.resolve(request);
-        };
     }
         
 }

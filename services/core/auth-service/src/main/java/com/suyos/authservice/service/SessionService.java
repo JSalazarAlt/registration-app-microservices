@@ -7,8 +7,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.authservice.dto.internal.SessionCreationRequestDTO;
-import com.suyos.authservice.dto.response.SessionInfoDTO;
+import com.suyos.authservice.dto.internal.SessionCreationRequest;
+import com.suyos.authservice.dto.response.SessionInfoResponse;
 import com.suyos.authservice.exception.exceptions.SessionNotFoundException;
 import com.suyos.authservice.mapper.SessionMapper;
 import com.suyos.authservice.model.Session;
@@ -48,9 +48,9 @@ public class SessionService {
      * @param accountId Account's ID to search sessions for
      * @return List of active sessions
      */
-    public List<SessionInfoDTO> findAllSessionsByAccountId(UUID accountId) {
+    public List<SessionInfoResponse> findAllSessionsByAccountId(UUID accountId) {
         // Find all active sessions by account ID
-        List<SessionInfoDTO> sessions = sessionRepository.findAllActiveByAccountId(accountId)
+        List<SessionInfoResponse> sessions = sessionRepository.findAllActiveByAccountId(accountId)
             .stream()
             .map(sessionMapper::toSessionInfoDTO)
             .toList();
@@ -69,7 +69,7 @@ public class SessionService {
      * @param request Account's ID associated with the session and session's information
      * @return Created session's information
      */
-    public Session createSession(SessionCreationRequestDTO request) {
+    public Session createSession(SessionCreationRequest request) {
         // Log session creation attempt
         log.info("event=session_creation_attempt account_id={}", request.getAccountId());
 
@@ -147,7 +147,7 @@ public class SessionService {
     }
 
     // ----------------------------------------------------------
-    // HELPERS
+    // UPDATE
     // ----------------------------------------------------------
 
     /**
@@ -157,10 +157,11 @@ public class SessionService {
      * @param ipAddress new IP address
      */
     @Transactional
-    public void updateLastIpAddress(UUID sessionId, String ipAddress) {
-        sessionRepository.findById(sessionId).ifPresent(session ->
-                session.setLastIpAddress(ipAddress)
-        );
+    public void updateLastActivity(UUID sessionId, String ipAddress) {
+        sessionRepository.findById(sessionId).ifPresent(session ->{
+            session.setLastIpAddress(ipAddress);
+            session.setLastAccessedAt(Instant.now());
+        });
     }
 
 }

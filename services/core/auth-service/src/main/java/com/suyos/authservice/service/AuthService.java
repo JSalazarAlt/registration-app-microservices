@@ -7,16 +7,17 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.suyos.authservice.dto.internal.SessionCreationRequestDTO;
-import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
-import com.suyos.authservice.dto.request.RegistrationRequestDTO;
-import com.suyos.authservice.dto.request.EmailResendRequestDTO;
-import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
-import com.suyos.authservice.dto.request.OAuth2AuthenticationRequestDTO;
-import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
-import com.suyos.authservice.dto.response.AccountInfoDTO;
-import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
-import com.suyos.authservice.dto.response.GenericMessageResponseDTO;
+
+import com.suyos.authservice.dto.internal.AuthenticationTokens;
+import com.suyos.authservice.dto.internal.SessionCreationRequest;
+import com.suyos.authservice.dto.request.AuthenticationRequest;
+import com.suyos.authservice.dto.request.RegistrationRequest;
+import com.suyos.authservice.dto.request.EmailResendRequest;
+import com.suyos.authservice.dto.request.EmailVerificationRequest;
+import com.suyos.authservice.dto.request.OAuth2AuthenticationRequest;
+import com.suyos.authservice.dto.request.RefreshTokenRequest;
+import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.GenericMessageResponse;
 import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.exception.exceptions.AccountDeletedException;
 import com.suyos.authservice.exception.exceptions.AccountDisabledException;
@@ -38,6 +39,7 @@ import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
+import com.suyos.authservice.util.ClientIpResolver;
 import com.suyos.common.event.UserCreationEvent;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -78,6 +80,12 @@ public class AuthService {
 
     /** Service for handling duplicate requests using idempotency keys */
     private final IdempotencyService idempotencyService;
+
+    /** Service for finding location of connection */
+    private final GeoLocationService geoLocationService;
+
+    /** Utility for finding client IP address */
+    private final ClientIpResolver clientIpResolver;
     
     /** Password encoder for secure password hashing */
     private final PasswordEncoder passwordEncoder;
@@ -101,7 +109,7 @@ public class AuthService {
      * @throws UsernameAlreadyTakenException If username is already in use
      * @throws EmailAlreadyRegisteredException If email is already registered
      */
-    public AccountInfoDTO createAccount(RegistrationRequestDTO request, String idempotencyKey) {
+    public AccountInfoResponse createAccount(RegistrationRequest request, String idempotencyKey) {
         // Log account creation attempt
         log.info("event=account_creation_attempt email={}", request.getEmail());
 
@@ -162,7 +170,7 @@ public class AuthService {
         accountEventProducer.publishUserCreation(event);
 
         // Map account's information from created account
-        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(createdAccount);
+        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(createdAccount);
 
         // Mark idempotency key as complete in Redis
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
@@ -189,8 +197,8 @@ public class AuthService {
      * @throws AccountLockedException If account is currently locked
      * @throws InvalidPasswordException If provided password is incorrect
      */
-    public AuthenticationResponseDTO authenticateAccount(
-        AuthenticationRequestDTO request,
+    public AuthenticationTokens authenticateAccount(
+        AuthenticationRequest request,
         HttpServletRequest httpRequest
     ) {
         // Log account authentication attempt
@@ -250,18 +258,23 @@ public class AuthService {
         // Log account authentication success
         log.info("event=account_authenticated account_id={}", updatedAccount.getId());
 
-        // Extract IP address and user agent
-        String ipAddress = extractClientIp(httpRequest);
+        // Extract user agent and device name
         String userAgent = httpRequest.getHeader("User-Agent");
+        String deviceName = request.getDeviceName();
+
+        // Extract IP address and location
+        String ipAddress = clientIpResolver.extractClientIp(httpRequest);
+        String location = geoLocationService.resolveLocation(ipAddress);
 
         // Build session creation request
-        SessionCreationRequestDTO session = SessionCreationRequestDTO.builder()
+        SessionCreationRequest session = SessionCreationRequest.builder()
                 .accountId(account.getId())
                 .expiresAt(null)
                 .userAgent(userAgent)
-                .deviceName(request.getDeviceName())
+                .deviceName(deviceName)
                 .ipAddress(ipAddress)
                 .lastIpAddress(ipAddress)
+                .location(location)
                 .build();
         
         // Create a new session
@@ -271,7 +284,7 @@ public class AuthService {
         UUID sessionId = createdSession.getId();
 
         // Issue refresh and access tokens on successful login
-        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(updatedAccount, sessionId);
+        AuthenticationTokens response = tokenService.issueRefreshAndAccessTokens(updatedAccount, sessionId);
 
         // Return refresh and access tokens
         return response;
@@ -290,7 +303,7 @@ public class AuthService {
      * @param request Account's information and user's profile from Google
      * @return Created account entity
      */
-    private Account createGoogleOAuth2Account(OAuth2AuthenticationRequestDTO request) {
+    private Account createGoogleOAuth2Account(OAuth2AuthenticationRequest request) {
         // Create a new account with Google OAuth2 details
         Account account = Account.builder()
                 .email(request.getEmail())
@@ -330,8 +343,8 @@ public class AuthService {
      * @throws AccountDeletedException If account is deleted
      * @throws AccountLockedException If account is currently locked
      */
-    public AuthenticationResponseDTO processGoogleOAuth2Account(
-        OAuth2AuthenticationRequestDTO request,
+    public AuthenticationTokens processGoogleOAuth2Account(
+        OAuth2AuthenticationRequest request,
         HttpServletRequest httpRequest
     ) {
         // Look up account by OAuth2 credentials or email
@@ -394,11 +407,11 @@ public class AuthService {
         log.info("event=oauth2_account_authenticated account_id={}", savedAccount.getId());
 
         // Extract IP address and user agent
-        String ipAddress = extractClientIp(httpRequest);
+        String ipAddress = clientIpResolver.extractClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
         // Build session creation request
-        SessionCreationRequestDTO session = SessionCreationRequestDTO.builder()
+        SessionCreationRequest session = SessionCreationRequest.builder()
                 .accountId(account.getId())
                 .expiresAt(null)
                 .userAgent(userAgent)
@@ -414,7 +427,7 @@ public class AuthService {
         UUID sessionId = createdSession.getId();
 
         // Issue refresh and access tokens for successful Google OAuth2 login
-        AuthenticationResponseDTO response = tokenService.issueRefreshAndAccessTokens(savedAccount, sessionId);
+        AuthenticationTokens response = tokenService.issueRefreshAndAccessTokens(savedAccount, sessionId);
 
         // Return refresh and access tokens
         return response;
@@ -434,7 +447,7 @@ public class AuthService {
      * @param request Refresh token value linked to account
      * @throws InvalidRefreshTokenException If refresh token is invalid
      */
-    public void deauthenticateAccount(RefreshTokenRequestDTO request) {
+    public void deauthenticateAccount(RefreshTokenRequest request) {
         // Log account deauthentication attempt
         log.info("event=account_deauthentication_attempt refresh_token={}", request.getValue());
 
@@ -484,7 +497,7 @@ public class AuthService {
      * @param request Refresh token value linked to account
      * @throws InvalidRefreshTokenException If refresh token is invalid
      */
-    public void globalDeauthenticateAccount(RefreshTokenRequestDTO request) {
+    public void globalDeauthenticateAccount(RefreshTokenRequest request) {
         // Log account global deauthentication attempt
         log.info("event=account_global_deauthentication_attempt refresh_token={}", request.getValue());
 
@@ -538,7 +551,7 @@ public class AuthService {
      * token is invalid
      * @throws EmailAlreadyRegisteredException If email is already verified
      */
-    public AccountInfoDTO verifyEmail(EmailVerificationRequestDTO request) {
+    public AccountInfoResponse verifyEmail(EmailVerificationRequest request) {
         // Log email verification attempt
         log.info("event=email_verification_attempt token={}", request.getValue());
 
@@ -574,7 +587,7 @@ public class AuthService {
         tokenService.revokeTokenByValue(value);
 
         // Map account's information from verified account
-        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(account);
+        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(account);
 
         // Return verified account's information
         return accountInfo;
@@ -590,7 +603,7 @@ public class AuthService {
      * @param request Email address to send email verification link
      * @return Message indicating if email verification link has been sent
      */
-    public GenericMessageResponseDTO resendEmailVerification(EmailResendRequestDTO request) {
+    public GenericMessageResponse resendEmailVerification(EmailResendRequest request) {
         // Log email verification resend attempt
         log.info("event=email_verification_resend_attempt email={}", request.getEmail());
 
@@ -613,26 +626,12 @@ public class AuthService {
         });
 
         // Build response with email verification message
-        GenericMessageResponseDTO response = GenericMessageResponseDTO.builder()
+        GenericMessageResponse response = GenericMessageResponse.builder()
                 .message("If your email is registered, a verification link has been sent.")
                 .build();
 
         // Return message indicating if email verification link has been sent
         return response;
-    }
-
-    // ----------------------------------------------------------------
-    // HELPERS
-    // ----------------------------------------------------------------
-
-    private String extractClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-
-        // Return request's IP address
-        return request.getRemoteAddr();
     }
 
 }

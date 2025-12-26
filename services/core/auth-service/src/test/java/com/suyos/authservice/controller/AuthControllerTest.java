@@ -16,12 +16,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
-import com.suyos.authservice.dto.request.RegistrationRequestDTO;
+import com.suyos.authservice.dto.internal.AuthenticationTokens;
+import com.suyos.authservice.dto.request.AuthenticationRequest;
+import com.suyos.authservice.dto.request.RegistrationRequest;
 //import com.suyos.authservice.dto.request.EmailVerificationRequestDTO;
-import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
-import com.suyos.authservice.dto.response.AccountInfoDTO;
-import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
+import com.suyos.authservice.dto.request.RefreshTokenRequest;
+import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.service.AuthService;
 import com.suyos.authservice.service.TokenService;
 
@@ -51,22 +51,22 @@ class AuthControllerTest {
     private TokenService tokenService;
     
     /** Test registration request DTO */
-    private RegistrationRequestDTO registrationDTO;
+    private RegistrationRequest registrationDTO;
     
     /** Test authentication request DTO */
-    private AuthenticationRequestDTO loginDTO;
+    private AuthenticationRequest loginDTO;
     
     /** Test refresh token request DTO */
-    private RefreshTokenRequestDTO refreshTokenRequestDTO;
+    private RefreshTokenRequest refreshTokenRequestDTO;
     
     /** Test email verification request DTO */
     //private EmailVerificationRequestDTO emailVerificationTokenRequestDTO;
     
     /** Test account info response DTO */
-    private AccountInfoDTO accountInfoDTO;
+    private AccountInfoResponse accountInfoDTO;
     
     /** Test authentication response DTO */
-    private AuthenticationResponseDTO authResponseDTO;
+    private AuthenticationTokens authResponseDTO;
 
     /**
      * Sets up test data before each test.
@@ -77,7 +77,7 @@ class AuthControllerTest {
         UUID accountId = UUID.randomUUID();
         
         // Build registration request DTO
-        registrationDTO = RegistrationRequestDTO.builder()
+        registrationDTO = RegistrationRequest.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -86,13 +86,13 @@ class AuthControllerTest {
                 .build();
         
         // Build login request DTO
-        loginDTO = AuthenticationRequestDTO.builder()
+        loginDTO = AuthenticationRequest.builder()
                 .identifier("test@example.com")
                 .password("password123")
                 .build();
         
         // Build refresh token request DTO
-        refreshTokenRequestDTO = RefreshTokenRequestDTO.builder()
+        refreshTokenRequestDTO = RefreshTokenRequest.builder()
                 .value("refresh-token")
                 .build();
         
@@ -104,14 +104,14 @@ class AuthControllerTest {
         */
 
         // Build account info response DTO
-        accountInfoDTO = AccountInfoDTO.builder()
+        accountInfoDTO = AccountInfoResponse.builder()
                 .id(accountId)
                 .username("testuser")
                 .email("test@example.com")
                 .build();
         
         // Build authentication response DTO
-        authResponseDTO = AuthenticationResponseDTO.builder()
+        authResponseDTO = AuthenticationTokens.builder()
                 .accountId(accountId)
                 .accessToken("access-token")
                 .refreshToken("refresh-token")
@@ -213,7 +213,7 @@ class AuthControllerTest {
      */
     @Test
     void registerAccount_ValidationError() throws Exception {
-        RegistrationRequestDTO invalidDTO = RegistrationRequestDTO.builder()
+        RegistrationRequest invalidDTO = RegistrationRequest.builder()
                 .username("ab")  // Too short
                 .email("invalid-email")  // Invalid format
                 .password("weak")  // Too short
@@ -260,7 +260,7 @@ class AuthControllerTest {
      */
     @Test
     void registerAccount_MissingFields() throws Exception {
-        RegistrationRequestDTO invalidDTO = RegistrationRequestDTO.builder()
+        RegistrationRequest invalidDTO = RegistrationRequest.builder()
                 .username("testuser")
                 .build();
 
@@ -275,7 +275,7 @@ class AuthControllerTest {
      */
     @Test
     void loginAccount_MissingPassword() throws Exception {
-        AuthenticationRequestDTO invalidDTO = AuthenticationRequestDTO.builder()
+        AuthenticationRequest invalidDTO = AuthenticationRequest.builder()
                 .identifier("test@example.com")
                 .build();
 
@@ -318,7 +318,7 @@ class AuthControllerTest {
      */
     @Test
     void registerAccount_WeakPassword() throws Exception {
-        RegistrationRequestDTO weakPasswordDTO = RegistrationRequestDTO.builder()
+        RegistrationRequest weakPasswordDTO = RegistrationRequest.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("123")  // Too short

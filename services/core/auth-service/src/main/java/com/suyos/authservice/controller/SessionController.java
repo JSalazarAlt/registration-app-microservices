@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.authservice.dto.response.SessionInfoDTO;
+import com.suyos.authservice.dto.response.SessionInfoResponse;
 import com.suyos.authservice.service.SessionService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,7 +56,7 @@ public class SessionController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "User profile updated successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoDTO.class))
+                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
@@ -66,7 +66,7 @@ public class SessionController {
         }
     )
     @GetMapping("/account/{accountId}")
-    public ResponseEntity<List<SessionInfoDTO>> getAllSessionsByAccountId(@PathVariable UUID accountId) {
+    public ResponseEntity<List<SessionInfoResponse>> getAllSessionsByAccountId(@PathVariable UUID accountId) {
         return ResponseEntity.ok(sessionService.findAllSessionsByAccountId(accountId));
     }
 
@@ -86,7 +86,7 @@ public class SessionController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Sessions retrieved successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoDTO.class))
+                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
@@ -96,12 +96,12 @@ public class SessionController {
         }
     )
     @GetMapping("/me")
-    public ResponseEntity<List<SessionInfoDTO>> getAuthenticatedAccountSessions(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<SessionInfoResponse>> getAuthenticatedAccountSessions(@AuthenticationPrincipal Jwt jwt) {
         // Extract authenticated account ID from JWT token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
         // Find authenticated account's list of sessions
-        List<SessionInfoDTO> sessions = sessionService.findAllSessionsByAccountId(authenticatedAccountId);
+        List<SessionInfoResponse> sessions = sessionService.findAllSessionsByAccountId(authenticatedAccountId);
 
         // Return authenticated account's list of sessions with "200 OK" status
         return ResponseEntity.ok(sessions);

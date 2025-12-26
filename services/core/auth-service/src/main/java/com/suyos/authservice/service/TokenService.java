@@ -6,8 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.authservice.dto.request.RefreshTokenRequestDTO;
-import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
+import com.suyos.authservice.dto.internal.AuthenticationTokens;
+import com.suyos.authservice.dto.request.RefreshTokenRequest;
 import com.suyos.authservice.exception.exceptions.InvalidTokenException;
 import com.suyos.authservice.exception.exceptions.TokenNotFoundException;
 import com.suyos.authservice.model.Account;
@@ -121,9 +121,9 @@ public class TokenService {
      * @param account Authenticated account
      * @return Refresh and access tokens
      */
-    public AuthenticationResponseDTO issueRefreshAndAccessTokens(Account account, UUID sessionId) {
+    public AuthenticationTokens issueRefreshAndAccessTokens(Account account, UUID sessionId) {
         // Generate a new access token
-        String accessToken = jwtService.generateToken(account);
+        String accessToken = jwtService.generateToken(account, sessionId);
 
         // Generate a new refresh token value
         String value = UUID.randomUUID().toString();
@@ -148,7 +148,7 @@ public class TokenService {
         log.debug("event=token_issued type=REFRESH account_id={}", account.getId());
 
         // Build authentication response with refresh and access tokens
-        AuthenticationResponseDTO response = AuthenticationResponseDTO.builder()
+        AuthenticationTokens response = AuthenticationTokens.builder()
                 .accountId(account.getId())
                 .accessToken(accessToken)
                 .refreshToken(value)
@@ -170,7 +170,7 @@ public class TokenService {
      * @return Rotated refresh and access tokens
      * @throws InvalidTokenException If refresh token is invalid
      */
-    public AuthenticationResponseDTO refreshToken(RefreshTokenRequestDTO request) {
+    public AuthenticationTokens refreshToken(RefreshTokenRequest request) {
         // Extract refresh token value from request
         String value = request.getValue();
         
@@ -200,7 +200,7 @@ public class TokenService {
 
         // Build authentication response with new refresh and access tokens 
         // (refresh token rotation)
-        AuthenticationResponseDTO response = issueRefreshAndAccessTokens(refreshToken.getAccount(), refreshToken.getSessionId());
+        AuthenticationTokens response = issueRefreshAndAccessTokens(refreshToken.getAccount(), refreshToken.getSessionId());
 
         // Return new refresh and access tokens
         return response;

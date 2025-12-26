@@ -2,6 +2,7 @@ package com.suyos.authservice.config;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -35,7 +36,18 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
         Collection<GrantedAuthority> authorities = extractAuthorities(jwt);
         
         // Create authentication token with JWT, authorities, and subject
-        return new JwtAuthenticationToken(jwt, authorities, jwt.getSubject());
+        JwtAuthenticationToken auth = new JwtAuthenticationToken(jwt, authorities, jwt.getSubject());
+
+        // Extract session ID from JWT claims
+        String sessionId = jwt.getClaimAsString("sessionId");
+        
+        // Set session ID as authentication details if present
+        if (sessionId != null) {
+            auth.setDetails(UUID.fromString(sessionId));
+        }
+
+        // Return authentication token with account ID and authorities
+        return auth;
     }
 
     /**

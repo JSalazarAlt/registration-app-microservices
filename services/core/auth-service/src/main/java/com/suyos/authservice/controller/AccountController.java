@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
-import com.suyos.authservice.dto.response.AccountInfoDTO;
+import com.suyos.authservice.dto.request.AccountUpdateRequest;
+import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.service.AccountService;
 import com.suyos.common.dto.response.PagedResponseDTO;
 
@@ -75,14 +75,14 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<PagedResponseDTO<AccountInfoDTO>> getAllAccounts(
+    public ResponseEntity<PagedResponseDTO<AccountInfoResponse>> getAllAccounts(
         @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
         @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
         @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir
     ) {
         // Find paginated list of accounts' information
-        PagedResponseDTO<AccountInfoDTO> accountInfos = accountService.findAllAccounts(page, 
+        PagedResponseDTO<AccountInfoResponse> accountInfos = accountService.findAllAccounts(page, 
             size, sortBy, sortDir);
         
         // Return paginated list of accounts' information with "200 OK" status
@@ -103,7 +103,7 @@ public class AccountController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account retrieved successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
             @ApiResponse(responseCode = "403", description = "Access denied"),
@@ -111,12 +111,12 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> getAccountById(
+    public ResponseEntity<AccountInfoResponse> getAccountById(
         @Parameter(description = "Account's ID", required = true)
         @PathVariable UUID id
     ) {
         // Find account's information by id
-        AccountInfoDTO accountInfo = accountService.findAccountById(id);
+        AccountInfoResponse accountInfo = accountService.findAccountById(id);
 
         // Return account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
@@ -136,7 +136,7 @@ public class AccountController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account retrieved successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
             @ApiResponse(responseCode = "403", description = "Access denied"),
@@ -144,12 +144,12 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> getAccountByUsername(
+    public ResponseEntity<AccountInfoResponse> getAccountByUsername(
         @Parameter(description = "Account's username", required = true)
         @PathVariable String username
     ) {
         // Find account's information by username
-        AccountInfoDTO accountInfo = accountService.findAccountByUsername(username);
+        AccountInfoResponse accountInfo = accountService.findAccountByUsername(username);
 
         // Return account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
@@ -172,19 +172,19 @@ public class AccountController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account retrieved successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
             @ApiResponse(responseCode = "404", description = "Account not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> getAuthenticatedAccount(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<AccountInfoResponse> getAuthenticatedAccount(@AuthenticationPrincipal Jwt jwt) {
         // Extract authenticated account's ID from access token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
         
         // Find authenticated account
-        AccountInfoDTO accountInfo = accountService.findAccountById(authenticatedAccountId);
+        AccountInfoResponse accountInfo = accountService.findAccountById(authenticatedAccountId);
 
         // Return authenticated account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
@@ -204,7 +204,7 @@ public class AccountController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account updated successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation errors"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
@@ -212,15 +212,15 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> updateAuthenticatedAccount(
+    public ResponseEntity<AccountInfoResponse> updateAuthenticatedAccount(
         @AuthenticationPrincipal Jwt jwt,
-        @Valid @RequestBody AccountUpdateRequestDTO request
+        @Valid @RequestBody AccountUpdateRequest request
     ) {
         // Extract authenticated account's ID from access token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
         // Update authenticated account
-        AccountInfoDTO accountInfo = accountService.updateAccountById(authenticatedAccountId, request);
+        AccountInfoResponse accountInfo = accountService.updateAccountById(authenticatedAccountId, request);
         
         // Return updated authenticated account's information with "200 OK"
         // status
@@ -241,19 +241,19 @@ public class AccountController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account soft deleted successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoDTO.class))
+                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
             @ApiResponse(responseCode = "404", description = "Account not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoDTO> deleteAuthenticatedAccount(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<AccountInfoResponse> deleteAuthenticatedAccount(@AuthenticationPrincipal Jwt jwt) {
         // Extract authenticated account's ID from access token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
         // Soft-delete authenticated account
-        AccountInfoDTO accountInfo = accountService.softDeleteAccountById(authenticatedAccountId);
+        AccountInfoResponse accountInfo = accountService.softDeleteAccountById(authenticatedAccountId);
         
         // Return soft-deleted authenticated account's information with "200 OK"
         // status

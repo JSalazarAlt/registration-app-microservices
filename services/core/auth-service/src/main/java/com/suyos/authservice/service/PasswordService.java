@@ -6,10 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.authservice.dto.request.PasswordForgotRequestDTO;
-import com.suyos.authservice.dto.request.PasswordResetRequestDTO;
-import com.suyos.authservice.dto.response.AccountInfoDTO;
-import com.suyos.authservice.dto.response.GenericMessageResponseDTO;
+import com.suyos.authservice.dto.request.PasswordForgotRequest;
+import com.suyos.authservice.dto.request.PasswordResetRequest;
+import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.GenericMessageResponse;
 import com.suyos.authservice.exception.exceptions.InvalidTokenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
@@ -62,7 +62,7 @@ public class PasswordService {
      * @param request Email address to send password reset link
      * @return Message indicating if password reset link has been sent
      */
-    public GenericMessageResponseDTO forgotPassword(PasswordForgotRequestDTO request) {
+    public GenericMessageResponse forgotPassword(PasswordForgotRequest request) {
         // Look up account by email
         accountRepository.findByEmail(request.getEmail()).ifPresent(account -> {
             if (!account.getEmailVerified()) {
@@ -81,7 +81,7 @@ public class PasswordService {
         });
 
         // Build response
-        GenericMessageResponseDTO response = GenericMessageResponseDTO.builder()
+        GenericMessageResponse response = GenericMessageResponse.builder()
                 .message("A password reset link has been sent.")
                 .build();
 
@@ -99,7 +99,7 @@ public class PasswordService {
      * @return Account's information
      * @throws InvalidPasswordTokenException If password reset token is invalid
      */
-    public AccountInfoDTO resetPassword(PasswordResetRequestDTO request) {
+    public AccountInfoResponse resetPassword(PasswordResetRequest request) {
         // Extract password reset token value from request
         String value = request.getValue();
 
@@ -128,7 +128,7 @@ public class PasswordService {
         log.info("event=password_reset account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoDTO accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
 
         // Return updated account's information
         return accountInfo;

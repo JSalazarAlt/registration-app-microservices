@@ -168,7 +168,16 @@
 		</dependency>
 
 		<!-- ========================================================= -->
-		<!-- 9. Testing                                                -->
+		<!-- 9. Geolocation                                            -->
+		<!-- ========================================================= -->
+		<dependency>
+			<groupId>com.maxmind.geoip2</groupId>
+			<artifactId>geoip2</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- 10. Testing                                               -->
 		<!-- ========================================================= -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

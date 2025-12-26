@@ -7,6 +7,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,11 +41,12 @@ public class JwtService {
      * @param account Authenticated account
      * @return Generated JWT token
      */
-    public String generateToken(Account account) {
+    public String generateToken(Account account, UUID sessionId) {
         Map<String, Object> claims = Map.of(
             "username", account.getUsername(),
             "email", account.getEmail(),
-            "authorities", List.of("ROLE_" + account.getRole().name())
+            "authorities", List.of("ROLE_" + account.getRole().name()),
+            "sessionId", sessionId.toString()
         );
 
         return Jwts.builder()

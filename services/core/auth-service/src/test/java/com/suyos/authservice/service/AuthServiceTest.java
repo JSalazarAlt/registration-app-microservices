@@ -17,10 +17,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
-import com.suyos.authservice.dto.request.RegistrationRequestDTO;
-import com.suyos.authservice.dto.response.AccountInfoDTO;
-import com.suyos.authservice.dto.response.AuthenticationResponseDTO;
+import com.suyos.authservice.dto.internal.AuthenticationTokens;
+import com.suyos.authservice.dto.request.AuthenticationRequest;
+import com.suyos.authservice.dto.request.RegistrationRequest;
+import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.repository.AccountRepository;
@@ -66,10 +66,10 @@ class AuthServiceTest {
     private Account testAccount;
     
     /** Test registration request DTO */
-    private RegistrationRequestDTO registrationDTO;
+    private RegistrationRequest registrationDTO;
     
     /** Test authentication request DTO */
-    private AuthenticationRequestDTO loginDTO;
+    private AuthenticationRequest loginDTO;
 
     /**
      * Sets up test data before each test.
@@ -89,7 +89,7 @@ class AuthServiceTest {
                 .build();
         
         // Build registration request DTO
-        registrationDTO = RegistrationRequestDTO.builder()
+        registrationDTO = RegistrationRequest.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -98,7 +98,7 @@ class AuthServiceTest {
                 .build();
         
         // Build login request DTO
-        loginDTO = AuthenticationRequestDTO.builder()
+        loginDTO = AuthenticationRequest.builder()
                 .identifier("test@example.com")
                 .password("password123")
                 .build();
@@ -121,14 +121,14 @@ class AuthServiceTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(accountRepository.save(any())).thenReturn(testAccount);
         when(accountMapper.toAccountInfoDTO(any())).thenReturn(
-            AccountInfoDTO.builder()
+            AccountInfoResponse.builder()
                 .id(testAccount.getId())
                 .username(testAccount.getUsername())
                 .email(testAccount.getEmail())
                 .build()
         );
 
-        AccountInfoDTO result = authService.createAccount(registrationDTO, "idempotency-key");
+        AccountInfoResponse result = authService.createAccount(registrationDTO, "idempotency-key");
 
         assertNotNull(result);
         assertEquals(testAccount.getUsername(), result.getUsername());
@@ -163,14 +163,14 @@ class AuthServiceTest {
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(accountRepository.save(any())).thenReturn(testAccount);
         when(tokenService.issueRefreshAndAccessTokens(any(), any())).thenReturn(
-            AuthenticationResponseDTO.builder()
+            AuthenticationTokens.builder()
                 .accountId(testAccount.getId())
                 .accessToken("accessToken")
                 .refreshToken("refreshToken")
                 .build()
         );
 
-        AuthenticationResponseDTO result =
+        AuthenticationTokens result =
             authService.authenticateAccount(loginDTO, httpServletRequest);
 
         assertNotNull(result);
@@ -278,7 +278,7 @@ class AuthServiceTest {
      */
     @Test
     void authenticateAccount_ByUsername_Success() {
-        loginDTO = AuthenticationRequestDTO.builder()
+        loginDTO = AuthenticationRequest.builder()
                 .identifier("testuser")
                 .password("password123")
                 .build();
@@ -288,14 +288,14 @@ class AuthServiceTest {
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(accountRepository.save(any())).thenReturn(testAccount);
         when(tokenService.issueRefreshAndAccessTokens(any(), any())).thenReturn(
-            AuthenticationResponseDTO.builder()
+            AuthenticationTokens.builder()
                 .accountId(testAccount.getId())
                 .accessToken("accessToken")
                 .refreshToken("refreshToken")
                 .build()
         );
 
-        AuthenticationResponseDTO result =
+        AuthenticationTokens result =
             authService.authenticateAccount(loginDTO, httpServletRequest);
 
         assertNotNull(result);
@@ -315,14 +315,14 @@ class AuthServiceTest {
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(accountRepository.save(any())).thenReturn(testAccount);
         when(tokenService.issueRefreshAndAccessTokens(any(), any())).thenReturn(
-            AuthenticationResponseDTO.builder()
+            AuthenticationTokens.builder()
                 .accountId(testAccount.getId())
                 .accessToken("accessToken")
                 .refreshToken("refreshToken")
                 .build()
         );
 
-        AuthenticationResponseDTO result =
+        AuthenticationTokens result =
             authService.authenticateAccount(loginDTO, httpServletRequest);
 
         assertNotNull(result);
@@ -356,7 +356,7 @@ class AuthServiceTest {
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(accountRepository.save(any())).thenReturn(testAccount);
         when(tokenService.issueRefreshAndAccessTokens(any(), any())).thenReturn(
-            AuthenticationResponseDTO.builder()
+            AuthenticationTokens.builder()
                 .accountId(testAccount.getId())
                 .accessToken("accessToken")
                 .refreshToken("refreshToken")
@@ -380,7 +380,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(accountRepository.save(any())).thenReturn(testAccount);
         when(accountMapper.toAccountInfoDTO(any())).thenReturn(
-            AccountInfoDTO.builder()
+            AccountInfoResponse.builder()
                 .id(testAccount.getId())
                 .username(testAccount.getUsername())
                 .email(testAccount.getEmail())

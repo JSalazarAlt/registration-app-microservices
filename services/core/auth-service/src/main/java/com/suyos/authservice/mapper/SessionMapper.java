@@ -4,8 +4,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
-import com.suyos.authservice.dto.internal.SessionCreationRequestDTO;
-import com.suyos.authservice.dto.response.SessionInfoDTO;
+import com.suyos.authservice.dto.internal.SessionCreationRequest;
+import com.suyos.authservice.dto.response.SessionInfoResponse;
 import com.suyos.authservice.model.Session;
 
 /**
@@ -29,16 +29,17 @@ public interface SessionMapper {
     @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "terminationReason", ignore = true)
     @Mapping(target = "terminatedAt", ignore = true)
+    @Mapping(target = "lastAccessedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Session toEntity(SessionCreationRequestDTO request);
+    Session toEntity(SessionCreationRequest request);
 
     /**
-     * Converts a {@link Session} entity to a {@link SessionInfoDTO}.
+     * Converts a {@link Session} entity to a {@link SessionInfoResponse}.
      *
      * @param session Session entity
      * @return Session's information
      */
-    SessionInfoDTO toSessionInfoDTO(Session session);
+    SessionInfoResponse toSessionInfoDTO(Session session);
     
 }

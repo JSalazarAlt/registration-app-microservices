@@ -1,7 +1,7 @@
 package com.suyos.authservice.performance;
 
-import com.suyos.authservice.dto.request.AuthenticationRequestDTO;
-import com.suyos.authservice.dto.request.RegistrationRequestDTO;
+import com.suyos.authservice.dto.request.AuthenticationRequest;
+import com.suyos.authservice.dto.request.RegistrationRequest;
 import com.suyos.authservice.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -114,7 +114,7 @@ class AuthServicePerformanceTest {
                     httpRequest.setRemoteAddr("127.0.0.1");
                     httpRequest.addHeader("User-Agent", "Perf-Test-Agent");
                     
-                    AuthenticationRequestDTO request = AuthenticationRequestDTO.builder()
+                    AuthenticationRequest request = AuthenticationRequest.builder()
                             .identifier("perf" + index + "@test.com")
                             .password("Password123!")
                             .build();
@@ -183,7 +183,7 @@ class AuthServicePerformanceTest {
                 final int index = i;
                 executor.submit(() -> {
                     try {
-                        RegistrationRequestDTO request = RegistrationRequestDTO.builder()
+                        RegistrationRequest request = RegistrationRequest.builder()
                                 .email("bottleneck" + index + "@test.com")
                                 .username("bottleneckuser" + index)
                                 .password("Password123!")

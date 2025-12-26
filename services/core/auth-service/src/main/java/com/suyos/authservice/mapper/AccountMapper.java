@@ -5,9 +5,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
-import com.suyos.authservice.dto.request.RegistrationRequestDTO;
-import com.suyos.authservice.dto.request.AccountUpdateRequestDTO;
-import com.suyos.authservice.dto.response.AccountInfoDTO;
+import com.suyos.authservice.dto.request.RegistrationRequest;
+import com.suyos.authservice.dto.request.AccountUpdateRequest;
+import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.model.Account;
 
 /**
@@ -45,7 +45,7 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Account toEntity(RegistrationRequestDTO request);
+    Account toEntity(RegistrationRequest request);
 
     /**
      * Updates an existing {@link Account} entity with fields from
@@ -75,14 +75,14 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Account updateAccountFromDTO(AccountUpdateRequestDTO request, @MappingTarget Account account);
+    Account updateAccountFromDTO(AccountUpdateRequest request, @MappingTarget Account account);
 
     /**
-     * Converts a {@link Account} entity to a {@link AccountInfoDTO}.
+     * Converts a {@link Account} entity to a {@link AccountInfoResponse}.
      *
      * @param account Account entity
      * @return Account's information
      */
-    AccountInfoDTO toAccountInfoDTO(Account account);
+    AccountInfoResponse toAccountInfoDTO(Account account);
     
 }
