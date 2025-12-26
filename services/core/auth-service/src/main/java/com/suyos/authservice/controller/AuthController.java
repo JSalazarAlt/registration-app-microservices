@@ -102,7 +102,8 @@ public class AuthController {
     }
 
     /**
-     * Authenticates an account and returns refresh and access tokens.
+     * Authenticates an account and returns refresh and access tokens for a
+     * web session.
      * 
      * @param request Account's credentials
      * @param httpRequest Account's credentials
@@ -138,7 +139,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
-                .path("/auth/refresh")
+                .path("api/auth/refresh")
                 .maxAge(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS))
                 .build();
 
@@ -157,7 +158,8 @@ public class AuthController {
     }
 
      /**
-     * Authenticates an account and returns refresh and access tokens.
+     * Authenticates an account and returns refresh and access tokens for a
+     * mobile session.
      * 
      * @param request Account's credentials
      * @param httpRequest Account's credentials
@@ -181,13 +183,12 @@ public class AuthController {
     )
     public ResponseEntity<MobileAuthenticationResponse> mobileLoginAccount(
         @Valid @RequestBody AuthenticationRequest request,
-        HttpServletRequest httpRequest,
-        HttpServletResponse httpResponse
+        HttpServletRequest httpRequest
     ) {
         // Authenticate account using traditional login credentials
         AuthenticationTokens tokens = authService.authenticateAccount(request, httpRequest);
 
-        // Build web authentication response with refresh token
+        // Build mobile authentication response with refresh token
         MobileAuthenticationResponse mobileResponse = MobileAuthenticationResponse.builder()
                 .accountId(tokens.getAccountId())
                 .accessToken(tokens.getAccessToken())
@@ -296,15 +297,15 @@ public class AuthController {
 
     /**
      * Refreshes an access token using a refresh token and rotates the refresh
-     * token.
+     * token for a web session.
      * 
      * @param request Refresh token value linked to account
      * @return New refresh and access tokens with "200 OK" status
      */
-    @PostMapping("/refresh")
+    @PostMapping("/refresh/web")
     @Operation(
-        summary = "Refresh access token",
-        description = "Issues new JWT access token using valid refresh token",
+        summary = "Web refresh access token",
+        description = "Issues new JWT access token using valid refresh token for a web session",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Token refreshed successfully",
@@ -315,12 +316,74 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AuthenticationTokens> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<WebAuthenticationResponse> webRefreshToken(
+        @Valid @RequestBody RefreshTokenRequest request,
+         HttpServletResponse httpResponse
+    ) {
         // Refresh access token using refresh token and rotate refresh token
-        AuthenticationTokens response = tokenService.refreshToken(request);
+        AuthenticationTokens tokens = tokenService.refreshToken(request);
         
-        // Return new refresh and access tokens with "200 OK" status
-        return ResponseEntity.ok(response);
+        // Build HttpOnly secure cookie for refresh token
+        ResponseCookie refreshCookie = ResponseCookie
+                .from("refreshToken", tokens.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("api/auth/refresh")
+                .maxAge(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS))
+                .build();
+
+        // Add refresh token cookie to response headers
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        // Build web authentication response without refresh token
+        WebAuthenticationResponse webResponse = WebAuthenticationResponse.builder()
+                .accountId(tokens.getAccountId())
+                .accessToken(tokens.getAccessToken())
+                .accessTokenExpiresIn(tokens.getAccessTokenExpiresIn())
+                .build();
+        
+        // Return access token as JSON and refresh token as HttpOnly cookie with "200 OK" status 
+        return ResponseEntity.ok(webResponse);
+    }
+
+    /**
+     * Refreshes an access token using a refresh token and rotates the refresh
+     * token for a mobile session.
+     * 
+     * @param request Refresh token value linked to account
+     * @return New refresh and access tokens with "200 OK" status
+     */
+    @PostMapping("/refresh/mobile")
+    @Operation(
+        summary = "Mobile refresh access token",
+        description = "Issues new JWT access token using valid refresh token for a mobile session",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Token refreshed successfully",
+                content = @Content(schema = @Schema(implementation = AuthenticationTokens.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
+            @ApiResponse(responseCode = "401", description = "Refresh token revoked or expired"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
+    )
+    public ResponseEntity<MobileAuthenticationResponse> mobileRefreshToken(
+        @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        // Refresh access token using refresh token and rotate refresh token
+        AuthenticationTokens tokens = tokenService.refreshToken(request);
+
+        // Build mobile authentication response with refresh token
+        MobileAuthenticationResponse mobileResponse = MobileAuthenticationResponse.builder()
+                .accountId(tokens.getAccountId())
+                .accessToken(tokens.getAccessToken())
+                .accessTokenExpiresIn(tokens.getAccessTokenExpiresIn())
+                .refreshToken(tokens.getRefreshToken())
+                .build();
+        
+        // Return refresh and access tokens with "200 OK" status 
+        return ResponseEntity.ok(mobileResponse);
     }
 
     // ----------------------------------------------------------------
