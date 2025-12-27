@@ -139,7 +139,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
-                .path("api/auth/refresh")
+                .path("/api/auth/refresh")
                 .maxAge(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS))
                 .build();
 
@@ -329,7 +329,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
-                .path("api/auth/refresh")
+                .path("/api/auth/refresh")
                 .maxAge(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS))
                 .build();
 
