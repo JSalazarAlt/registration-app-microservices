@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Body, Param, HttpCode, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, HttpCode, Req, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { RefreshTokenDTO } from './dto/refresh-token.dto';
@@ -26,10 +27,20 @@ export class AuthController {
         return this.authService.register(registerData);
     }
 
-    @Post('login')
+    @Post('login/web')
     @HttpCode(200)
-    async login(@Body() loginData: LoginDTO) {
-        return this.authService.login(loginData);
+    async webLogin(@Body() loginData: LoginDTO, @Res({ passthrough: true }) res: Response) {
+        const result = await this.authService.webLogin(loginData);
+        if (result?.headers?.['set-cookie']) {
+            res.setHeader('Set-Cookie', result.headers['set-cookie']);
+        }
+        return result.data;
+    }
+
+    @Post('login/mobile')
+    @HttpCode(200)
+    async mobileLogin(@Body() loginData: LoginDTO) {
+        return this.authService.mobileLogin(loginData);
     }
 
     // ----------------------------------------------------------------
@@ -62,9 +73,20 @@ export class AuthController {
     // TOKEN REFRESH
     // ----------------------------------------------------------------
 
-    @Post('refresh')
-    async refreshToken(@Body() refreshData: RefreshTokenDTO) {
-        return this.authService.refreshToken(refreshData);
+    @Post('refresh/web')
+    @HttpCode(200)
+    async webRefreshToken(@Body() refreshData: RefreshTokenDTO, @Res({ passthrough: true }) res: Response) {
+        const result = await this.authService.webRefreshToken(refreshData);
+        if (result?.headers?.['set-cookie']) {
+            res.setHeader('Set-Cookie', result.headers['set-cookie']);
+        }
+        return result.data;
+    }
+
+    @Post('refresh/mobile')
+    @HttpCode(200)
+    async mobileRefreshToken(@Body() refreshData: RefreshTokenDTO) {
+        return this.authService.mobileRefreshToken(refreshData);
     }
 
     // ----------------------------------------------------------------
