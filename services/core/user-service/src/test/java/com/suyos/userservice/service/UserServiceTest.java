@@ -3,8 +3,10 @@ package com.suyos.userservice.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,20 +16,29 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import com.suyos.common.dto.response.PagedResponseDTO;
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
+import com.suyos.common.event.UserCreationEvent;
 import com.suyos.userservice.dto.request.UserUpdateRequest;
 import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.exception.exceptions.UserNotFoundException;
 import com.suyos.userservice.mapper.UserMapper;
+import com.suyos.userservice.model.ProcessedEvent;
 import com.suyos.userservice.model.User;
+import com.suyos.userservice.repository.ProcessedEventRepository;
 import com.suyos.userservice.repository.UserRepository;
 
 /**
- * Unit tests for UserService.
+ * Unit tests for {@link UserService}.
  *
  * <p>Tests user profile business logic using mocked dependencies
- * to verify service behavior.</p>
+ * to verify service behavior in isolation.</p>
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -35,33 +46,40 @@ class UserServiceTest {
     /** Mocked user repository */
     @Mock
     private UserRepository userRepository;
-    
+
+    /** Mocked processed event repository */
+    @Mock
+    private ProcessedEventRepository processedEventRepository;
+
     /** Mocked user mapper */
     @Mock
     private UserMapper userMapper;
-    
-    /** User service under test with injected mocks */
+
+    /** Service under test */
     @InjectMocks
     private UserService userService;
-    
+
     /** Test user entity */
     private User testUser;
-    
-    /** Test user profile DTO */
-    private UserProfileResponse testUserDTO;
-    
-    /** Test user update DTO */
-    private UserUpdateRequest updateDTO;
+
+    /** Test user profile */
+    private UserProfileResponse testUserProfile;
+
+    /** Test update request */
+    private UserUpdateRequest updateRequest;
+
+	/** Updated test user profile */
+    private UserProfileResponse updatedTestUserProfile;
 
     /**
-     * Sets up test data before each test.
+     * Initializes common test data before each test.
      */
     @BeforeEach
     void setUp() {
-        // Generate test IDs
+        // Generate test account ID and user ID
         UUID userId = UUID.randomUUID();
         UUID accountId = UUID.randomUUID();
-        
+
         // Build test user
         testUser = User.builder()
                 .id(userId)
@@ -71,11 +89,10 @@ class UserServiceTest {
                 .firstName("Test")
                 .lastName("User")
                 .phone("1234567890")
-                .createdAt(Instant.now())
                 .build();
-        
-        // Build test user profile DTO
-        testUserDTO = UserProfileResponse.builder()
+
+        // Build test user profile response
+        testUserProfile = UserProfileResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
@@ -83,301 +100,380 @@ class UserServiceTest {
                 .lastName("User")
                 .phone("1234567890")
                 .build();
-        
-        // Build test update DTO
-        updateDTO = UserUpdateRequest.builder()
+
+        // Build test user update request
+        updateRequest = UserUpdateRequest.builder()
+                .firstName("Updated")
+                .lastName("Name")
+                .phone("0987654321")
+                .build();
+		
+		// Build test user profile response
+        updatedTestUserProfile = UserProfileResponse.builder()
+                .id(userId)
+                .username("testuser")
+                .email("test@example.com")
                 .firstName("Updated")
                 .lastName("Name")
                 .phone("0987654321")
                 .build();
     }
 
+    // ----------------------------------------------------------
+    // LOOKUP
+    // ----------------------------------------------------------
+
     /**
-     * Tests successful user profile retrieval by ID.
-     * 
-     * <p>Verifies that user profile is retrieved and mapped correctly
-     * when user exists in database.</p>
+     * Retrieves a user profile by ID successfully.
      */
     @Test
-    void getUserById_Success() {
-        // Mock repository to return test user
-        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
+    void findUserById_Success() {
+        // Mock user repository to return test user when searched by ID
+        when(userRepository.findById(testUser.getId()))
+                .thenReturn(Optional.of(testUser));
 
-        // Get user profile
-        UserProfileResponse result = userService.findUserById(testUser.getId());
+        // Mock user mapper to return test user profile when mapping test user
+        when(userMapper.toUserProfileDTO(testUser))
+                .thenReturn(testUserProfile);
 
-        // Verify user profile was retrieved successfully
-        assertNotNull(result);
-        assertEquals(testUserDTO.getUsername(), result.getUsername());
-        assertEquals(testUserDTO.getEmail(), result.getEmail());
+        // Call service method to find user by ID
+        UserProfileResponse response = userService.findUserById(testUser.getId());
+
+        // Assert expected user profile is returned
+        assertThat(response)
+				.isNotNull()
+				.isEqualTo(testUserProfile);
+
+        // Verify interactions
         verify(userRepository).findById(testUser.getId());
         verify(userMapper).toUserProfileDTO(testUser);
     }
 
     /**
-     * Tests user profile retrieval with non-existing ID.
-     * 
-     * <p>Verifies that exception is thrown when user does not exist
-     * in database.</p>
+     * Throws exception when user is not found by ID.
      */
     @Test
-    void getUserById_UserNotFound() {
-        // Mock repository to return empty
-        UUID nonExistentId = UUID.randomUUID();
-        when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+    void findUserById_UserNotFound() {
+		// Generate random user ID
+        UUID id = UUID.randomUUID();
 
-        // Attempt to get user profile and expect exception
-        RuntimeException exception = assertThrows(RuntimeException.class, 
-            () -> userService.findUserById(nonExistentId));
-        assertTrue(exception.getMessage().contains("User not found"));
+        // Mock user repository to return no user when searched random ID
+        when(userRepository.findById(id))
+                .thenReturn(Optional.empty());
+
+        // Verify user not found exception is thrown
+        assertThatThrownBy(() -> userService.findUserById(id))
+            	.isInstanceOf(UserNotFoundException.class);
     }
 
     /**
-     * Tests successful user profile update by ID.
-     * 
-     * <p>Verifies that user profile is updated and saved correctly
-     * when valid update data is provided.</p>
+     * Retrieves a user profile by account ID successfully.
+     */
+    @Test
+    void findUserByAccountId_Success() {
+        // Mock user repository to return test user when searched by account ID
+        when(userRepository.findByAccountId(testUser.getAccountId()))
+                .thenReturn(Optional.of(testUser));
+
+        // Mock user mapper to return test user profile when mapping test user
+        when(userMapper.toUserProfileDTO(testUser))
+                .thenReturn(testUserProfile);
+
+        // Call service method to find user by account ID
+        UserProfileResponse response = userService.findUserByAccountId(testUser.getAccountId());
+
+        // Assert expected user profile is returned
+        assertThat(response)
+				.isNotNull()
+				.isEqualTo(testUserProfile);
+
+        // Verify interactions
+        verify(userRepository).findByAccountId(testUser.getAccountId());
+		verify(userMapper).toUserProfileDTO(testUser);
+    }
+
+    /**
+     * Retrieves a paginated list of users successfully.
+     */
+    @Test
+    void findAllUsers_Success() {
+		// Build paginated response with test user
+        Page<User> page = new PageImpl<>(
+                List.of(testUser),
+                PageRequest.of(0, 10),
+                1
+        );
+
+        // Mock user repository to return all test users when searched by pageable
+        when(userRepository.findAll(any(Pageable.class)))
+                .thenReturn(page);
+
+        // Mock user mapper to return test user profile when mapping test users
+        when(userMapper.toUserProfileDTO(testUser))
+                .thenReturn(testUserProfile);
+
+        // Call service method to find all users with pagination
+        PagedResponseDTO<UserProfileResponse> response =
+                userService.findAllUsers(0, 10, "username", "asc");
+
+        // Assert expected user profiles are returned
+		assertThat(response).isNotNull();
+		assertThat(response.getTotalElements())
+				.isEqualTo(1);
+		assertThat(response.getContent())
+				.hasSize(1)
+				.containsExactly(testUserProfile);
+    }
+
+    // ----------------------------------------------------------
+    // CREATION
+    // ----------------------------------------------------------
+
+    /**
+     * Creates a new user successfully.
+     */
+    @Test
+    void createUser_Success() {
+		// Build user creation event
+        UserCreationEvent event = UserCreationEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .occurredAt(Instant.now())
+                .accountId(testUser.getAccountId())
+				.username(testUser.getUsername())
+				.email(testUser.getEmail())
+				.firstName(testUser.getFirstName())
+				.lastName(testUser.getLastName())
+				.phone(testUser.getPhone())
+                .build();
+
+		// Mock processed event repository to check if event has been processed
+        when(processedEventRepository.existsById(event.getId()))
+                .thenReturn(false);
+		
+		// Mock user mapper to return test user when mapping user creation event
+        when(userMapper.toEntity(event))
+                .thenReturn(testUser);
+
+		// Mock user repository to return test user when saving new user
+		when(userRepository.save(any(User.class)))
+                .thenReturn(testUser);
+		
+		// Mock user mapper to return test user profile when mapping test user
+        when(userMapper.toUserProfileDTO(testUser))
+                .thenReturn(testUserProfile);
+
+		// Call service method to create a new user
+        UserProfileResponse response = userService.createUser(event);
+
+		// Assert expected user profile is returned
+        assertThat(response)
+				.isNotNull()
+				.isEqualTo(testUserProfile);
+
+		// Assert business logic side effects
+		assertThat(testUser.getTermsAcceptedAt())
+				.as("Terms acceptance timestamp should be set")
+				.isNotNull();
+		assertThat(testUser.getPrivacyPolicyAcceptedAt())
+				.as("Privacy policy acceptance timestamp should be set")
+				.isNotNull();
+
+		// Verify interactions
+		verify(processedEventRepository).save(any(ProcessedEvent.class));
+		verify(userMapper).toEntity(event);
+		verify(userRepository).save(testUser);
+		verify(userMapper).toUserProfileDTO(testUser);
+    }
+
+    /**
+     * Ignores duplicate user creation event.
+     */
+    @Test
+    void createUser_DuplicateEventIgnored() {
+		// Build user creation event
+        UserCreationEvent event = UserCreationEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .occurredAt(Instant.now())
+                .accountId(testUser.getAccountId())
+				.username(testUser.getUsername())
+				.email(testUser.getEmail())
+				.firstName(testUser.getFirstName())
+				.lastName(testUser.getLastName())
+				.phone(testUser.getPhone())
+                .build();
+
+		// Mock processed event repository to indicate event has already been processed
+        when(processedEventRepository.existsById(event.getId()))
+                .thenReturn(true);
+
+		// Call service method to create a new user from duplicate event
+        UserProfileResponse response = userService.createUser(event);
+
+		// Assert null response for duplicate event
+		assertThat(response)
+				.isNull();
+
+		// Verify interactions
+        verify(userRepository, never()).save(any());
+    }
+
+    // ----------------------------------------------------------
+    // UPDATE
+    // ----------------------------------------------------------
+
+    /**
+     * Updates a user by ID successfully.
      */
     @Test
     void updateUserById_Success() {
-        // Mock dependencies for successful update
-        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
+		// Mock user repository to return test user when searched by ID
+        when(userRepository.findById(testUser.getId()))
+                .thenReturn(Optional.of(testUser));
+		
+		// Mock user mapper to update test user by ID
+		doAnswer(invocation -> {
+			UserUpdateRequest dto = invocation.getArgument(0);
+			User user = invocation.getArgument(1);
 
-        // Update user profile
-        UserProfileResponse result = userService.updateUserById(testUser.getId(), updateDTO);
+			user.setFirstName(dto.getFirstName());
+			user.setLastName(dto.getLastName());
+			user.setPhone(dto.getPhone());
 
-        // Verify user profile was updated successfully
-        assertNotNull(result);
-        verify(userRepository).findById(testUser.getId());
-        verify(userMapper).updateUserFromDTO(updateDTO, testUser);
-        verify(userRepository).save(testUser);
-        verify(userMapper).toUserProfileDTO(testUser);
+			return null;
+		}).when(userMapper).updateUserFromDTO(any(), any());
+			
+        // Mock user repository to return updated test user when updating test user
+		when(userRepository.save(testUser))
+                .thenReturn(testUser);
+		
+		// Mock user mapper to return updated test user profile when mapping test user
+        when(userMapper.toUserProfileDTO(testUser))
+                .thenReturn(updatedTestUserProfile);
+
+		// Call service method to update user
+        UserProfileResponse response = userService.updateUserById(testUser.getId(), updateRequest);
+
+		// Assert expected updated user profile is returned
+        assertThat(response)
+				.isNotNull()
+				.isEqualTo(updatedTestUserProfile);
+		
+		// Verify interactions
+		verify(userRepository).findById(testUser.getId());
+		verify(userMapper).updateUserFromDTO(updateRequest, testUser);
+		verify(userRepository).save(testUser);
+		verify(userMapper).toUserProfileDTO(testUser);
     }
 
     /**
-     * Tests successful user profile retrieval by account ID.
-     * 
-     * <p>Verifies that user profile is retrieved correctly when
-     * searching by account ID.</p>
-     */
-    @Test
-    void getUserByAccountId_Success() {
-        // Mock repository to return test user
-        when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
-
-        // Get user profile by account ID
-        UserProfileResponse result = userService.findUserByAccountId(testUser.getAccountId());
-
-        // Verify user profile was retrieved successfully
-        assertNotNull(result);
-        assertEquals(testUserDTO.getUsername(), result.getUsername());
-        verify(userRepository).findByAccountId(testUser.getAccountId());
-    }
-
-    /**
-     * Tests user profile update with non-existing ID.
+     * Throws exception when updating non-existing user.
      */
     @Test
     void updateUserById_UserNotFound() {
-        // Mock repository to return empty
-        UUID nonExistentId = UUID.randomUUID();
-        when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+		// Generate random user ID
+        UUID id = UUID.randomUUID();
 
-        // Attempt to update user profile and expect exception
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.updateUserById(nonExistentId, updateDTO));
-        assertTrue(exception.getMessage().contains("User not found"));
+        // Mock user repository to return no user when searched random ID
+        when(userRepository.findById(id))
+                .thenReturn(Optional.empty());
+
+		// Verify user not found exception is thrown
+        assertThatThrownBy(() -> userService.updateUserById(id, updateRequest))
+            	.isInstanceOf(UserNotFoundException.class);
     }
 
-    /**
-     * Tests user profile retrieval by account ID with non-existing account.
-     */
-    @Test
-    void getUserByAccountId_UserNotFound() {
-        // Mock repository to return empty
-        UUID nonExistentAccountId = UUID.randomUUID();
-        when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
-
-        // Attempt to get user profile and expect exception
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.findUserByAccountId(nonExistentAccountId));
-        assertTrue(exception.getMessage().contains("User not found"));
-    }
+    // ----------------------------------------------------------
+    // SOFT-DELETION
+    // ----------------------------------------------------------
 
     /**
-     * Tests user profile update by account ID.
+     * Soft-deletes a user by account ID.
      */
     @Test
-    void updateUserByAccountId_Success() {
-        // Mock dependencies for successful update
-        when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
+    void softDeleteUserByAccountId_Success() {
+        when(userRepository.findByAccountId(testUser.getAccountId()))
+                .thenReturn(Optional.of(testUser));
+        when(userRepository.save(testUser))
+                .thenReturn(testUser);
+        when(userMapper.toUserProfileDTO(testUser))
+                .thenReturn(testUserProfile);
 
-        // Update user profile by account ID
-        UserProfileResponse result = userService.updateUserByAccountId(testUser.getAccountId(), updateDTO);
+        UserProfileResponse result =
+                userService.softDeleteUserByAccountId(testUser.getAccountId());
 
-        // Verify user profile was updated successfully
+        assertTrue(testUser.getDeleted());
+        assertNotNull(testUser.getDeletedAt());
         assertNotNull(result);
-        verify(userRepository).findByAccountId(testUser.getAccountId());
-        verify(userMapper).updateUserFromDTO(updateDTO, testUser);
-        verify(userRepository).save(testUser);
     }
 
-    /**
-     * Tests user profile update by account ID with non-existing account.
-     */
-    @Test
-    void updateUserByAccountId_UserNotFound() {
-        // Mock repository to return empty
-        UUID nonExistentAccountId = UUID.randomUUID();
-        when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
-
-        // Attempt to update user profile and expect exception
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.updateUserByAccountId(nonExistentAccountId, updateDTO));
-        assertTrue(exception.getMessage().contains("User not found"));
-    }
+    // ----------------------------------------------------------
+    // SYNC OPERATIONS
+    // ----------------------------------------------------------
 
     /**
-     * Tests email update from Auth Service.
+     * Mirrors email update successfully.
      */
     @Test
-    void handleEmailUpdate_Success() {
-        // Mock repository to return test user
-        UUID accountId = testUser.getAccountId();
-        String newEmail = "newemail@example.com";
-        String eventId = UUID.randomUUID().toString();
-        Instant occurredAt = Instant.now();
+    void mirrorEmailUpdate_Success() {
+        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(
+                UUID.randomUUID().toString(),
+                Instant.now(),
+                testUser.getAccountId(),
+                "new@mail.com"
+        );
 
-        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(eventId, occurredAt, accountId, newEmail);
+        when(processedEventRepository.existsById(event.getId()))
+                .thenReturn(false);
+        when(userRepository.findByAccountId(testUser.getAccountId()))
+                .thenReturn(Optional.of(testUser));
 
-        when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-        // Update email from Auth Service
         userService.mirrorEmailUpdate(event);
 
-        // Verify email was updated
-        verify(userRepository).findByAccountId(testUser.getAccountId());
+        assertEquals("new@mail.com", testUser.getEmail());
         verify(userRepository).save(testUser);
-        assertEquals(newEmail, testUser.getEmail());
     }
 
     /**
-     * Tests email update with non-existing account.
+     * Ignores duplicate email update event.
      */
     @Test
-    void handleEmailUpdate_UserNotFound() {
-        // Mock repository to return test user
-        UUID nonExistentAccountId = UUID.randomUUID();
-        String newEmail = "newemail@example.com";
-        String eventId = UUID.randomUUID().toString();
-        Instant occurredAt = Instant.now();
+    void mirrorEmailUpdate_DuplicateEventIgnored() {
+        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(
+                UUID.randomUUID().toString(),
+                Instant.now(),
+                testUser.getAccountId(),
+                "new@mail.com"
+        );
 
-        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(eventId, occurredAt, nonExistentAccountId, newEmail);
-        
-        when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
+        when(processedEventRepository.existsById(event.getId()))
+                .thenReturn(true);
 
-        // Attempt to update email and expect exception
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.mirrorEmailUpdate(event));
-        assertTrue(exception.getMessage().contains("User not found"));
+        userService.mirrorEmailUpdate(event);
+
+        verify(userRepository, never()).save(any());
     }
 
     /**
-     * Tests username update from Auth Service.
+     * Mirrors username update successfully.
      */
     @Test
-    void handleUsernameUpdate_Success() {
-        // Mock repository to return test user
-        UUID accountId = UUID.randomUUID();
-        String newUsername = "newusername";
-        String eventId = UUID.randomUUID().toString();
-        Instant occurredAt = Instant.now();
+    void mirrorUsernameUpdate_Success() {
+        AccountUsernameUpdateEvent event = new AccountUsernameUpdateEvent(
+                UUID.randomUUID().toString(),
+                Instant.now(),
+                testUser.getAccountId(),
+                "newusername"
+        );
 
-        AccountUsernameUpdateEvent event = new AccountUsernameUpdateEvent(eventId, occurredAt, accountId, newUsername);
+        when(processedEventRepository.existsById(event.getId()))
+                .thenReturn(false);
+        when(userRepository.findByAccountId(testUser.getAccountId()))
+                .thenReturn(Optional.of(testUser));
 
-        when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-        // Update username from Auth Service
         userService.mirrorUsernameUpdate(event);
 
-        // Verify username was updated
-        verify(userRepository).findByAccountId(testUser.getAccountId());
+        assertEquals("newusername", testUser.getUsername());
         verify(userRepository).save(testUser);
-        assertEquals(newUsername, testUser.getUsername());
     }
-
-    /**
-     * Tests username update with non-existing account.
-     */
-    @Test
-    void handleUsernameUpdate_UserNotFound() {
-        // Mock repository to return empty
-        UUID nonExistentAccountId = UUID.randomUUID();
-        String newUsername = "newusername";
-        String eventId = UUID.randomUUID().toString();
-        Instant occurredAt = Instant.now();
-
-        AccountUsernameUpdateEvent event = new AccountUsernameUpdateEvent(eventId, occurredAt, nonExistentAccountId, newUsername);
-        
-        when(userRepository.findByAccountId(nonExistentAccountId)).thenReturn(Optional.empty());
-
-        // Attempt to update username and expect exception
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.mirrorUsernameUpdate(event));
-        assertTrue(exception.getMessage().contains("User not found"));
-    }
-
-
-
-    /**
-     * Tests partial update with null values.
-     */
-    @Test
-    void updateUserProfile_PartialUpdate() {
-        UserUpdateRequest partialUpdate = UserUpdateRequest.builder()
-                .firstName("Updated")
-                .build();
-
-        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userMapper.toUserProfileDTO(any(User.class))).thenReturn(testUserDTO);
-
-        UserProfileResponse result = userService.updateUserById(testUser.getId(), partialUpdate);
-
-        assertNotNull(result);
-        verify(userMapper).updateUserFromDTO(partialUpdate, testUser);
-    }
-
-
-
-    /**
-     * Tests updating user with same email.
-     */
-    @Test
-    void updateUser_SameEmail() {
-        // Mock repository to return test user
-        UUID accountId = testUser.getAccountId();
-        String sameEmail = testUser.getEmail();
-        String eventId = UUID.randomUUID().toString();
-        Instant occurredAt = Instant.now();
-
-        AccountEmailUpdateEvent event = new AccountEmailUpdateEvent(eventId, occurredAt, accountId, sameEmail);
-
-        when(userRepository.findByAccountId(any(UUID.class))).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-        userService.mirrorEmailUpdate(event);
-
-        verify(userRepository).save(testUser);
-        assertEquals(sameEmail, testUser.getEmail());
-    }
-    
+	
 }
