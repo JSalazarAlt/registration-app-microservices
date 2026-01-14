@@ -258,7 +258,7 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<Void> logoutAccount(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<Void> logoutAccount(@Valid @RequestBody RefreshTokenRequest request) {
         // Deauthenticate account and revoke refresh token
         authService.deauthenticateAccount(request);
         
@@ -283,7 +283,7 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<Void> globalLogoutAccount(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<Void> globalLogoutAccount(@Valid @RequestBody RefreshTokenRequest request) {
         // Globally deauthenticate account and revoke refresh token
         authService.globalDeauthenticateAccount(request);
         
@@ -318,7 +318,7 @@ public class AuthController {
     )
     public ResponseEntity<WebAuthenticationResponse> webRefreshToken(
         @Valid @RequestBody RefreshTokenRequest request,
-         HttpServletResponse httpResponse
+        HttpServletResponse httpResponse
     ) {
         // Refresh access token using refresh token and rotate refresh token
         AuthenticationTokens tokens = tokenService.refreshToken(request);
