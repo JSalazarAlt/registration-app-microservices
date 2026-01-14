@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../shared/header/Header';
+import api from '../../utils/auth';
 import './Profile.css';
 
 interface ProfileData {
@@ -29,11 +30,7 @@ export default function Profile() {
 
         const fetchProfile = async () => {
             try {
-                const res = await fetch('http://localhost:3001/api/v1/profile', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const res = await api.fetchWithAuth('http://localhost:3001/api/v1/profile/me');
 
                 if (!res.ok) {
                     navigate('/login', { replace: true });

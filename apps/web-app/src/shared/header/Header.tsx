@@ -18,25 +18,24 @@ export default function Header() {
     }, []);
 
     const handleLogout = async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
         const accessToken = localStorage.getItem('accessToken');
         try {
-            if (refreshToken) {
-                await fetch('http://localhost:3001/api/v1/auth/logout', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${accessToken}`,
-                     },
-                    body: JSON.stringify({ refreshToken }),
-                });
-                console.log('Refresh token:', refreshToken)
-            }
+            // Server reads refresh token from HttpOnly cookie; include credentials so cookie is sent
+            await fetch('http://localhost:3001/api/v1/auth/logout/web', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${accessToken}`,
+                 },
+                credentials: 'include',
+                body: JSON.stringify({}),
+            });
+            console.log('Logout requested (refresh token is stored in HttpOnly cookie)');
         } catch (err) {
             console.error('Logout error:', err);
         } finally {
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
+            // refresh token is stored in an HttpOnly cookie; do not access/remove from JS
             navigate('/login', { replace: true });
         }
     };

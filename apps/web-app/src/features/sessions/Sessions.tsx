@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../shared/header/Header';
+import api from '../../utils/auth';
 import './Sessions.css';
 
 interface Session {
@@ -23,28 +24,30 @@ export default function Session() {
 
     const handleGlobalLogout = async () => {
         const token = localStorage.getItem('accessToken');
-        const refreshToken = localStorage.getItem('refreshToken');
 
-        if (!token || !refreshToken) {
+        if (!token) {
             navigate('/login', { replace: true });
             return;
         }
 
         try {
-            await fetch('http://localhost:3001/api/v1/auth/global-logout', {
+            // Server reads refresh token from HttpOnly cookie; include credentials to send cookie
+            await fetch('http://localhost:3001/api/v1/auth/global-logout/web', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ value: refreshToken }),
+                credentials: 'include',
+                body: JSON.stringify({}),
             });
+            console.log('Global logout requested (refresh token is stored in HttpOnly cookie)');
         } catch (err) {
             console.error('Global logout error:', err);
         } finally {
             // Always clear local auth state
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
+            // refresh token is stored in an HttpOnly cookie; do not access/remove from JS
             navigate('/login', { replace: true });
         }
     };
@@ -58,11 +61,7 @@ export default function Session() {
 
         const fetchProfile = async () => {
             try {
-                const res = await fetch('http://localhost:3001/api/v1/sessions/me', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const res = await api.fetchWithAuth('http://localhost:3001/api/v1/sessions/me');
 
                 if (!res.ok) {
                     navigate('/login', { replace: true });

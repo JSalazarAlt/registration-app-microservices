@@ -14,9 +14,10 @@ export default function Login() {
 
         console.log('Submitting login', { identifier, password, deviceName });
 
-        const res = await fetch('http://localhost:3001/api/v1/auth/login', {
+        const res = await fetch('http://localhost:3001/api/v1/auth/login/web', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ identifier, password, deviceName }),
         });
 
@@ -27,7 +28,7 @@ export default function Login() {
 
         const data = await res.json();
         localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+        // refreshToken is stored in an HttpOnly cookie by the server; do not store it in localStorage
         navigate('/');
     };
 
