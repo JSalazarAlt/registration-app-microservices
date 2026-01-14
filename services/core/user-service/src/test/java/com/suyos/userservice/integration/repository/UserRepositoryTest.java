@@ -1,4 +1,4 @@
-package com.suyos.userservice.repository;
+package com.suyos.userservice.integration.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.suyos.userservice.model.User;
+import com.suyos.userservice.repository.UserRepository;
 
 /**
  * Unit tests for UserRepository.

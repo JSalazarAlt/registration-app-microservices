@@ -1,4 +1,4 @@
-package com.suyos.userservice.controller;
+package com.suyos.userservice.slice.controller;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -15,11 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.userservice.controller.UserController;
 import com.suyos.userservice.dto.request.UserUpdateRequest;
 import com.suyos.userservice.dto.response.UserProfileResponse;
 import com.suyos.userservice.service.UserService;
@@ -45,16 +47,16 @@ class UserControllerTest {
     @MockitoBean
     private UserService userService;
     
-    /** Test user profile DTO */
-    private UserProfileResponse userProfileDTO;
+    /** Test user's profile */
+    private UserProfileResponse userProfile;
     
-    /** Test user update DTO */
-    private UserUpdateRequest userUpdateDTO;
+    /** Test user's update request */
+    private UserUpdateRequest updateRequest;
     
-    /** Test user ID */
+    /** Test user's ID */
     private UUID userId;
     
-    /** Test account ID */
+    /** Test account's ID */
     private UUID accountId;
 
     /**
@@ -62,12 +64,12 @@ class UserControllerTest {
      */
     @BeforeEach
     void setUp() {
-        // Generate test IDs
+        // Generate test user's ID and account ID
         userId = UUID.randomUUID();
         accountId = UUID.randomUUID();
         
-        // Build test user profile DTO
-        userProfileDTO = UserProfileResponse.builder()
+        // Build test user's profile
+        userProfile = UserProfileResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
@@ -76,9 +78,9 @@ class UserControllerTest {
                 .phone("1234567890")
                 .createdAt(Instant.now())
                 .build();
-        
-        // Build test update DTO
-        userUpdateDTO = UserUpdateRequest.builder()
+
+        // Build test user's update request
+        updateRequest = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .lastName("Name")
                 .phone("0987654321")
@@ -92,18 +94,19 @@ class UserControllerTest {
      * when valid user ID is provided.</p>
      */
     @Test
+    @WithMockUser(roles = "USER")
     void getUserById_Success() throws Exception {
-        // Mock service to return user profile
-        when(userService.findUserById(userId)).thenReturn(userProfileDTO);
+        // Mock user service to return test user's profile user when searched by ID
+        when(userService.findUserById(userId)).thenReturn(userProfile);
 
         // Perform get user request
-        mockMvc.perform(get("/api/v1/users/{userId}", userId))
+        mockMvc.perform(get("/api/users/{userId}", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("testuser"))
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.firstName").value("Test"));
         
-        // Verify service was called
+        // Verify interactions
         verify(userService).findUserById(userId);
     }
 
@@ -131,7 +134,7 @@ class UserControllerTest {
         // Perform update user request
         mockMvc.perform(put("/api/v1/users/{userId}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userUpdateDTO)))
+                .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Updated"))
                 .andExpect(jsonPath("$.lastName").value("Name"));
@@ -146,7 +149,7 @@ class UserControllerTest {
     @Test
     void getProfileByAccountId_Success() throws Exception {
         // Mock service to return user profile
-        when(userService.findUserByAccountId(accountId)).thenReturn(userProfileDTO);
+        when(userService.findUserByAccountId(accountId)).thenReturn(userProfile);
 
         // Perform get profile by account ID request
         mockMvc.perform(get("/api/v1/users/account/{accountId}", accountId))
@@ -175,7 +178,7 @@ class UserControllerTest {
         // Perform update profile by account ID request
         mockMvc.perform(put("/api/v1/users/account/{accountId}", accountId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userUpdateDTO)))
+                .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Updated"));
         
@@ -189,7 +192,7 @@ class UserControllerTest {
     @Test
     void getAllUsersPaginated_Success() throws Exception {
         // Build paginated response
-        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
+        List<UserProfileResponse> users = Arrays.asList(userProfile);
         PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(users)
                 .currentPage(0)
@@ -224,7 +227,7 @@ class UserControllerTest {
     @Test
     void searchUsersByName_Success() throws Exception {
         // Build search results
-        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
+        List<UserProfileResponse> users = Arrays.asList(userProfile);
         
         // Mock service to return search results
         when(userService.findUsersByName("Test")).thenReturn(users);
@@ -267,7 +270,7 @@ class UserControllerTest {
         // Perform update user request and expect error
         mockMvc.perform(put("/api/v1/users/{userId}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userUpdateDTO)))
+                .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().is5xxServerError());
         
         // Verify service was called
@@ -301,7 +304,7 @@ class UserControllerTest {
         // Perform update profile by account ID request and expect error
         mockMvc.perform(put("/api/v1/users/account/{accountId}", accountId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(userUpdateDTO)))
+                .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().is5xxServerError());
         
         // Verify service was called
@@ -381,7 +384,7 @@ class UserControllerTest {
      */
     @Test
     void getAllUsersPaginated_CustomParams() throws Exception {
-        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
+        List<UserProfileResponse> users = Arrays.asList(userProfile);
         PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(users)
                 .currentPage(2)
@@ -413,7 +416,7 @@ class UserControllerTest {
      */
     @Test
     void getAllUsersPaginated_DefaultParams() throws Exception {
-        List<UserProfileResponse> users = Arrays.asList(userProfileDTO);
+        List<UserProfileResponse> users = Arrays.asList(userProfile);
         PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
                 .content(users)
                 .currentPage(0)

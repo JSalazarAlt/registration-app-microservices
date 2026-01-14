@@ -19,6 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Performance tests for UserService.
+ *
+ * <p>Measures throughput and latency under concurrent load to identify
+ * performance bottlenecks and validate scalability.</p>
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 class UserServicePerformanceTest {
