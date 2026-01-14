@@ -1,10 +1,11 @@
-import { Controller, Post, Get, Body, Param, HttpCode, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, HttpCode, Req, Res, UseGuards, UnauthorizedException, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { RefreshTokenDTO } from './dto/refresh-token.dto';
 import { RegistrationDTO } from './dto/registration.dto';
 import { JwtAuthGuard } from './guard/jwt-auth.guards';
+import type { Request } from 'express';
 
 /**
  * Controller handling authentication-related endpoints.
@@ -56,17 +57,29 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     @HttpCode(204)
-    async logout(@Body() logoutData: RefreshTokenDTO, @Req() req: Request,) {
+    async logout(@Req() req: Request) {
         const token = req.headers['authorization'];
-        return this.authService.logout(token, logoutData);
+        const refreshToken = req.cookies?.refreshToken;
+        
+        if (!refreshToken) {
+            throw new UnauthorizedException('Refresh token cookie missing');
+        }
+
+        return this.authService.logout(token!, refreshToken);
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('global-logout')
     @HttpCode(204)
-    async globalLogout(@Body() logoutData: RefreshTokenDTO, @Req() req: Request,) {
+    async globalLogout(@Req() req: Request) {
         const token = req.headers['authorization'];
-        return this.authService.globalLogout(token, logoutData);
+        const refreshToken = req.cookies?.refreshToken;
+
+        if (!refreshToken) {
+            throw new UnauthorizedException('Refresh token cookie missing');
+        }
+
+        return this.authService.globalLogout(token!, refreshToken);
     }
 
     // ----------------------------------------------------------------
@@ -75,8 +88,14 @@ export class AuthController {
 
     @Post('refresh/web')
     @HttpCode(200)
-    async webRefreshToken(@Body() refreshData: RefreshTokenDTO, @Res({ passthrough: true }) res: Response) {
-        const result = await this.authService.webRefreshToken(refreshData);
+    async webRefreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        const refreshToken = req.cookies?.refreshToken;
+        
+        if (!refreshToken) {
+            throw new UnauthorizedException('Refresh token cookie missing');
+        }
+
+        const result = await this.authService.webRefreshToken(refreshToken);
         if (result?.headers?.['set-cookie']) {
             res.setHeader('Set-Cookie', result.headers['set-cookie']);
         }

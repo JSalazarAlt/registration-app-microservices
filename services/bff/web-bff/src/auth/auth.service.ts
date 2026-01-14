@@ -185,21 +185,22 @@ export class AuthService {
      *
      * Sends a refresh token and returns a new refresh and access tokens.
      *
-     * @param logoutData Refresh token value linked to account
+     * @param accessToken Access token linked to request
+     * @param refreshToken Refresh token value linked to account
      * @returns Logout confirmation message
      * @throws HttpException If communication with Auth service fails
      */
-    async logout(token: string, logoutData: RefreshTokenDTO) {
+    async logout(accessToken: string, refreshToken: string) {
         // Log logout request
-        this.logger.log(`event=logout_request logout_data=${JSON.stringify(logoutData)}`);
+        this.logger.log(`event=logout_request refresh_token=${refreshToken}`);
         
         try {
             // Send logout request to Auth microservice
             await firstValueFrom(
                 this.httpService.post(
                     `${this.apiGatewayUrl}/api/auth/logout`, 
-                    logoutData,
-                    { headers: { Authorization: token } }
+                    { value: refreshToken },
+                    { headers: { Authorization: accessToken } }
                 ).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
@@ -224,22 +225,23 @@ export class AuthService {
      * Forwards a logout request to the Auth microservice.
      *
      * Sends a refresh token and returns a new refresh and access tokens.
-     *
-     * @param logoutData Refresh token value linked to account
+     * 
+     * @param accessToken Access token linked to request
+     * @param refreshToken Refresh token value linked to account
      * @returns Logout confirmation message
      * @throws HttpException If communication with Auth service fails
      */
-    async globalLogout(token: string, logoutData: RefreshTokenDTO) {
+    async globalLogout(accessToken: string, refreshToken: string) {
         // Log global logout request
-        this.logger.log(`event=global_logout_request`);
+        this.logger.log(`event=global_logout_request refresh_token=${refreshToken}`);
 
         try {
             // Send logout request to Auth microservice
             await firstValueFrom(
                 this.httpService.post(
                     `${this.apiGatewayUrl}/api/auth/global-logout`,
-                    logoutData,
-                    { headers: { Authorization: token } }
+                    { value: refreshToken },
+                    { headers: { Authorization: accessToken } }
                 ).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
@@ -270,20 +272,20 @@ export class AuthService {
      *
      * Sends a refresh token to be revoked.
      *
-     * @param refreshData Refresh token value linked to account
+     * @param refreshToken Refresh token value linked to account
      * @returns New refresh and access tokens
      * @throws HttpException If token refresh fails or service is unavailable
      */
-    async webRefreshToken(refreshData: RefreshTokenDTO) {
+    async webRefreshToken(refreshToken: string) {
         // Log refresh token request
-        this.logger.log(`event=refresh_token_request`);
+        this.logger.log(`event=refresh_token_request refresh_token=${refreshToken}`);
 
         try {
             // Send refresh token request to Auth microservice and retrieve tokens
             const response = await firstValueFrom(
                 this.httpService.post(
                     `${this.apiGatewayUrl}/api/auth/refresh/web`,
-                    refreshData
+                    { value: refreshToken }
                 ).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
@@ -409,26 +411,55 @@ export class AuthService {
      * @param operation Operation name for logging context
      * @returns HttpException with appropriate status and message
      */
-    private handleServiceError(error: AxiosError, operation: string): HttpException {
+    private handleServiceError(
+        error: AxiosError,
+        operation: string,
+    ): HttpException {
         if (error.response) {
             // Auth service returned an error response
             const status = error.response.status;
-            const message = error.response.data || 'Auth service error';
-            this.logger.error(`event=auth_service_error operation=${operation} status=${status} message=${JSON.stringify(message)}`);
+
+            // Axios response.data can be: string | object | Buffer
+            const message =
+                typeof error.response.data === 'string'
+                    ? error.response.data
+                    : (error.response.data as any)?.message
+                        ?? 'Auth service error';
+
+            this.logger.error(
+                `event=auth_service_error operation=${operation} status=${status} message=${message}`,
+            );
+
             return new HttpException(message, status);
-        } else if (error.code === 'ECONNREFUSED') {
+        }
+
+        if (error.code === 'ECONNREFUSED') {
             // Auth service is unavailable
             this.logger.error(`event=auth_service_unavailable operation=${operation}`);
-            return new HttpException('Auth service is currently unavailable', HttpStatus.SERVICE_UNAVAILABLE);
-        } else if (error.name === 'TimeoutError') {
+            return new HttpException(
+                'Auth service is currently unavailable',
+                HttpStatus.SERVICE_UNAVAILABLE,
+            );
+        }
+
+        if (error.name === 'TimeoutError') {
             // Request timed out
             this.logger.error(`event=auth_service_timeout operation=${operation}`);
-            return new HttpException('Auth service request timed out', HttpStatus.GATEWAY_TIMEOUT);
-        } else {
-            // Unknown error
-            this.logger.error(`event=auth_service_unknown_error operation=${operation} error=${error.message}`);
-            return new HttpException('Failed to communicate with Auth service', HttpStatus.INTERNAL_SERVER_ERROR);
+            return new HttpException(
+                'Auth service request timed out',
+                HttpStatus.GATEWAY_TIMEOUT,
+            );
         }
+
+        // Unknown error
+        this.logger.error(
+            `event=auth_service_unknown_error operation=${operation} error=${error.message}`,
+        );
+
+        return new HttpException(
+            'Failed to communicate with Auth service',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+        );
     }
 
 }
