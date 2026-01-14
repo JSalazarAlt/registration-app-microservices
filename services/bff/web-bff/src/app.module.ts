@@ -3,11 +3,11 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './modules/auth/auth.module';
-import { UserModule } from './modules/user/user.module';
-import { HomeModule } from './modules/home/home.module';
-import { ProfileModule } from './modules/profile/profile.module';
-import { SessionModule } from './modules/sessions/session.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { HomeModule } from './views/home/home.module';
+import { ProfileModule } from './views/profile/profile.module';
+import { SessionModule } from './views/sessions/session.module';
 
 @Module({
     imports: [

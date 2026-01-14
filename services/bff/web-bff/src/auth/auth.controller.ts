@@ -55,7 +55,7 @@ export class AuthController {
     // ----------------------------------------------------------------
 
     @UseGuards(JwtAuthGuard)
-    @Post('logout')
+    @Post('logout/web')
     @HttpCode(204)
     async logout(@Req() req: Request) {
         const token = req.headers['authorization'];
@@ -69,7 +69,7 @@ export class AuthController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Post('global-logout')
+    @Post('global-logout/web')
     @HttpCode(204)
     async globalLogout(@Req() req: Request) {
         const token = req.headers['authorization'];
@@ -96,6 +96,7 @@ export class AuthController {
         }
 
         const result = await this.authService.webRefreshToken(refreshToken);
+        
         if (result?.headers?.['set-cookie']) {
             res.setHeader('Set-Cookie', result.headers['set-cookie']);
         }

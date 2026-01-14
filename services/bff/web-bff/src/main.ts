@@ -1,12 +1,15 @@
 import '../otel/otel';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { WinstonLoggerService } from './winston-logger.service';
+import { WinstonLoggerService } from './logger/winston-logger.service';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
         logger: new WinstonLoggerService(),
     });
+
+    app.use(cookieParser());
     
     app.enableCors({
         origin: ['http://localhost:5173', 'http://localhost:3001'],

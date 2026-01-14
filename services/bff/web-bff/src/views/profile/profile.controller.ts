@@ -8,7 +8,7 @@ export class ProfileController {
     constructor(private readonly profileService: ProfileService) {}
 
     @UseGuards(JwtAuthGuard)
-    @Get()
+    @Get('me')
     async getProfile(@Req() req: Request) {
         const token = req.headers['authorization'];
         return this.profileService.getProfileData(token);
