@@ -142,21 +142,21 @@ public class TokenService {
         }
 
         // Persist created refresh token
-        tokenRepository.save(refreshToken);
+        Token createdRefreshToken = tokenRepository.save(refreshToken);
 
         // Log refresh token issuance event
         log.debug("event=token_issued type=REFRESH account_id={}", account.getId());
 
         // Build authentication response with refresh and access tokens
-        AuthenticationTokens response = AuthenticationTokens.builder()
+        AuthenticationTokens tokens = AuthenticationTokens.builder()
                 .accountId(account.getId())
                 .accessToken(accessToken)
-                .refreshToken(value)
+                .refreshToken(createdRefreshToken.getValue())
                 .accessTokenExpiresIn(jwtService.getExpirationTime())
                 .build();
 
         // Return refresh and access tokens
-        return response;
+        return tokens;
     }
 
     // ----------------------------------------------------------------
