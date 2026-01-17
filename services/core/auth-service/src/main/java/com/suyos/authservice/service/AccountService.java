@@ -358,5 +358,27 @@ public class AccountService {
         // Return account's information
         return accountInfo;
     }
+    
+    // ----------------------------------------------------------------
+    // HELPERS
+    // ----------------------------------------------------------------
+
+    /**
+     * Updates last logout timestamp for an account by ID.
+     * 
+     * @param id Account's ID to update
+     * @throws AccountNotFoundException If account is not found
+     */
+    public void updateLastLogout(UUID accountId) {
+        // Look up account by ID
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("account_id=" + accountId));
+        
+        // Update last logout timestamp
+        account.setLastLogoutAt(Instant.now());
+
+        // Persist updated account
+        accountRepository.save(account);
+    }
 
 }

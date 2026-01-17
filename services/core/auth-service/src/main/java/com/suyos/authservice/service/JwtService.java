@@ -42,13 +42,18 @@ public class JwtService {
      * @return Generated JWT token
      */
     public String generateToken(Account account, UUID sessionId) {
+        // Determine scopes based on account role
+        List<String> scopes = determineScopes(account.getRole().name());
+
+        // Define JWT claims
         Map<String, Object> claims = Map.of(
-            "username", account.getUsername(),
-            "email", account.getEmail(),
+            "name", account.getUsername(),
             "authorities", List.of("ROLE_" + account.getRole().name()),
-            "sessionId", sessionId.toString()
+            "scope", String.join(" ", scopes),
+            "sid", sessionId.toString()
         );
 
+        // Build and sign JWT token
         return Jwts.builder()
                 .claims(claims)
                 .subject(account.getId().toString())
@@ -94,6 +99,17 @@ public class JwtService {
                 .replace("-----END PRIVATE KEY-----", "")
                 .replaceAll("\\s", "")
         );
+    }
+
+    private List<String> determineScopes(String role) {
+        if ("ADMIN".equals(role)) {
+            return List.of("read:accounts", "read:accounts:full", "write:accounts", "read:sessions");
+        } else if ("SUPER_ADMIN".equals(role)) {
+            return List.of("read:accounts", "read:accounts:full", "write:accounts", "read:sessions");
+        } else if ("SYSTEM".equals(role)) {
+            return List.of("read:accounts", "read:accounts:full", "write:accounts", "read:sessions");
+        }
+        return List.of("read:accounts", "read:sessions");
     }
     
 }

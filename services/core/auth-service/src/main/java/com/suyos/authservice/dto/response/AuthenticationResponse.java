@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public class BaseAuthenticationResponse {
+public class AuthenticationResponse {
 
     /** Authenticated account's ID */
     private UUID accountId;
@@ -32,5 +32,8 @@ public class BaseAuthenticationResponse {
     
     /** JWT access token expiration time in seconds */
     private Long accessTokenExpiresIn;
+
+    /** Refresh token for renewing expired access tokens */
+    private String refreshToken;
     
 }

@@ -13,6 +13,7 @@ import com.suyos.authservice.exception.exceptions.SessionNotFoundException;
 import com.suyos.authservice.mapper.SessionMapper;
 import com.suyos.authservice.model.Session;
 import com.suyos.authservice.model.SessionTerminationReason;
+import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.SessionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,12 @@ public class SessionService {
     /** Mapper for converting between session entities and DTOs */
     private final SessionMapper sessionMapper;
 
+    /** Service for account management */
+    private final AccountService accountService;
+
+    /** Service for token management */
+    private final TokenService tokenService;
+
     /** Session lifetime in days */
     private static final Long SESSION_LIFETIME_DAYS = 30L;
 
@@ -43,19 +50,43 @@ public class SessionService {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves all sessions by account ID.
+     * Finds a session by ID.
+     *
+     * @param id Session's ID to search for
+     * @return Session's information
+     */
+    public SessionInfoResponse findSessionById(UUID id) {
+        // Look up session by ID
+        Session session = sessionRepository.findById(id)
+                .orElseThrow(() -> new SessionNotFoundException("session_id=" + id));
+
+        // Log session found by ID success
+        log.info("event=session_found_by_id session_id={}", session.getId());
+
+        // Map session's information from session
+        SessionInfoResponse sessionInfo = sessionMapper.toSessionInfoDTO(session);
+
+        // Return session's information
+        return sessionInfo;
+    }
+
+    /**
+     * Finds all active sessions by account ID.
      *
      * @param accountId Account's ID to search sessions for
-     * @return List of active sessions
+     * @return List of active sessions' information
      */
     public List<SessionInfoResponse> findAllSessionsByAccountId(UUID accountId) {
-        // Find all active sessions by account ID
+        // Find all active sessions by account ID and map them to sessions' information
         List<SessionInfoResponse> sessions = sessionRepository.findAllActiveByAccountId(accountId)
             .stream()
             .map(sessionMapper::toSessionInfoDTO)
             .toList();
 
-        // Return list of active sessions
+        // Log all active sessions found by account ID success
+        log.info("event=all_sessions_found_by_account_id account_id={}", accountId);
+
+        // Return list of active sessions' information
         return sessions;
     }
 
@@ -94,16 +125,14 @@ public class SessionService {
     // ----------------------------------------------------------------
     
     /**
-     * Terminates a session by ID for a user request.
+     *  Terminates an active session by ID.
      * 
      * @param id Session's ID to terminate
-     * @param accountId Account's ID associated with the session
      * @param terminationReason Termination reason
      */
-    @Transactional
-    public void terminateSessionById(UUID id, UUID accountId, SessionTerminationReason terminationReason) {
+    public void terminateSessionById(UUID id, SessionTerminationReason terminationReason) {
         // Log session termination attempt
-        log.info("event=session_termination_attempt account_id={}", accountId);
+        log.info("event=session_termination_attempt session_id={}", id);
 
         // Look up session by account ID
         Session session = sessionRepository.findById(id)
@@ -124,26 +153,31 @@ public class SessionService {
 
         // Log session termination success
         log.info("event=session_terminated id={} account_id={} termination_reason={}", 
-            terminatedSession.getAccountId(), terminatedSession.getId(), terminatedSession.getTerminationReason());
+                terminatedSession.getId(), terminatedSession.getAccountId(), terminatedSession.getTerminationReason());
     }
 
     /**
-     * Terminates all sessions by account's ID for an admin request.
+     * Terminates all active sessions by account's ID.
      *
      * @param accountId Account's ID to terminate all sessions
      * @param terminationReason Termination reason
      */
-    @Transactional
     public void terminateAllSessionsByAccountId(UUID accountId, SessionTerminationReason terminationReason) {
-        // Log session termination attempt
-        log.info("event=global_session_termination_attempt account_id={}", accountId);
+        // Log all sessions termination attempt
+        log.info("event=all_sessions_termination_attempt account_id={}", accountId);
+
+        // Update account's last logout timestamp
+        accountService.updateLastLogout(accountId);
+
+        // Revoke all active refresh tokens by account ID
+        tokenService.revokeAllTokensByAccountIdAndType(accountId, TokenType.REFRESH);
 
         // Terminate all active sessions by account ID
         sessionRepository.terminateAllActiveByAccountId(accountId, terminationReason);
 
-        // Log global session termination success
-        log.info("event=sessions_globally_terminated account_id={} termination_reason={}",
-            accountId, terminationReason);
+        // Log all sessions termination success
+        log.info("event=all_sessions_terminated account_id={} termination_reason={}",
+                accountId, terminationReason);
     }
 
     // ----------------------------------------------------------

@@ -11,7 +11,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum Role {
+public enum AccountRole {
 
     /** Standard user role */
     USER("Standard user with basic application access."),

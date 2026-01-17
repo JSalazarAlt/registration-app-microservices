@@ -92,15 +92,16 @@ public class SecurityConfig {
             })
             // Define authorization rules for endpoints
             .authorizeHttpRequests(auth -> auth
-                // Public authentication endpoints
-                .requestMatchers("/api/auth/register", "/api/auth/login/web", "/api/auth/login/mobile").permitAll()
+                // Public traditional authentication endpoints
+                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                // Public OAuth2 authentication endpoints
                 .requestMatchers("/api/auth/oauth2/google").permitAll()
                 // Email verification endpoints
-                .requestMatchers("/api/auth/verify-email", "/api/auth/resend-verification").permitAll()
+                .requestMatchers("/api/auth/email/verify", "/api/auth/email/resend-verification").permitAll()
                 // Password reset endpoints
-                .requestMatchers("/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                .requestMatchers("/api/auth/password/forgot", "/api/auth/password/reset").permitAll()
                 // Refresh token endpoint
-                .requestMatchers("/api/auth/refresh/web", "/api/auth/refresh/mobile").permitAll()
+                .requestMatchers("/api/auth/refresh").permitAll()
                 // OAuth2 endpoints
                 .requestMatchers("/oauth2/**").permitAll()
                 // Prometheus and Grafana endpoints

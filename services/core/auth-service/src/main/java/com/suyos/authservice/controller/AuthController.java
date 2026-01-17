@@ -1,11 +1,11 @@
 package com.suyos.authservice.controller;
 
-import java.time.Duration;
+import java.util.UUID;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -18,24 +18,24 @@ import com.suyos.authservice.dto.request.RegistrationRequest;
 import com.suyos.authservice.dto.request.EmailResendRequest;
 import com.suyos.authservice.dto.request.EmailVerificationRequest;
 import com.suyos.authservice.dto.request.OAuth2AuthenticationRequest;
+import com.suyos.authservice.dto.request.PasswordChangeRequest;
 import com.suyos.authservice.dto.request.PasswordForgotRequest;
 import com.suyos.authservice.dto.request.PasswordResetRequest;
 import com.suyos.authservice.dto.request.RefreshTokenRequest;
 import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AuthenticationResponse;
 import com.suyos.authservice.dto.response.GenericMessageResponse;
-import com.suyos.authservice.dto.response.MobileAuthenticationResponse;
-import com.suyos.authservice.dto.response.WebAuthenticationResponse;
 import com.suyos.authservice.service.AuthService;
 import com.suyos.authservice.service.PasswordService;
 import com.suyos.authservice.service.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -63,9 +63,6 @@ public class AuthController {
     /** Service for token management */
     private final TokenService tokenService;
 
-    /** Refresh token lifetime in days */
-    private static final Long REFRESH_TOKEN_LIFETIME_DAYS = 30L;
-
     // ----------------------------------------------------------------
     // TRADITIONAL REGISTRATION AND LOGIN
     // ----------------------------------------------------------------
@@ -91,7 +88,7 @@ public class AuthController {
         }
     )
     public ResponseEntity<AccountInfoResponse> registerAccount(
-        @Valid @RequestBody RegistrationRequest request,
+        @Parameter(description = "Account's information and user's profile") @Valid @RequestBody RegistrationRequest request,
         @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
         // Create new account using registration data
@@ -102,17 +99,16 @@ public class AuthController {
     }
 
     /**
-     * Authenticates an account and returns refresh and access tokens for a
-     * web session.
+     * Authenticates an account and returns refresh and access tokens.
      * 
      * @param request Account's credentials
      * @param httpRequest Account's credentials
      * @return Refresh and access tokens with "200 OK" status
      */
-    @PostMapping("/login/web")
+    @PostMapping("/login")
     @Operation(
-        summary = "Web login account", 
-        description = "Authenticates an account using its credentials for a web session",
+        summary = "Login account", 
+        description = "Authenticates an account using its credentials",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Login successful", 
@@ -125,71 +121,15 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<WebAuthenticationResponse> webLoginAccount(
-        @Valid @RequestBody AuthenticationRequest request,
-        HttpServletRequest httpRequest,
-        HttpServletResponse httpResponse
-    ) {
-        // Authenticate account using traditional login credentials
-        AuthenticationTokens tokens = authService.authenticateAccount(request, httpRequest);
-
-        // Build HttpOnly secure cookie for refresh token
-        ResponseCookie refreshCookie = ResponseCookie
-                .from("refreshToken", tokens.getRefreshToken())
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS))
-                .build();
-
-        // Add refresh token cookie to response headers
-        httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-        // Build web authentication response without refresh token
-        WebAuthenticationResponse webResponse = WebAuthenticationResponse.builder()
-                .accountId(tokens.getAccountId())
-                .accessToken(tokens.getAccessToken())
-                .accessTokenExpiresIn(tokens.getAccessTokenExpiresIn())
-                .build();
-        
-        // Return access token as JSON and refresh token as HttpOnly cookie with "200 OK" status 
-        return ResponseEntity.ok(webResponse);
-    }
-
-     /**
-     * Authenticates an account and returns refresh and access tokens for a
-     * mobile session.
-     * 
-     * @param request Account's credentials
-     * @param httpRequest Account's credentials
-     * @return Refresh and access tokens with "200 OK" status
-     */
-    @PostMapping("/login/mobile")
-    @Operation(
-        summary = "Mobile login account", 
-        description = "Authenticates an account using its credentials for a mobile session",
-        responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Login successful", 
-                content = @Content(schema = @Schema(implementation = AuthenticationTokens.class))
-            ),
-            @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
-            @ApiResponse(responseCode = "403", description = "Account disabled or unverified"),
-            @ApiResponse(responseCode = "423", description = "Account locked"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-        }
-    )
-    public ResponseEntity<MobileAuthenticationResponse> mobileLoginAccount(
-        @Valid @RequestBody AuthenticationRequest request,
+    public ResponseEntity<AuthenticationResponse> loginAccount(
+        @Parameter(description = "Account's credentials") @Valid @RequestBody AuthenticationRequest request,
         HttpServletRequest httpRequest
     ) {
         // Authenticate account using traditional login credentials
         AuthenticationTokens tokens = authService.authenticateAccount(request, httpRequest);
 
-        // Build mobile authentication response with refresh token
-        MobileAuthenticationResponse mobileResponse = MobileAuthenticationResponse.builder()
+        // Build authentication response with refresh token
+        AuthenticationResponse response = AuthenticationResponse.builder()
                 .accountId(tokens.getAccountId())
                 .accessToken(tokens.getAccessToken())
                 .accessTokenExpiresIn(tokens.getAccessTokenExpiresIn())
@@ -197,7 +137,7 @@ public class AuthController {
                 .build();
         
         // Return refresh and access tokens with "200 OK" status
-        return ResponseEntity.ok(mobileResponse);
+        return ResponseEntity.ok(response);
     }
     
     // ----------------------------------------------------------------
@@ -227,7 +167,7 @@ public class AuthController {
         }
     )
     public ResponseEntity<AuthenticationTokens> googleOAuth2Authentication(
-        @Valid @RequestBody OAuth2AuthenticationRequest request,
+        @Parameter(description = "Account's information and user's profile from Google") @Valid @RequestBody OAuth2AuthenticationRequest request,
         HttpServletRequest httpRequest
     ) {
         // Authenticate account using Google OAuth2 credentials
@@ -245,7 +185,7 @@ public class AuthController {
      * Deauthenticates an account and revokes the refresh token.
      * 
      * @param request Refresh token value linked to account
-     * @return logout response with "204 No Content" status
+     * @return Logout response with "204 No Content" status
      */
     @PostMapping("/logout")
     @Operation(
@@ -258,34 +198,11 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<Void> logoutAccount(@Valid @RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<Void> logoutAccount(
+        @Parameter(description = "Refresh token linked to account") @Valid @RequestBody RefreshTokenRequest request
+    ) {
         // Deauthenticate account and revoke refresh token
         authService.deauthenticateAccount(request);
-        
-        // Return logout response with "204 No Content" status
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * Deauthenticates an account and revokes the refresh token.
-     * 
-     * @param request Refresh token value linked to account
-     * @return logout response with "204 No Content" status
-     */
-    @PostMapping("/global-logout")
-    @Operation(
-        summary = "Globally logout account",
-        description = "Deauthenticates an account from all sessions and revokes all refresh and access tokens",
-        responses = {
-            @ApiResponse(responseCode = "204", description = "Logout successful"),
-            @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
-            @ApiResponse(responseCode = "401", description = "Refresh token revoked or expired"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-        }
-    )
-    public ResponseEntity<Void> globalLogoutAccount(@Valid @RequestBody RefreshTokenRequest request) {
-        // Globally deauthenticate account and revoke refresh token
-        authService.globalDeauthenticateAccount(request);
         
         // Return logout response with "204 No Content" status
         return ResponseEntity.noContent().build();
@@ -297,15 +214,15 @@ public class AuthController {
 
     /**
      * Refreshes an access token using a refresh token and rotates the refresh
-     * token for a web session.
+     * token.
      * 
      * @param request Refresh token value linked to account
      * @return New refresh and access tokens with "200 OK" status
      */
-    @PostMapping("/refresh/web")
+    @PostMapping("/refresh")
     @Operation(
-        summary = "Web refresh access token",
-        description = "Issues new JWT access token using valid refresh token for a web session",
+        summary = "Refresh access token",
+        description = "Issues new JWT access token using valid refresh token",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Token refreshed successfully",
@@ -316,66 +233,14 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<WebAuthenticationResponse> webRefreshToken(
-        @Valid @RequestBody RefreshTokenRequest request,
-        HttpServletResponse httpResponse
-    ) {
-        // Refresh access token using refresh token and rotate refresh token
-        AuthenticationTokens tokens = tokenService.refreshToken(request);
-        
-        // Build HttpOnly secure cookie for refresh token
-        ResponseCookie refreshCookie = ResponseCookie
-                .from("refreshToken", tokens.getRefreshToken())
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS))
-                .build();
-
-        // Add refresh token cookie to response headers
-        httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-        // Build web authentication response without refresh token
-        WebAuthenticationResponse webResponse = WebAuthenticationResponse.builder()
-                .accountId(tokens.getAccountId())
-                .accessToken(tokens.getAccessToken())
-                .accessTokenExpiresIn(tokens.getAccessTokenExpiresIn())
-                .build();
-        
-        // Return access token as JSON and refresh token as HttpOnly cookie with "200 OK" status 
-        return ResponseEntity.ok(webResponse);
-    }
-
-    /**
-     * Refreshes an access token using a refresh token and rotates the refresh
-     * token for a mobile session.
-     * 
-     * @param request Refresh token value linked to account
-     * @return New refresh and access tokens with "200 OK" status
-     */
-    @PostMapping("/refresh/mobile")
-    @Operation(
-        summary = "Mobile refresh access token",
-        description = "Issues new JWT access token using valid refresh token for a mobile session",
-        responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Token refreshed successfully",
-                content = @Content(schema = @Schema(implementation = AuthenticationTokens.class))
-            ),
-            @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
-            @ApiResponse(responseCode = "401", description = "Refresh token revoked or expired"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-        }
-    )
-    public ResponseEntity<MobileAuthenticationResponse> mobileRefreshToken(
-        @Valid @RequestBody RefreshTokenRequest request
+    public ResponseEntity<AuthenticationResponse> refreshToken(
+        @Parameter(description = "Refresh token linked to account") @Valid @RequestBody RefreshTokenRequest request
     ) {
         // Refresh access token using refresh token and rotate refresh token
         AuthenticationTokens tokens = tokenService.refreshToken(request);
 
         // Build mobile authentication response with refresh token
-        MobileAuthenticationResponse mobileResponse = MobileAuthenticationResponse.builder()
+        AuthenticationResponse response = AuthenticationResponse.builder()
                 .accountId(tokens.getAccountId())
                 .accessToken(tokens.getAccessToken())
                 .accessTokenExpiresIn(tokens.getAccessTokenExpiresIn())
@@ -383,7 +248,7 @@ public class AuthController {
                 .build();
         
         // Return refresh and access tokens with "200 OK" status 
-        return ResponseEntity.ok(mobileResponse);
+        return ResponseEntity.ok(response);
     }
 
     // ----------------------------------------------------------------
@@ -396,7 +261,7 @@ public class AuthController {
      * @param request Email verification token value linked to account
      * @return Account's information with "200 OK" status
      */
-    @PostMapping("/verify-email")
+    @PostMapping("/email/verify")
     @Operation(
         summary = "Verify email",
         description = "Verifies the email address of an account",
@@ -410,7 +275,9 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoResponse> verifyEmail(@Valid @RequestBody EmailVerificationRequest request) {
+    public ResponseEntity<AccountInfoResponse> verifyEmail(
+        @Parameter(description = "Email verification token linked to account") @Valid @RequestBody EmailVerificationRequest request
+    ) {
         // Authenticate an email using email verification token
         AccountInfoResponse accountInfo = authService.verifyEmail(request);
 
@@ -425,7 +292,7 @@ public class AuthController {
      * @param request Email address to send email verification link
      * @return Message of verification link sent with "200 OK" status
      */
-    @PostMapping("/resend-verification")
+    @PostMapping("/email/resend-verification")
     @Operation(
         summary = "Resend verification email",
         description = "Resends the verification link to the email address of an account",
@@ -438,7 +305,9 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<GenericMessageResponse> resendEmailVerification(@Valid @RequestBody EmailResendRequest request) {
+    public ResponseEntity<GenericMessageResponse> resendEmailVerification(
+        @Parameter(description = "Email address to send email verification link") @Valid @RequestBody EmailResendRequest request
+    ) {
         // Resend verification link to authenticate an email
         GenericMessageResponse response = authService.resendEmailVerification(request);
 
@@ -457,9 +326,9 @@ public class AuthController {
      * @param request Email address to send password reset link
      * @return Message of password reset link sent with "200 OK" status
      */
-    @PostMapping("/forgot-password")
+    @PostMapping("/password/forgot")
     @Operation(
-        summary = "Send password reset email",
+        summary = "Forgot password",
         description = "Sends the password reset link to the email address of an account",
         responses = {
             @ApiResponse(
@@ -470,10 +339,12 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<GenericMessageResponse> forgotPassword(@Valid @RequestBody PasswordForgotRequest request) {
+    public ResponseEntity<GenericMessageResponse> forgotPassword(
+        @Parameter(description = "Email address to send password reset link") @Valid @RequestBody PasswordForgotRequest request
+    ) {
         // Send password reset link to associated account and revoke old 
         // password reset tokens
-        GenericMessageResponse response = passwordService.forgotPassword(request);
+        GenericMessageResponse response = passwordService.requestPasswordReset(request);
 
         // Return message of password reset link sent with "200 OK" status
         return ResponseEntity.ok(response);
@@ -485,7 +356,7 @@ public class AuthController {
      * @param request Password reset token value and new password
      * @return Account's information with "200 OK" status
      */
-    @PostMapping("/reset-password")
+    @PostMapping("/password/reset")
     @Operation(
         summary = "Reset password",
         description = "Resets the password of an account",
@@ -499,9 +370,45 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
         }
     )
-    public ResponseEntity<AccountInfoResponse> resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+    public ResponseEntity<AccountInfoResponse> resetPassword(
+        @Parameter(description = "Password reset token and new password") @Valid @RequestBody PasswordResetRequest request
+    ) {
         // Reset account's password using password reset token
-        AccountInfoResponse accountInfo = passwordService.resetPassword(request);
+        AccountInfoResponse accountInfo = passwordService.confirmPasswordReset(request);
+
+        // Return account's information with "200 OK" status
+        return ResponseEntity.ok(accountInfo);
+    }
+
+    /**
+     * Changes an account's password using its current password.
+     *
+     * @param request Current password and new password
+     * @return Account's information with "200 OK" status
+     */
+    @PostMapping("/password/change")
+    @Operation(
+        summary = "Change password",
+        description = "Changes the password of an account",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Password changed successfully",
+                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
+            @ApiResponse(responseCode = "410", description = "Password reset token revoked or expired"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+        }
+    )
+    public ResponseEntity<AccountInfoResponse> changePassword(
+        @AuthenticationPrincipal Jwt jwt,
+        @Parameter(description = "Current password and new password") @Valid @RequestBody PasswordChangeRequest request
+    ) {
+        // Extract authenticated account's ID from access token
+        UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
+
+        // Change account's password using current password
+        AccountInfoResponse accountInfo = passwordService.changePassword(authenticatedAccountId, request);
 
         // Return account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);

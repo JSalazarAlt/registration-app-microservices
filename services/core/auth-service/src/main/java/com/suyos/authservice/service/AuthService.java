@@ -33,7 +33,7 @@ import com.suyos.authservice.exception.exceptions.InvalidTokenException;
 import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
-import com.suyos.authservice.model.Role;
+import com.suyos.authservice.model.AccountRole;
 import com.suyos.authservice.model.Session;
 import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.model.Token;
@@ -136,7 +136,7 @@ public class AuthService {
 
         // Set password and default role
         account.setPassword(passwordEncoder.encode(request.getPassword()));
-        account.setRole(Role.USER);
+        account.setRole(AccountRole.USER);
         
         // Persist created account
         Account createdAccount = accountRepository.save(account);
@@ -309,7 +309,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .username(request.getEmail())
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                .role(Role.USER)
+                .role(AccountRole.USER)
                 .oauth2Provider("google")
                 .oauth2ProviderId(request.getProviderId())
                 .emailVerified(true)
@@ -441,8 +441,8 @@ public class AuthService {
      * Deauthenticates an account from a session.
      * 
      * <p>Revokes the associated refresh token during logout and updates the
-     * account's last logout timestamp. Publishes an event, so the Session
-     * microservice terminates the session linked to the account.</p>
+     * account's last logout timestamp. Terminates the session linked to the
+     * refresh token.</p>
      * 
      * @param request Refresh token value linked to account
      * @throws InvalidRefreshTokenException If refresh token is invalid
@@ -471,9 +471,6 @@ public class AuthService {
         // Persist updated account
         accountRepository.save(account);
 
-        // Log account deauthentication success
-        log.info("event=account_deauthenticated account_id={}", account.getId());
-        
         // Revoke refresh token
         tokenService.revokeTokenByValue(value);
 
@@ -481,57 +478,13 @@ public class AuthService {
         UUID sessionId = refreshToken.getSessionId();
 
         // Define session termination reason
-        SessionTerminationReason terminationReason = SessionTerminationReason.SINGLE_LOGOUT;
+        SessionTerminationReason terminationReason = SessionTerminationReason.LOGOUT;
 
         // Terminate the associated session
-        sessionService.terminateSessionById(sessionId, account.getId(), terminationReason);
-    }
+        sessionService.terminateSessionById(sessionId, terminationReason);
 
-    /**
-     * Deauthenticates an account from all sessions.
-     * 
-     * <p>Revokes all associated refresh tokens during logout and updates the
-     * account's last logout timestamp. Publishes an event, so the Session
-     * microservice terminates all the sessions linked to the account.</p>
-     * 
-     * @param request Refresh token value linked to account
-     * @throws InvalidRefreshTokenException If refresh token is invalid
-     */
-    public void globalDeauthenticateAccount(RefreshTokenRequest request) {
-        // Log account global deauthentication attempt
-        log.info("event=account_global_deauthentication_attempt refresh_token={}", request.getValue());
-
-        // Extract refresh token value from request
-        String value = request.getValue();
-
-        // Look up token by value and type
-        Token refreshToken = tokenService.findTokenByValueAndType(value, TokenType.REFRESH);
-
-        // Ensure refresh token is valid
-        if(!tokenService.isTokenValid(refreshToken)) {
-            throw new InvalidTokenException(TokenType.REFRESH);
-        }
-
-        // Get account linked to refresh token
-        Account account = refreshToken.getAccount();
-
-        // Update last logout timestamp
-        account.setLastLogoutAt(Instant.now());
-
-        // Persist updated account
-        accountRepository.save(account);
-
-        // Revoke all refresh tokens linked to account
-        tokenService.revokeAllTokensByAccountIdAndType(account.getId(), TokenType.REFRESH);
-
-        // Log account global deauthentication success
-        log.info("event=account_globally_deauthenticated account_id={}", account.getId());
-
-        // Define session termination reason
-        SessionTerminationReason terminationReason = SessionTerminationReason.GLOBAL_LOGOUT;
-
-        // Terminate the associated session
-        sessionService.terminateAllSessionsByAccountId(account.getId(), terminationReason);
+        // Log account deauthentication success
+        log.info("event=account_deauthenticated account_id={}", account.getId());
     }
 
     // ----------------------------------------------------------------
@@ -620,7 +573,7 @@ public class AuthService {
                 // Log email verification resend success
                 log.info("event=email_verification_resent account_id={}", account.getId());
                 
-                // Publish event for Email microservice to send verification link
+                // Publish event for Notification microservice to send verification link
                 //
             }
         });

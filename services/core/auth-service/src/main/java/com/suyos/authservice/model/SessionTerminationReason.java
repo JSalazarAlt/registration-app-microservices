@@ -7,23 +7,23 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SessionTerminationReason {
 
-    /** Session ended by explicit logout from one single session */
-    SINGLE_LOGOUT("Session ended by explicit logout"),
+    /** Session terminated by explicit logout from one single session */
+    LOGOUT("Session terminated by explicit logout"),
 
-    /** Session ended by explicit global logout from all sessions */
-    GLOBAL_LOGOUT("Session ended by explicit global logout"),
+    /** Session terminated by user */
+    USER_TERMINATED("Session terminated by user"),
 
-    /** Session expired due to refresh token expiration */
-    EXPIRED("Session expired due to refresh token expiration"),
+    /** Session terminated due to refresh token expiration */
+    EXPIRED("Session terminated due to refresh token expiration"),
 
-    /** Session revoked by server or security event */
-    REVOKED("Session revoked by server or security event"),
+    /** Session terminated by server or security event */
+    REVOKED("Session terminated by server or security event"),
 
-    /** Session invalidated after password change */
-    PASSWORD_CHANGED("Session invalidated after password change"),
+    /** Session terminated after password change */
+    PASSWORD_CHANGED("Session terminated after password change"),
 
-    /** Session removed due to account soft-deletion */
-    ACCOUNT_SOFT_DELETED("Session removed because account was soft-deleted"),
+    /** Session terminated due to account soft-deletion */
+    ACCOUNT_SOFT_DELETED("Session terminated because account was soft-deleted"),
 
     /** Session terminated by admin */
     ADMIN_TERMINATED("Session terminated by administrator");

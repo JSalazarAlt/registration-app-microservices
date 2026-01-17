@@ -73,7 +73,7 @@ public class Account {
     /** Role defining access level */
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
-    private Role role;
+    private AccountRole role;
 
     // ----------------------------------------------------------------
     // STATUS

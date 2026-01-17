@@ -1,18 +1,23 @@
 package com.suyos.authservice.service;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.suyos.authservice.dto.request.PasswordChangeRequest;
 import com.suyos.authservice.dto.request.PasswordForgotRequest;
 import com.suyos.authservice.dto.request.PasswordResetRequest;
 import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.dto.response.GenericMessageResponse;
+import com.suyos.authservice.exception.exceptions.AccountNotFoundException;
 import com.suyos.authservice.exception.exceptions.InvalidTokenException;
+import com.suyos.authservice.exception.exceptions.PasswordMismatchException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
+import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
@@ -42,6 +47,9 @@ public class PasswordService {
     /** Service for token management */
     private final TokenService tokenService;
 
+    /** Service for session management */
+    private final SessionService sessionService;
+
     /** Password encoder for secure password hashing */
     private final PasswordEncoder passwordEncoder;
 
@@ -56,13 +64,16 @@ public class PasswordService {
      * Initiates the password reset process.
      * 
      * <p>Generates and sends a password reset token to the account associated
-     * with the provided email if account exists and is not already verified.
-     * Revokes any existing password reset tokens before issuing a new one.</p>
+     * with the provided email if account exists. Revokes any existing password
+     * reset tokens before issuing a new one.</p>
      *
      * @param request Email address to send password reset link
      * @return Message indicating if password reset link has been sent
      */
-    public GenericMessageResponse forgotPassword(PasswordForgotRequest request) {
+    public GenericMessageResponse requestPasswordReset(PasswordForgotRequest request) {
+        // Log password reset attempt
+        log.info("event=password_reset_attempt email={}", request.getEmail());
+
         // Look up account by email
         accountRepository.findByEmail(request.getEmail()).ifPresent(account -> {
             if (!account.getEmailVerified()) {
@@ -75,11 +86,11 @@ public class PasswordService {
                 // Log password reset token issuance event
                 log.info("event=password_reset_token_issued account_id={}", account.getId());
                 
-                // Publish event for Email microservice to send password reset link
+                // Publish event for Notification microservice to send password reset email
                 //
             }
         });
-
+        
         // Build response
         GenericMessageResponse response = GenericMessageResponse.builder()
                 .message("A password reset link has been sent.")
@@ -90,16 +101,19 @@ public class PasswordService {
     }
 
     /**
-     * Resets account's password.
+     * Resets an account's password.
      * 
-     * <p>Resets an account's password if the token is valid and the account 
-     * is not already verified. Revokes the used password reset token.</p>
+     * <p>Resets an account's password if the token is valid. Revokes the
+     * used password reset token.</p>
      *
      * @param request Password reset token value and new password
-     * @return Account's information
+     * @return Updated account's information
      * @throws InvalidPasswordTokenException If password reset token is invalid
      */
-    public AccountInfoResponse resetPassword(PasswordResetRequest request) {
+    public AccountInfoResponse confirmPasswordReset(PasswordResetRequest request) {
+        // Log password reset attempt
+        log.info("event=password_reset_confirmation_attempt token={}", request.getValue());
+
         // Extract password reset token value from request
         String value = request.getValue();
 
@@ -125,7 +139,7 @@ public class PasswordService {
         tokenService.revokeTokenByValue(value);
 
         // Log password reset event
-        log.info("event=password_reset account_id={}", updatedAccount.getId());
+        log.info("event=password_reset_confirmed account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
         AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
@@ -137,5 +151,49 @@ public class PasswordService {
     // ----------------------------------------------------------------
     // PASSWORD CHANGE
     // ----------------------------------------------------------------
+
+    /**
+     * Changes an account's password.
+     * 
+     * <p>Changes an account's password if the current password matches the
+     * one stored in the database.</p>
+     *
+     * @param id Account's ID
+     * @param request Current password and new password
+     * @return Updated account's information
+     * @throws PasswordMismatchException If current password is invalid
+     */
+    public AccountInfoResponse changePassword(UUID id, PasswordChangeRequest request) {
+        // Log password change attempt
+        log.info("event=password_change_attempt account_id={}", id);
+
+        // Look up account by ID
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+        
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(),  account.getPassword())) {
+            throw new PasswordMismatchException();
+        }
+
+        // Update password and last password change timestamp
+        account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        account.setLastPasswordChangedAt(Instant.now());
+        
+        // Persist updated account
+        Account updatedAccount = accountRepository.save(account);
+
+        // Terminate all active sessions (include revoke all active refresh tokens)
+        sessionService.terminateAllSessionsByAccountId(updatedAccount.getId(), SessionTerminationReason.PASSWORD_CHANGED);
+
+        // Log password change event
+        log.info("event=password_changed account_id={}", updatedAccount.getId());
+
+        // Map account's information from updated account
+        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+
+        // Return updated account's information
+        return accountInfo;
+    }
     
 }
