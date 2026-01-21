@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, timeout, retry, catchError, throwError } from 'rxjs';
 import { AxiosError } from 'axios';
 import { JwtService } from '@nestjs/jwt';
+//import { UserUpdateDTO } from './dto/user-update.dto';
 
 /**
  * Service for user profile operations.
@@ -14,13 +15,16 @@ import { JwtService } from '@nestjs/jwt';
  * communication.
  */
 @Injectable()
-export class SessionService {
+export class HomeService {
 
     /** Logger instance for structured logging */
-    private readonly logger = new Logger(SessionService.name);
+    private readonly logger = new Logger(HomeService.name);
+
+    /** Auth microservice base URL */
+    private readonly authMicroserviceUrl: string;
 
     /** User microservice base URL */
-    private readonly apiGatewayUrl: string;
+    private readonly userMicroserviceUrl: string;
 
     /** HTTP request timeout in milliseconds */
     private readonly requestTimeout: number;
@@ -39,7 +43,8 @@ export class SessionService {
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService
     ) {
-        this.apiGatewayUrl = this.configService.get<string>('GATEWAY_URL', 'http://localhost:8080');
+        this.authMicroserviceUrl = this.configService.get<string>('AUTH_MICROSERVICE_URL', 'http://localhost:8081');
+        this.userMicroserviceUrl = this.configService.get<string>('USER_MICROSERVICE_URL', 'http://localhost:8082');
         this.requestTimeout = this.configService.get<number>('REQUEST_TIMEOUT', 5000);
         this.maxRetries = this.configService.get<number>('MAX_RETRIES', 3);
     }
@@ -51,42 +56,56 @@ export class SessionService {
      * @returns User information
      * @throws HttpException If user not found or service is unavailable
      */
-    async getAuthenticatedAccountSessions(token: string) {
+    async getHomeData(token: string) {
         const pureToken = token.startsWith('Bearer ')
             ? token.substring(7)
             : token;
 
         const accountId = this.jwtService.decode(pureToken)?.sub;
 
-        this.logger.log(`event=get_sessions_data_request account_id=${accountId}`);
+        this.logger.log(`event=get_home_data_request account_id=${accountId}`);
 
         const headers = { Authorization: token };
 
         try {
-            const [response] = await Promise.all([
-
+            const [accountResponse, userResponse] = await Promise.all([
+                // Fetch account data from Auth microservice
                 firstValueFrom(
                     this.httpService.get(
-                        `${this.apiGatewayUrl}/api/sessions/me`,
+                        `${this.authMicroserviceUrl}/api/accounts/me`,
                         { headers },
                     ).pipe(
                         timeout({ each: this.requestTimeout }),
                         retry(this.maxRetries),
                         catchError((e: AxiosError) =>
-                            throwError(() => this.handleServiceError(e, 'sessions/me')),
+                            throwError(() => this.handleServiceError(e, 'accounts/me')),
                         ),
                     ),
                 ),
+                // Fetch user profile data from User microservice
+                firstValueFrom(
+                    this.httpService.get(
+                        `${this.userMicroserviceUrl}/api/users/me`,
+                        { headers },
+                    ).pipe(
+                        timeout({ each: this.requestTimeout }),
+                        retry(this.maxRetries),
+                        catchError((e: AxiosError) =>
+                            throwError(() => this.handleServiceError(e, 'users/me')),
+                        ),
+                    ),
+                )
             ]);
 
-            this.logger.log(`event=get_sessions_data_success account_id=${accountId}`);
+            this.logger.log(`event=get_home_data_success account_id=${accountId}`);
 
             return {
-                sessions: response.data
+                user: userResponse.data,
+                account: accountResponse.data,
             };
 
         } catch (error) {
-            this.logger.error(`event=get_sessions_data_fail account_id=${accountId} error=${error.message}`);
+            this.logger.error(`event=get_home_data_fail account_id=${accountId} error=${error.message}`);
             throw error;
         }
     }
@@ -106,21 +125,21 @@ export class SessionService {
         if (error.response) {
             // User service returned an error response
             const status = error.response.status;
-            const message = error.response.data || 'User service error';
-            this.logger.error(`event=user_service_error operation=${operation} status=${status} message=${JSON.stringify(message)}`);
+            const message = error.response.data || 'Home service error';
+            this.logger.error(`event=home_service_error operation=${operation} status=${status} message=${JSON.stringify(message)}`);
             return new HttpException(message, status);
         } else if (error.code === 'ECONNREFUSED') {
             // User service is unavailable
-            this.logger.error(`event=user_service_unavailable operation=${operation}`);
-            return new HttpException('User service is currently unavailable', HttpStatus.SERVICE_UNAVAILABLE);
+            this.logger.error(`event=home_service_unavailable operation=${operation}`);
+            return new HttpException('Home service is currently unavailable', HttpStatus.SERVICE_UNAVAILABLE);
         } else if (error.name === 'TimeoutError') {
             // Request timed out
-            this.logger.error(`event=user_service_timeout operation=${operation}`);
-            return new HttpException('User service request timed out', HttpStatus.GATEWAY_TIMEOUT);
+            this.logger.error(`event=home_service_timeout operation=${operation}`);
+            return new HttpException('Home service request timed out', HttpStatus.GATEWAY_TIMEOUT);
         } else {
             // Unknown error
-            this.logger.error(`event=user_service_unknown_error operation=${operation} error=${error.message}`);
-            return new HttpException('Failed to communicate with User service', HttpStatus.INTERNAL_SERVER_ERROR);
+            this.logger.error(`event=home_service_unknown_error operation=${operation} error=${error.message}`);
+            return new HttpException('Failed to communicate with Home service', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

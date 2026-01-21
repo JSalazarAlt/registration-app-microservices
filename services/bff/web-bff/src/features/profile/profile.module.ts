@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
-import { HomeController } from './home.controller';
-import { HomeService } from './home.service';
-import { JwtAuthGuard } from '../../auth/guard/jwt-auth.guards';
+import { ProfileController } from './profile.controller';
+import { ProfileService } from './profile.service';
+import { JwtAuthGuard } from '../../security/auth/jwt-auth.guards';
 import * as fs from 'fs';
 
 /**
- * Module for home view.
+ * Module for profile view.
  *
- * BFF module backing the Home view. Exposes authenticated endpoints that
- * aggregate data for the main UI.
+ * BFF module backing the authenticated user profile view. Aggregates and
+ * shapes user-specific data for profile rendering.
  */
 @Module({
     imports: [
@@ -22,10 +22,10 @@ import * as fs from 'fs';
         }),
     ],
     
-    // UI-facing endpoints for home view
-    controllers: [HomeController],
+    // UI-facing routes for profile view
+    controllers: [ProfileController],
 
     // Orchestration logic and auth guard
-    providers: [HomeService, JwtAuthGuard],
+    providers: [ProfileService, JwtAuthGuard],
 })
-export class HomeModule {}
+export class ProfileModule {}

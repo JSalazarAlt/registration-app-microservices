@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './guard/jwt-auth.guards';
+import { JwtAuthGuard } from '../../security/auth/jwt-auth.guards';
 import { JwtModule } from '@nestjs/jwt';
 import * as fs from 'fs';
 

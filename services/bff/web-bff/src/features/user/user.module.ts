@@ -3,7 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guards';
+import { JwtAuthGuard } from '../../security/auth/jwt-auth.guards';
 import * as fs from 'fs';
 
 /**

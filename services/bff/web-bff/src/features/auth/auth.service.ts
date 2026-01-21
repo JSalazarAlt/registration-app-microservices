@@ -5,7 +5,6 @@ import { firstValueFrom, timeout, retry, catchError } from 'rxjs';
 import { AxiosError } from 'axios';
 import { LoginDTO } from './dto/login.dto';
 import { RegistrationDTO } from './dto/registration.dto';
-import { RefreshTokenDTO } from './dto/refresh-token.dto';
 
 /**
  * Service for authentication-related operations.
@@ -22,7 +21,7 @@ export class AuthService {
     private readonly logger = new Logger(AuthService.name);
 
     /** Auth microservice base URL */
-    private readonly apiGatewayUrl: string;
+    private readonly authMicroserviceUrl: string;
 
     /** HTTP request timeout in milliseconds */
     private readonly requestTimeout: number;
@@ -40,7 +39,7 @@ export class AuthService {
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
     ) {
-        this.apiGatewayUrl = this.configService.get<string>('GATEWAY_URL', 'http://localhost:8080');
+        this.authMicroserviceUrl = this.configService.get<string>('AUTH_MICROSERVICE_URL', 'http://localhost:8081');
         this.requestTimeout = this.configService.get<number>('REQUEST_TIMEOUT', 5000);
         this.maxRetries = this.configService.get<number>('MAX_RETRIES', 3);
     }
@@ -64,10 +63,13 @@ export class AuthService {
         this.logger.log(`event=registration_request email=${registerData.email}`);
 
         try {
-            // Send registration request to Auth microservice to retrieve
+            // Send registration request to Auth microservice and retrieve
             // created account's information
-            const response = await firstValueFrom(
-                this.httpService.post(`${this.apiGatewayUrl}/api/auth/register`, registerData).pipe(
+            const createdAccountInfo = await firstValueFrom(
+                this.httpService.post(
+                    `${this.authMicroserviceUrl}/api/auth/register`,
+                    registerData
+                ).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {
@@ -80,7 +82,7 @@ export class AuthService {
             this.logger.log(`event=registration_success email=${registerData.email}`);
 
             // Return created account's information
-            return response.data;
+            return createdAccountInfo.data;
         } catch (error) {
             // Log registration failed
             this.logger.error(`event=registration_failed email=${registerData.email} error=${error.message}`);
@@ -91,14 +93,14 @@ export class AuthService {
     /**
      * Forwards a login request to the Auth microservice.
      *
-     * Sends login credentials and returns the access and refresh tokens
-     * issued by the Auth microservice.
+     * Forwards the provided login credentials to the Auth microservice, and
+     * returnes the issued refresh and access tokens.
      *
      * @param loginData Login credentials (username/email and password)
      * @returns Refresh and access tokens
      * @throws HttpException If authentication fails or service is unavailable
      */
-    async webLogin(loginData: LoginDTO) {
+    async login(loginData: LoginDTO) {
         // Log login request
         this.logger.log(`event=login_request identifier=${loginData.identifier}`);
         
@@ -106,7 +108,7 @@ export class AuthService {
             // Send login request to Auth microservice and retrieve tokens
             const response = await firstValueFrom(
                 this.httpService.post(
-                    `${this.apiGatewayUrl}/api/auth/login/web`,
+                    `${this.authMicroserviceUrl}/api/auth/login`,
                     loginData
                 ).pipe(
                     timeout({ each: this.requestTimeout }),
@@ -120,48 +122,7 @@ export class AuthService {
             // Log login success
             this.logger.log(`event=login_success identifier=${loginData.identifier}`);
 
-            // Return refresh and access tokens and preserve upstream headers (e.g., Set-Cookie)
-            return response;
-        } catch (error) {
-            // Log login failed
-            this.logger.error(`event=login_failed identifier=${loginData.identifier} error=${error.message}`);
-            throw error;
-        }
-    }
-
-    /**
-     * Forwards a login request to the Auth microservice.
-     *
-     * Sends login credentials and returns the access and refresh tokens
-     * issued by the Auth microservice.
-     *
-     * @param loginData Login credentials (username/email and password)
-     * @returns Refresh and access tokens
-     * @throws HttpException If authentication fails or service is unavailable
-     */
-    async mobileLogin(loginData: LoginDTO) {
-        // Log login request
-        this.logger.log(`event=login_request identifier=${loginData.identifier}`);
-        
-        try {
-            // Send login request to Auth microservice and retrieve tokens
-            const response = await firstValueFrom(
-                this.httpService.post(
-                    `${this.apiGatewayUrl}/api/auth/login/mobile`,
-                    loginData
-                ).pipe(
-                    timeout({ each: this.requestTimeout }),
-                    retry(this.maxRetries),
-                    catchError((error: AxiosError) => {
-                        throw this.handleServiceError(error, 'login');
-                    }),
-                ),
-            );
-            
-            // Log login success
-            this.logger.log(`event=login_success identifier=${loginData.identifier}`);
-
-            // Return refresh and access tokens and preserve upstream headers (e.g., Set-Cookie)
+            // Return refresh and access tokens
             return response.data;
         } catch (error) {
             // Log login failed
@@ -198,7 +159,7 @@ export class AuthService {
             // Send logout request to Auth microservice
             await firstValueFrom(
                 this.httpService.post(
-                    `${this.apiGatewayUrl}/api/auth/logout`, 
+                    `${this.authMicroserviceUrl}/api/auth/logout`,
                     { value: refreshToken },
                     { headers: { Authorization: accessToken } }
                 ).pipe(
@@ -221,16 +182,7 @@ export class AuthService {
         }
     }
 
-    /**
-     * Forwards a logout request to the Auth microservice.
-     *
-     * Sends a refresh token and returns a new refresh and access tokens.
-     * 
-     * @param accessToken Access token linked to request
-     * @param refreshToken Refresh token value linked to account
-     * @returns Logout confirmation message
-     * @throws HttpException If communication with Auth service fails
-     */
+    /*
     async globalLogout(accessToken: string, refreshToken: string) {
         // Log global logout request
         this.logger.log(`event=global_logout_request refresh_token=${refreshToken}`);
@@ -239,7 +191,7 @@ export class AuthService {
             // Send logout request to Auth microservice
             await firstValueFrom(
                 this.httpService.post(
-                    `${this.apiGatewayUrl}/api/auth/global-logout`,
+                    `${this.authMicroserviceUrl}/api/auth/global-logout`,
                     { value: refreshToken },
                     { headers: { Authorization: accessToken } }
                 ).pipe(
@@ -261,22 +213,23 @@ export class AuthService {
             throw error;
         }
     }
+    */
 
     // ----------------------------------------------------------------
     // TOKEN REFRESH
     // ----------------------------------------------------------------
 
     /**
-     * Forwards a refresh token request from a web session to the Auth
-     * microservice.
+     * Forwards a refresh token request to the Auth microservice.
      *
-     * Sends a refresh token to be revoked.
+     * Sends a refresh token to be revoked and returns the access and new
+     * refresh tokens issued by the Auth microservice.
      *
      * @param refreshToken Refresh token value linked to account
      * @returns New refresh and access tokens
      * @throws HttpException If token refresh fails or service is unavailable
      */
-    async webRefreshToken(refreshToken: string) {
+    async refreshToken(refreshToken: string) {
         // Log refresh token request
         this.logger.log(`event=refresh_token_request refresh_token=${refreshToken}`);
 
@@ -284,7 +237,7 @@ export class AuthService {
             // Send refresh token request to Auth microservice and retrieve tokens
             const response = await firstValueFrom(
                 this.httpService.post(
-                    `${this.apiGatewayUrl}/api/auth/refresh/web`,
+                    `${this.authMicroserviceUrl}/api/auth/refresh`,
                     { value: refreshToken }
                 ).pipe(
                     timeout({ each: this.requestTimeout }),
@@ -298,48 +251,7 @@ export class AuthService {
             // Log refresh token success
             this.logger.log(`event=refresh_token_success`);
 
-            // Return new refresh and access tokens and preserve upstream headers (e.g., Set-Cookie)
-            return response;
-        } catch (error) {
-            // Log refresh token failed
-            this.logger.error(`event=refresh_token_failed error=${error.message}`);
-            throw error;
-        }
-    }
-
-    /**
-     * Forwards a refresh token request from a mobile session to the Auth
-     * microservice.
-     *
-     * Sends a refresh token to be revoked.
-     *
-     * @param refreshData Refresh token value linked to account
-     * @returns New refresh and access tokens
-     * @throws HttpException If token refresh fails or service is unavailable
-     */
-    async mobileRefreshToken(refreshData: RefreshTokenDTO) {
-        // Log refresh token request
-        this.logger.log(`event=refresh_token_request`);
-
-        try {
-            // Send refresh token request to Auth microservice and retrieve tokens
-            const response = await firstValueFrom(
-                this.httpService.post(
-                    `${this.apiGatewayUrl}/api/auth/refresh/mobile`,
-                    refreshData
-                ).pipe(
-                    timeout({ each: this.requestTimeout }),
-                    retry(this.maxRetries),
-                    catchError((error: AxiosError) => {
-                        throw this.handleServiceError(error, 'refreshToken');
-                    }),
-                ),
-            );
-
-            // Log refresh token success
-            this.logger.log(`event=refresh_token_success`);
-
-            // Return new refresh and access tokens and preserve upstream headers (e.g., Set-Cookie)
+            // Return new refresh and access tokens
             return response.data;
         } catch (error) {
             // Log refresh token failed
@@ -362,14 +274,14 @@ export class AuthService {
      * @returns Updated account's information
      * @throws HttpException If token refresh fails or service is unavailable
      */
-    async verifyEmail(verifyData: RefreshTokenDTO) {
+    async verifyEmail(verifyData: String) {
         // Log refresh token request
         this.logger.log(`event=verify_email_request`)
 
         try {
             
             const response = await firstValueFrom(
-                this.httpService.post(`${this.apiGatewayUrl}/api/auth/verify-email`, verifyData).pipe(
+                this.httpService.post(`${this.authMicroserviceUrl}/api/auth/email/verify`, verifyData).pipe(
                     timeout({ each: this.requestTimeout }),
                     retry(this.maxRetries),
                     catchError((error: AxiosError) => {

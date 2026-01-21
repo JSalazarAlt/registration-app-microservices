@@ -7,7 +7,7 @@
 export class LoginDTO {
     
     /** Username or email */
-    identifier: string; // username or email
+    identifier: string;
 
     /** Password */
     password: string;

@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, timeout, retry, catchError, throwError } from 'rxjs';
 import { AxiosError } from 'axios';
 import { JwtService } from '@nestjs/jwt';
-//import { UserUpdateDTO } from './dto/user-update.dto';
 
 /**
  * Service for user profile operations.
@@ -20,8 +19,11 @@ export class ProfileService {
     /** Logger instance for structured logging */
     private readonly logger = new Logger(ProfileService.name);
 
+    /** Auth microservice base URL */
+    private readonly authMicroserviceUrl: string;
+
     /** User microservice base URL */
-    private readonly apiGatewayUrl: string;
+    private readonly userMicroserviceUrl: string;
 
     /** HTTP request timeout in milliseconds */
     private readonly requestTimeout: number;
@@ -40,7 +42,8 @@ export class ProfileService {
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService
     ) {
-        this.apiGatewayUrl = this.configService.get<string>('GATEWAY_URL', 'http://localhost:8080');
+        this.authMicroserviceUrl = this.configService.get<string>('AUTH_MICROSERVICE_URL', 'http://localhost:8081');
+        this.userMicroserviceUrl = this.configService.get<string>('USER_MICROSERVICE_URL', 'http://localhost:8082');
         this.requestTimeout = this.configService.get<number>('REQUEST_TIMEOUT', 5000);
         this.maxRetries = this.configService.get<number>('MAX_RETRIES', 3);
     }
@@ -65,10 +68,10 @@ export class ProfileService {
 
         try {
             const [accountResponse, userResponse] = await Promise.all([
-
+                // Fetch account data from Auth microservice
                 firstValueFrom(
                     this.httpService.get(
-                        `${this.apiGatewayUrl}/api/accounts/me`,
+                        `${this.authMicroserviceUrl}/api/accounts/me`,
                         { headers },
                     ).pipe(
                         timeout({ each: this.requestTimeout }),
@@ -78,10 +81,10 @@ export class ProfileService {
                         ),
                     ),
                 ),
-
+                // Fetch user profile data from User microservice
                 firstValueFrom(
                     this.httpService.get(
-                        `${this.apiGatewayUrl}/api/users/me`,
+                        `${this.userMicroserviceUrl}/api/users/me`,
                         { headers },
                     ).pipe(
                         timeout({ each: this.requestTimeout }),
