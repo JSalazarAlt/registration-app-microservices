@@ -99,9 +99,11 @@ Frontend (React:5173) → BFF Service (NestJS:3001) → Auth Service (Spring Boo
 | Frontend | 5173 | React application (Vite dev server) |
 | BFF Service | 3001 | Backend-for-Frontend (NestJS) |
 | Auth Service | 8080 | Authentication microservice (Spring Boot) |
-| User Service | 8081 | User profile microservice (Spring Boot) |
+| User Service | 8082 | User profile microservice (Spring Boot) |
+| Payment Service | 8083 | Payment processing microservice (Spring Boot) |
 | MySQL (Auth) | 3306 | Auth Service database |
 | MySQL (User) | 3307 | User Service database |
+| MySQL (Payment) | 3308 | Payment Service database |
 | Kafka | 9092 | Message broker |
 | Zookeeper | 2181 | Kafka coordination |
 | Elasticsearch | 9200 | Log storage and search |
@@ -232,7 +234,7 @@ USER_SERVICE_URL=http://localhost:8081
 - `GET /api/v1/accounts/me` - Get current logged-in account
 - `PATCH /api/v1/accounts/me` - Update current logged-in account
 
-### User Service (Port 8081)
+### User Service (Port 8082)
 - `GET /api/v1/users/{userId}` - Get user profile by ID
 - `PUT /api/v1/users/{userId}` - Update user profile by ID
 - `GET /api/v1/users/account/{accountId}` - Get user profile by account ID
@@ -240,6 +242,13 @@ USER_SERVICE_URL=http://localhost:8081
 - `GET /api/v1/users` - Get all users (paginated)
 - `GET /api/v1/users/search` - Search users by name
 - `POST /internal/users` - Create user (internal endpoint)
+
+### Payment Service (Port 8083)
+- `POST /api/v1/payments/intent` - Create payment intent
+- `POST /api/v1/payments/{paymentId}/confirm` - Confirm payment
+- `POST /api/v1/payments/{paymentId}/refund` - Refund payment
+- `GET /api/v1/payments/{paymentId}` - Get payment by ID
+- `GET /api/v1/payments` - Get all payments for current user (paginated)
 
 ## 🔐 Security Features
 
@@ -288,7 +297,7 @@ USER_SERVICE_URL=http://localhost:8081
 - Error documentation: `/docs/errors/`
 - Swagger UI: http://localhost:8080/swagger-ui.html
 
-### User Service (Port 8081)
+### User Service (Port 8082)
 - User profile management
 - JWT token validation (OAuth2 Resource Server with shared public key)
 - Personal information storage
@@ -301,7 +310,19 @@ USER_SERVICE_URL=http://localhost:8081
 - Structured logging to ELK stack
 - Prometheus metrics endpoint
 - Error documentation: `/docs/errors/`
-- Swagger UI: http://localhost:8081/swagger-ui.html
+- Swagger UI: http://localhost:8082/swagger-ui.html
+
+### Payment Service (Port 8083)
+- Payment processing with Stripe
+- Payment intent creation and confirmation
+- Payment refunds
+- Transaction history tracking
+- JWT token validation (OAuth2 Resource Server)
+- Kafka event producer (payment-completed, payment-failed, refund-processed)
+- Structured logging to ELK stack
+- Prometheus metrics endpoint
+- Error documentation: `/docs/errors/`
+- Swagger UI: http://localhost:8083/swagger-ui.html
 
 ### BFF Service (Port 3001)
 - Data aggregation from Auth and User services
@@ -328,9 +349,11 @@ USER_SERVICE_URL=http://localhost:8081
 ## 📊 API Documentation
 
 - **Auth Service Swagger**: http://localhost:8080/swagger-ui.html
-- **User Service Swagger**: http://localhost:8081/swagger-ui.html
-- **Auth Service Error Docs**: `/services/authservice/docs/errors/`
-- **User Service Error Docs**: `/services/userservice/docs/errors/`
+- **User Service Swagger**: http://localhost:8082/swagger-ui.html
+- **Payment Service Swagger**: http://localhost:8083/swagger-ui.html
+- **Auth Service Error Docs**: `/services/core/auth-service/docs/errors/`
+- **User Service Error Docs**: `/services/core/user-service/docs/errors/`
+- **Payment Service Error Docs**: `/services/core/payment-service/docs/errors/`
 
 ## 📈 Monitoring & Logging
 
@@ -366,8 +389,10 @@ kubectl get services
 ## 📚 Additional Documentation
 
 - **BUILD.md** - Docker build commands and quick rebuild scripts
-- **services/authservice/docs/errors/** - Auth service error documentation
-- **services/userservice/docs/errors/** - User service error documentation
+- **services/core/auth-service/docs/errors/** - Auth service error documentation
+- **services/core/user-service/docs/errors/** - User service error documentation
+- **services/core/payment-service/docs/errors/** - Payment service error documentation
+- **MISSING_TESTS.md** - Missing test types and examples
 
 ## 📄 License
 
