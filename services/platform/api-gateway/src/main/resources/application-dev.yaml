@@ -5,55 +5,19 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: auth-routes
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/auth/**,/api/accounts/**,/api/sessions/**
-
-        - id: user-routes
-          uri: http://localhost:8082
-          predicates:
-            - Path=/api/users/**
-            
         - id: bff-routes
           uri: http://localhost:3001
           predicates:
-            - Path=/api/v1/**
-          filters:
-            - name: RewritePath
-              args:
-                # Strip /api/v1 before forwarding to BFF
-                regexp: /api/v1/(?<segment>.*)
-                replacement: /api/${segment}  
+            - Path=/api/**
 
       globalcors:
         cors-configurations:
           "[/**]":
             allowed-origins:
               - http://localhost:5173
-              - http://localhost:3001
-            allowed-methods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
+            allowed-methods: "*"
             allowed-headers: "*"
             allow-credentials: true
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          public-key-location: classpath:keys/public.pem
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
 
 management:
   endpoints:
