@@ -32,8 +32,8 @@ export default function Session() {
 
         try {
             // Server reads refresh token from HttpOnly cookie; include credentials to send cookie
-            await fetch('http://localhost:3001/api/v1/auth/global-logout/web', {
-                method: 'POST',
+            await fetch('http://localhost:8080/api/v1/sessions/me', {
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
@@ -61,7 +61,7 @@ export default function Session() {
 
         const fetchProfile = async () => {
             try {
-                const res = await api.fetchWithAuth('http://localhost:3001/api/v1/sessions/me');
+                const res = await api.fetchWithAuth('http://localhost:8080/api/v1/sessions/me');
 
                 if (!res.ok) {
                     navigate('/login', { replace: true });

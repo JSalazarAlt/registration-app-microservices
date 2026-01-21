@@ -21,7 +21,7 @@ export default function Header() {
         const accessToken = localStorage.getItem('accessToken');
         try {
             // Server reads refresh token from HttpOnly cookie; include credentials so cookie is sent
-            await fetch('http://localhost:3001/api/v1/auth/logout/web', {
+            await fetch('http://localhost:8080/api/v1/auth/logout', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

@@ -1,8 +1,8 @@
 export async function refreshAccessToken(): Promise<string | null> {
     try {
-        console.debug('[auth] refreshAccessToken: POST /api/v1/auth/refresh/web');
+        console.debug('[auth] refreshAccessToken: POST /api/v1/auth/refresh');
         // Call the BFF's web refresh endpoint which handles cookie-based refresh
-        const res = await fetch('http://localhost:3001/api/v1/auth/refresh/web', {
+        const res = await fetch('http://localhost:8080/api/v1/auth/refresh', {
             method: 'POST',
             credentials: 'include', // send cookies (HTTP-only refresh token)
         });

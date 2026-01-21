@@ -30,7 +30,7 @@ export default function Profile() {
 
         const fetchProfile = async () => {
             try {
-                const res = await api.fetchWithAuth('http://localhost:3001/api/v1/profile/me');
+                const res = await api.fetchWithAuth('http://localhost:8080/api/v1/profile/me');
 
                 if (!res.ok) {
                     navigate('/login', { replace: true });
