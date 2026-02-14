@@ -85,9 +85,9 @@ public class AccountService {
         
         // Map accounts' information from accounts
         List<AccountInfoResponse> accountInfos = accountPage.getContent()
-            .stream()
-            .map(accountMapper::toAccountInfoDTO)
-            .toList();
+                .stream()
+                .map(accountMapper::toAccountInfoDTO)
+                .toList();
 
         // Build paginated response with all accounts' information
         PagedResponseDTO<AccountInfoResponse> response = PagedResponseDTO.<AccountInfoResponse>builder()
@@ -114,7 +114,7 @@ public class AccountService {
     public AccountInfoResponse findAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+                .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
         // Log account found by ID success
         log.info("event=account_found_by_id account_id={}", account.getId());
@@ -136,7 +136,7 @@ public class AccountService {
     public AccountInfoResponse findAccountByEmail(String email) {
         // Look up account by email
         Account account = accountRepository.findByEmail(email)
-            .orElseThrow(() -> new AccountNotFoundException("email=" + email));
+                .orElseThrow(() -> new AccountNotFoundException("email=" + email));
         
         // Log account found by email success
         log.info("event=account_found_by_email account_id={}", account.getId());
@@ -158,7 +158,7 @@ public class AccountService {
     public AccountInfoResponse findAccountByUsername(String username) {
         // Look up account by username
         Account account = accountRepository.findByUsername(username)
-            .orElseThrow(() -> new AccountNotFoundException("username=" + username));
+                .orElseThrow(() -> new AccountNotFoundException("username=" + username));
         
         // Log account found by username success
         log.info("event=account_found_by_username account_id={}", account.getId());
@@ -188,7 +188,7 @@ public class AccountService {
 
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+                .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
         // Update username if update request includes it
         if (request.getUsername() != null) {
@@ -275,7 +275,7 @@ public class AccountService {
 
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+                .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
         // Soft-delete account
         account.setDeleted(true);
@@ -311,7 +311,7 @@ public class AccountService {
     public AccountInfoResponse lockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+                .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
         // Lock account
         account.setLocked(true);
@@ -340,7 +340,7 @@ public class AccountService {
     public AccountInfoResponse unlockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
+                .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
         // Unlock account
         account.setLocked(false);

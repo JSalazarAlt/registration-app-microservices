@@ -112,5 +112,5 @@ public class SessionController {
         // Return response with "204 No Content" status
         return ResponseEntity.noContent().build();
     }
-    
+
 }

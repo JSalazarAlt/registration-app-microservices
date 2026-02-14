@@ -20,9 +20,6 @@ public class AuthenticationTokens {
     /** Authenticated account's ID */
     private UUID accountId;
 
-    /** Refresh token for renewing expired access tokens */
-    private String refreshToken;
-
     /** JWT access token for API authentication */
     private String accessToken;
     
@@ -33,4 +30,7 @@ public class AuthenticationTokens {
     /** JWT access token expiration time in seconds */
     private Long accessTokenExpiresIn;
 
+    /** Refresh token for renewing expired access tokens */
+    private String refreshToken;
+    
 }

@@ -206,8 +206,8 @@ public class AuthService {
 
         // Look up account by username or email
         Account account = accountRepository.findByUsername(request.getIdentifier())
-            .or(() -> accountRepository.findByEmail(request.getIdentifier()))
-            .orElseThrow(() -> new InvalidCredentialsException());
+                .or(() -> accountRepository.findByEmail(request.getIdentifier()))
+                .orElseThrow(() -> new InvalidCredentialsException());
 
         // Ensure account is enabled
         if (!account.getEnabled()) {
@@ -456,7 +456,7 @@ public class AuthService {
 
         // Look up token by value and type
         Token refreshToken = tokenService.findTokenByValueAndType(value, TokenType.REFRESH);
-
+        
         // Ensure refresh token is valid
         if(!tokenService.isTokenValid(refreshToken)) {
             throw new InvalidTokenException(TokenType.REFRESH);

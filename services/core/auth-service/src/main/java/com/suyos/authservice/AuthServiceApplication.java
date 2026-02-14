@@ -2,7 +2,6 @@ package com.suyos.authservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
  * Main application class for the Authentication microservice.
@@ -12,7 +11,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  * the application ecosystem.</p>
  */
 @SpringBootApplication
-@EnableJpaAuditing
 public class AuthServiceApplication {
 
 	/**
