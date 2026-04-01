@@ -23,6 +23,6 @@ public enum TokenType {
 
     MFA_VERIFICATION("Token used for verifying user identity.");
 
-    private String description;
+    private final String description;
 
 }
