@@ -49,14 +49,6 @@ public class Session {
     private UUID id;
 
     // ----------------------------------------------------------------
-    // RELATIONSHIPS
-    // ----------------------------------------------------------------
-
-    /** Unique identifier linking to account */
-    @Column(name = "account_id", nullable = false)
-    private UUID accountId;
-
-    // ----------------------------------------------------------------
     // STATE
     // ----------------------------------------------------------------
 
@@ -65,7 +57,7 @@ public class Session {
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
-    /** Timestamp when session expires */
+    /** Timestamp of session expiration */
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
@@ -74,7 +66,7 @@ public class Session {
     @Column(name = "termination_reason")
     private SessionTerminationReason terminationReason;
 
-    /** Timestamp when session was terminated */
+    /** Timestamp of session termination */
     @Column(name = "terminated_at")
     private Instant terminatedAt;
 
@@ -110,14 +102,22 @@ public class Session {
     // AUDITORY
     // ----------------------------------------------------------------
 
-    /** Timestamp when session was created */
+    /** Timestamp of session creation */
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
 
-    /** Timestamp when session was last updated */
+    /** Timestamp of last session update */
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    // ----------------------------------------------------------------
+    // RELATIONSHIPS
+    // ----------------------------------------------------------------
+
+    /** Unique identifier linking to account */
+    @Column(name = "account_id", nullable = false)
+    private UUID accountId;
     
 }

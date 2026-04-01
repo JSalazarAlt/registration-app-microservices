@@ -94,18 +94,18 @@ public class Account {
     @Column(name = "locked", nullable = false)
     private Boolean locked = false;
 
-    /** Timestamp when account lock expires */
+    /** Timestamp of account lock expiration */
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
     /** Flag indicating if account was soft deleted */
     @Builder.Default
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false;
+    @Column(name = "soft_deleted", nullable = false)
+    private Boolean softDeleted = false;
 
-    /** Timestamp when account was soft deleted */
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
+    /** Timestamp of account soft-deletion */
+    @Column(name = "soft_deleted_at")
+    private Instant softDeletedAt;
 
     // ----------------------------------------------------------------
     // PASSWORD MANAGEMENT
@@ -116,7 +116,7 @@ public class Account {
     @Column(name = "must_change_password", nullable = false)
     private Boolean mustChangePassword = false;
 
-    /** Timestamp when password was last changed */
+    /** Timestamp of last password change */
     @Column(name = "last_password_changed_at")
     private Instant lastPasswordChangedAt;
 
@@ -158,7 +158,7 @@ public class Account {
     @Column(name = "mfa_enabled", nullable = false)
     private Boolean mfaEnabled = false;
 
-    /** Timestamp when multi-factor authentication was enabled */
+    /** Timestamp of multi-factor authentication was enabled */
     @Column(name = "mfa_enabled_at")
     private Instant mfaEnabledAt;
     
@@ -166,12 +166,12 @@ public class Account {
     // AUDITORY
     // ----------------------------------------------------------------
 
-    /** Timestamp when account record was first created */
+    /** Timestamp of account creation */
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
 
-    /** Timestamp when account record was last modified */
+    /** Timestamp of last account update */
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
