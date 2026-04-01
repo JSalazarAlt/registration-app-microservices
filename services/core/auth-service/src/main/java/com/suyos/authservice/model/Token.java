@@ -39,22 +39,19 @@ public class Token {
     // IDENTITY
     // ----------------------------------------------------------------
 
-    /** Unique identifier */
     @Id
     @GeneratedValue
     @Column(name = "id")
     private UUID id;
 
-    /** Token value */
     @Column(name = "value", nullable = false, unique = true, length = 512)
     private String value;
 
-    /** Type (e.g., refresh, email verification) */
     @Column(name = "type", nullable = false)
     private TokenType type;
 
     // ----------------------------------------------------------------
-    // TOKEN ROTATION
+    // ROTATION
     // ----------------------------------------------------------------
 
     /** Root token ID for tracking token rotation chains */
@@ -65,42 +62,35 @@ public class Token {
     @Column(name = "parent_token_id")
     private Token parentTokenId;
 
-    /** Flag indicating if token has been reused */
     @Builder.Default
     @Column(name = "reused", nullable = false)
     private Boolean reused = false;
-
-    /** Flag indicating if token has been revoked */
-    @Builder.Default
-    @Column(name = "revoked", nullable = false)
-    private Boolean revoked = false;
-
-    /** Timestamp of revocation */
-    @Column(name = "revoked_at")
-    private Instant revokedAt;
 
     // ----------------------------------------------------------------
     // LIFECYCLE
     // ----------------------------------------------------------------
 
-    /** Timestamp of issuance */
     @Column(name = "issued_at", nullable = false)
     private Instant issuedAt;
 
-    /** Timestamp of expiration */
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
+
+    @Builder.Default
+    @Column(name = "revoked", nullable = false)
+    private Boolean revoked = false;
+
+    @Column(name = "revoked_at")
+    private Instant revokedAt;
 
     // ----------------------------------------------------------------
     // RELATIONSHIPS
     // ----------------------------------------------------------------
 
-    /** Account associated with token */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    /** Session associated with token */
     @Column(name = "session_id")
     private UUID sessionId;
     

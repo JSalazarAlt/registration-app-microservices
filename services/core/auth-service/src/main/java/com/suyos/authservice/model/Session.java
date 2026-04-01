@@ -42,31 +42,30 @@ public class Session {
     // IDENTITY
     // ----------------------------------------------------------------
 
-    /** Unique identifier */
     @Id
     @GeneratedValue
     @Column(name = "id")
     private UUID id;
 
     // ----------------------------------------------------------------
-    // STATE
+    // STATUS
     // ----------------------------------------------------------------
 
-    /** Flag indicating if session is active */
     @Builder.Default
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
-    /** Timestamp of session expiration */
+    // ----------------------------------------------------------------
+    // LIFECYCLE
+    // ----------------------------------------------------------------
+
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
-    /** Reason for session termination */
     @Enumerated(EnumType.STRING)
     @Column(name = "termination_reason")
     private SessionTerminationReason terminationReason;
 
-    /** Timestamp of session termination */
     @Column(name = "terminated_at")
     private Instant terminatedAt;
 
@@ -74,27 +73,21 @@ public class Session {
     // DEVICE & NETWORK
     // ----------------------------------------------------------------
 
-    /** Reported user agent (e.g., Chrome, Safari, Android, iOS) */
     @Column(name = "user_agent")
     private String userAgent;
 
-    /** Client device name */
     @Column(name = "device_name")
     private String deviceName;
 
-    /** IP address used during session creation */
     @Column(name = "ip_address")
     private String ipAddress;
 
-    /** Last known IP address */
     @Column(name = "last_ip_address")
     private String lastIpAddress;
 
-    /** Geographical location of client device */
     @Column(name = "location")
     private String location;
 
-    /** Timestamp of last successful authenticated request */
     @Column(name = "last_accessed_at")
     private Instant lastAccessedAt;
 
@@ -102,12 +95,10 @@ public class Session {
     // AUDITORY
     // ----------------------------------------------------------------
 
-    /** Timestamp of session creation */
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
 
-    /** Timestamp of last session update */
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
@@ -116,7 +107,6 @@ public class Session {
     // RELATIONSHIPS
     // ----------------------------------------------------------------
 
-    /** Unique identifier linking to account */
     @Column(name = "account_id", nullable = false)
     private UUID accountId;
     

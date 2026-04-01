@@ -44,7 +44,6 @@ public class Account {
     // IDENTITY
     // ----------------------------------------------------------------
 
-    /** Unique identifier */
     @Id
     @GeneratedValue
     @Column(name = "id")
@@ -54,15 +53,12 @@ public class Account {
     // CREDENTIALS
     // ----------------------------------------------------------------
 
-    /** Username */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    /** Email address */
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    /** Encrypted password hash */
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -70,7 +66,6 @@ public class Account {
     // AUTHORITY
     // ----------------------------------------------------------------
 
-    /** Role defining access level */
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private AccountRole role;
@@ -79,31 +74,29 @@ public class Account {
     // STATUS
     // ----------------------------------------------------------------
 
-    /** Flag indicating if email address has been verified */
     @Builder.Default
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
-    /** Flag indicating if account is enabled */
     @Builder.Default
     @Column(name = "enabled", nullable = false)
     private Boolean enabled = true;
 
-    /** Flag indicating if account is temporarily locked */
     @Builder.Default
     @Column(name = "locked", nullable = false)
     private Boolean locked = false;
 
-    /** Timestamp of account lock expiration */
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
-    /** Flag indicating if account was soft deleted */
+    // ----------------------------------------------------------------
+    // LIFECYCLE
+    // ----------------------------------------------------------------
+
     @Builder.Default
     @Column(name = "soft_deleted", nullable = false)
     private Boolean softDeleted = false;
 
-    /** Timestamp of account soft-deletion */
     @Column(name = "soft_deleted_at")
     private Instant softDeletedAt;
 
@@ -111,12 +104,10 @@ public class Account {
     // PASSWORD MANAGEMENT
     // ----------------------------------------------------------------
 
-    /** Flag indicating if password must be changed on next login */
     @Builder.Default
     @Column(name = "must_change_password", nullable = false)
     private Boolean mustChangePassword = false;
 
-    /** Timestamp of last password change */
     @Column(name = "last_password_changed_at")
     private Instant lastPasswordChangedAt;
 
@@ -124,15 +115,12 @@ public class Account {
     // LOGIN AND LOGOUT TRACKING
     // ----------------------------------------------------------------
 
-    /** Timestamp of last successful login */
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
-    /** Timestamp of last successful logout */
     @Column(name = "last_logout_at")
     private Instant lastLogoutAt;
 
-    /** Counter for consecutive failed login attempts */
     @Builder.Default
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
@@ -141,11 +129,9 @@ public class Account {
     // OAUTH2 INTEGRATION
     // ----------------------------------------------------------------
 
-    /** OAuth2 provider name (e.g., Google, Facebook) */
     @Column(name = "oauth2_provider")
     private String oauth2Provider;
 
-    /** Unique identifier from OAuth2 provider */
     @Column(name = "oauth2_provider_id")
     private String oauth2ProviderId;
 
@@ -153,12 +139,10 @@ public class Account {
     // MULTI-FACTOR INTEGRATION
     // ----------------------------------------------------------------
 
-    /** Flag indicating if multi-factor authentication is enabled */
     @Builder.Default
     @Column(name = "mfa_enabled", nullable = false)
     private Boolean mfaEnabled = false;
 
-    /** Timestamp of multi-factor authentication was enabled */
     @Column(name = "mfa_enabled_at")
     private Instant mfaEnabledAt;
     
@@ -166,12 +150,10 @@ public class Account {
     // AUDITORY
     // ----------------------------------------------------------------
 
-    /** Timestamp of account creation */
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
 
-    /** Timestamp of last account update */
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
