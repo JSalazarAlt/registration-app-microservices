@@ -1,9 +1,10 @@
 package com.suyos.authservice.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.suyos.authservice.model.Account;
+import com.suyos.authservice.model.AccountStatus;
 
 /**
  * Unit tests for AccountRepository.
@@ -39,7 +41,7 @@ class AccountRepositoryTest {
                 .username("testuser")
                 .email("test@example.com")
                 .password("encodedPassword")
-                .enabled(true)
+                .status(AccountStatus.ACTIVE)
                 .locked(false)
                 .emailVerified(true)
                 .failedLoginAttempts(0)
@@ -140,7 +142,7 @@ class AccountRepositoryTest {
     @Test
     void findActiveById_DisabledAccount() {
         // Disable the account
-        testAccount.setEnabled(false);
+        testAccount.setStatus(AccountStatus.DISABLED);
         accountRepository.save(testAccount);
         
         // Verify disabled account is not found

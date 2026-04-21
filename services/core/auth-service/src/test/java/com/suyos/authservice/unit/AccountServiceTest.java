@@ -127,8 +127,13 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to find all accounts with pagination
-        PagedResponseDTO<AccountInfoResponse> response =
-                accountService.findAllAccounts(0, 10, "username", "asc");
+        PagedResponseDTO<AccountInfoResponse> response = accountService.findAllAccounts(
+                0,
+                10,
+                "username",
+                "asc",
+                "test"
+        );
 
         // Assert expected accounts' information are returned
 		assertThat(response).isNotNull();
@@ -241,11 +246,11 @@ public class AccountServiceTest {
     }
 
     // ----------------------------------------------------------------
-    // SOFT-DELETION
+    // SOFT DELETION
     // ----------------------------------------------------------------
 
     /**
-     * Soft-deletes an account by ID successfully.
+     * Soft deletes an account by ID successfully.
      */
     @Test
     void softDeleteAccountById_Success() {

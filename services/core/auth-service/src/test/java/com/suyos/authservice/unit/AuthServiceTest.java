@@ -1,25 +1,24 @@
 package com.suyos.authservice.unit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.when;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -44,6 +43,7 @@ import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.AccountRole;
+import com.suyos.authservice.model.AccountStatus;
 import com.suyos.authservice.model.Session;
 import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.model.Token;
@@ -327,11 +327,10 @@ public class AuthServiceTest {
         // Mock HTTP request for authentication
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
         
-        // Set test account's state to enabled, verified, not locked nor deleted
-        testAccount.setEnabled(true);
+        // Set test account's state to active, verified, not locked nor deleted
+        testAccount.setStatus(AccountStatus.ACTIVE);
         testAccount.setEmailVerified(true);
         testAccount.setLocked(false);
-        testAccount.setSoftDeleted(false);
         
         // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(testAccount.getUsername()))
@@ -422,7 +421,7 @@ public class AuthServiceTest {
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
         
         // Set test account's state to disabled
-        testAccount.setEnabled(false);
+        testAccount.setStatus(AccountStatus.DISABLED);
         
         // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(testAccount.getUsername()))
@@ -446,8 +445,8 @@ public class AuthServiceTest {
         // Mock HTTP request for authentication
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
         
-        // Set test account's state to disabled and not verified
-        testAccount.setEnabled(true);
+        // Set test account's state to active and not verified
+        testAccount.setStatus(AccountStatus.ACTIVE);
         testAccount.setEmailVerified(false);
         
         // Mock account repository to return false when searching for existent username
@@ -475,8 +474,8 @@ public class AuthServiceTest {
         // Time to unlock account
         Instant lockedUntil = Instant.now().plus(Duration.ofHours(1));
         
-        // Set test account's state to enabled, verified, and not locked
-        testAccount.setEnabled(true);
+        // Set test account's state to active, verified, and not locked
+        testAccount.setStatus(AccountStatus.ACTIVE);
         testAccount.setEmailVerified(true);
         testAccount.setLocked(true);
         testAccount.setLockedUntil(lockedUntil);
@@ -510,8 +509,8 @@ public class AuthServiceTest {
         // Mock HTTP request for authentication
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
 
-        // Set test account's state to enabled, verified, and not locked
-        testAccount.setEnabled(true);
+        // Set test account's state to active, verified, and not locked
+        testAccount.setStatus(AccountStatus.ACTIVE);
         testAccount.setEmailVerified(true);
         testAccount.setLocked(false);
         

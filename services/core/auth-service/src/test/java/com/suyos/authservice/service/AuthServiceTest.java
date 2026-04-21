@@ -1,19 +1,24 @@
 package com.suyos.authservice.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 import java.util.Optional;
 import java.util.UUID;
 
-import jakarta.servlet.http.HttpServletRequest;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -23,7 +28,10 @@ import com.suyos.authservice.dto.request.RegistrationRequest;
 import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
+import com.suyos.authservice.model.AccountStatus;
 import com.suyos.authservice.repository.AccountRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Unit tests for AuthService.
@@ -82,7 +90,7 @@ class AuthServiceTest {
                 .username("testuser")
                 .email("test@example.com")
                 .password("encodedPassword")
-                .enabled(true)
+                .status(AccountStatus.ACTIVE)
                 .locked(false)
                 .failedLoginAttempts(0)
                 .emailVerified(true)
@@ -215,7 +223,7 @@ class AuthServiceTest {
      */
     @Test
     void authenticateAccount_AccountDisabled() {
-        testAccount.setEnabled(false);
+        testAccount.setStatus(AccountStatus.DISABLED);
         when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
 
         assertThrows(RuntimeException.class,
@@ -252,7 +260,7 @@ class AuthServiceTest {
      */
     @Test
     void authenticateAccount_AccountDeleted() {
-        testAccount.setSoftDeleted(true);
+        testAccount.setStatus(AccountStatus.SOFT_DELETED);
         when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
 
         assertThrows(RuntimeException.class,
