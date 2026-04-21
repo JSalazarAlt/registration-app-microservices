@@ -16,8 +16,6 @@ import com.suyos.authservice.model.Session;
  * 
  * <p>Provides standard CRUD operations for session entities. Handles session
  * termination and cleanup operations.</p>
- * 
- * @author Joel Salazar
  */
 public interface SessionRepository extends JpaRepository<Session, UUID> {
 

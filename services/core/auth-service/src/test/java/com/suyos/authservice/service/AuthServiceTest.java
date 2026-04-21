@@ -117,10 +117,10 @@ class AuthServiceTest {
     @Test
     void createAccount_Success() {
         when(accountRepository.existsByEmail(anyString())).thenReturn(false);
-        when(accountMapper.toEntity(any())).thenReturn(testAccount);
+        when(accountMapper.createFromRequest(any())).thenReturn(testAccount);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(accountRepository.save(any())).thenReturn(testAccount);
-        when(accountMapper.toAccountInfoDTO(any())).thenReturn(
+        when(accountMapper.toResponse(any())).thenReturn(
             AccountInfoResponse.builder()
                 .id(testAccount.getId())
                 .username(testAccount.getUsername())
@@ -252,7 +252,7 @@ class AuthServiceTest {
      */
     @Test
     void authenticateAccount_AccountDeleted() {
-        testAccount.setDeleted(true);
+        testAccount.setSoftDeleted(true);
         when(accountRepository.findByEmail(anyString())).thenReturn(Optional.of(testAccount));
 
         assertThrows(RuntimeException.class,
@@ -376,10 +376,10 @@ class AuthServiceTest {
     @Test
     void createAccount_PasswordEncoded() {
         when(accountRepository.existsByEmail(anyString())).thenReturn(false);
-        when(accountMapper.toEntity(any())).thenReturn(testAccount);
+        when(accountMapper.createFromRequest(any())).thenReturn(testAccount);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(accountRepository.save(any())).thenReturn(testAccount);
-        when(accountMapper.toAccountInfoDTO(any())).thenReturn(
+        when(accountMapper.toResponse(any())).thenReturn(
             AccountInfoResponse.builder()
                 .id(testAccount.getId())
                 .username(testAccount.getUsername())

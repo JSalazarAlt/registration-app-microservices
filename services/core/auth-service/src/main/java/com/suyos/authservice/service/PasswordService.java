@@ -142,7 +142,7 @@ public class PasswordService {
         log.info("event=password_reset_confirmed account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return updated account's information
         return accountInfo;
@@ -190,7 +190,7 @@ public class PasswordService {
         log.info("event=password_changed account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return updated account's information
         return accountInfo;

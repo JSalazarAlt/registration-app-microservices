@@ -64,7 +64,7 @@ public class SessionService {
         log.info("event=session_found_by_id session_id={}", session.getId());
 
         // Map session's information from session
-        SessionInfoResponse sessionInfo = sessionMapper.toSessionInfoDTO(session);
+        SessionInfoResponse sessionInfo = sessionMapper.toResponse(session);
 
         // Return session's information
         return sessionInfo;
@@ -80,7 +80,7 @@ public class SessionService {
         // Find all active sessions by account ID and map them to sessions' information
         List<SessionInfoResponse> sessions = sessionRepository.findAllActiveByAccountId(accountId)
             .stream()
-            .map(sessionMapper::toSessionInfoDTO)
+            .map(sessionMapper::toResponse)
             .toList();
 
         // Log all active sessions found by account ID success
@@ -105,7 +105,7 @@ public class SessionService {
         log.info("event=session_creation_attempt account_id={}", request.getAccountId());
 
         // Map session from session's information
-        Session session = sessionMapper.toEntity(request);
+        Session session = sessionMapper.createFromRequest(request);
 
         // Set session expiration time
         session.setExpiresAt(Instant.now().plusSeconds(SESSION_LIFETIME_DAYS * 24 * 3600));

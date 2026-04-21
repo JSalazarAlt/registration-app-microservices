@@ -123,7 +123,7 @@ public class AccountServiceTest {
                 .thenReturn(page);
 
         // Mock account mapper to return test account profile when mapping test accounts
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(testAccountInfo);
 
         // Call service method to find all accounts with pagination
@@ -149,7 +149,7 @@ public class AccountServiceTest {
                 .thenReturn(Optional.of(testAccount));
         
         // Mock account mapper to return test account's information when mapping test account
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(testAccountInfo);
 
         // Call service method to find account by ID
@@ -162,7 +162,7 @@ public class AccountServiceTest {
 
         // Verify interactions
         verify(accountRepository).findById(testAccount.getId());
-        verify(accountMapper).toAccountInfoDTO(testAccount);
+        verify(accountMapper).toResponse(testAccount);
     }
 
     /**
@@ -183,7 +183,7 @@ public class AccountServiceTest {
 
         // Verify interactions and no interactions
         verify(accountRepository).findById(id);
-        verify(accountMapper, never()).toAccountInfoDTO(any());
+        verify(accountMapper, never()).toResponse(any());
     }
 
     // ----------------------------------------------------------
@@ -216,7 +216,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccount);
 
         // Mock account mapper to return test account's information when mapping test account
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(updatedTestAccountInfo);
         
         // Call service method to update account by ID
@@ -237,7 +237,7 @@ public class AccountServiceTest {
         verify(accountRepository).save(testAccount);
         verify(accountEventProducer).publishAccountUsernameUpdate(any(AccountUsernameUpdateEvent.class));
         verify(accountEventProducer, never()).publishAccountEmailUpdate(any());
-        verify(accountMapper).toAccountInfoDTO(testAccount);
+        verify(accountMapper).toResponse(testAccount);
     }
 
     // ----------------------------------------------------------------
@@ -258,7 +258,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccount);
 
         // Mock account mapper to return test account's information when mapping test account
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(testAccountInfo);
         
         // Call service method to update account by ID
@@ -269,14 +269,14 @@ public class AccountServiceTest {
                 .isNotNull();
 
         // Assert deleted at field is set
-        assertThat(testAccount.getDeletedAt())
+        assertThat(testAccount.getSoftDeletedAt())
 				.as("deletedAt should be set when user is soft-deleted")
 				.isNotNull();
 
         // Verify interactions
         verify(accountRepository).findById(testAccount.getId());
         verify(accountRepository).save(testAccount);
-        verify(accountMapper).toAccountInfoDTO(testAccount);
+        verify(accountMapper).toResponse(testAccount);
         verify(tokenService).revokeAllTokensByAccountIdAndType(
                 testAccount.getId(),
                 TokenType.REFRESH
@@ -301,7 +301,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccount);
 
         // Mock account mapper to return test account's information when mapping test account
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(testAccountInfo);
         
         // Call service method to update account by ID
@@ -319,7 +319,7 @@ public class AccountServiceTest {
         // Verify interactions
         verify(accountRepository).findById(testAccount.getId());
         verify(accountRepository).save(testAccount);
-        verify(accountMapper).toAccountInfoDTO(testAccount);
+        verify(accountMapper).toResponse(testAccount);
     }
 
     /**
@@ -336,7 +336,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccount);
 
         // Mock account mapper to return test account's information when mapping test account
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(testAccountInfo);
         
         // Call service method to update account by ID
@@ -355,7 +355,7 @@ public class AccountServiceTest {
         // Verify interactions
         verify(accountRepository).findById(testAccount.getId());
         verify(accountRepository).save(testAccount);
-        verify(accountMapper).toAccountInfoDTO(testAccount);
+        verify(accountMapper).toResponse(testAccount);
     }
 
 }

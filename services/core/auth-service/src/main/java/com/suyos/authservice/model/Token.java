@@ -67,7 +67,7 @@ public class Token {
     private Boolean reused = false;
 
     // ----------------------------------------------------------------
-    // LIFECYCLE
+    // AUDITORY AND LIFECYCLE
     // ----------------------------------------------------------------
 
     @Column(name = "issued_at", nullable = false)

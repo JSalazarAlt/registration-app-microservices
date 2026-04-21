@@ -86,7 +86,7 @@ public class AccountService {
         // Map accounts' information from accounts
         List<AccountInfoResponse> accountInfos = accountPage.getContent()
                 .stream()
-                .map(accountMapper::toAccountInfoDTO)
+                .map(accountMapper::toResponse)
                 .toList();
 
         // Build paginated response with all accounts' information
@@ -120,7 +120,7 @@ public class AccountService {
         log.info("event=account_found_by_id account_id={}", account.getId());
 
         // Map account's information from account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(account);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
 
         // Return account's information
         return accountInfo;
@@ -142,7 +142,7 @@ public class AccountService {
         log.info("event=account_found_by_email account_id={}", account.getId());
 
         // Map account's information from account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(account);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
 
         // Return account's information
         return accountInfo;
@@ -164,7 +164,7 @@ public class AccountService {
         log.info("event=account_found_by_username account_id={}", account.getId());
         
         // Map account's information from account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(account);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
         
         // Return account's information
         return accountInfo;
@@ -249,7 +249,7 @@ public class AccountService {
         log.info("event=account_updated account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return updated account's information
         return accountInfo;
@@ -278,14 +278,14 @@ public class AccountService {
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
         // Soft-delete account
-        account.setDeleted(true);
-        account.setDeletedAt(Instant.now());
+        account.setSoftDeleted(true);
+        account.setSoftDeletedAt(Instant.now());
 
         // Persist soft-deleted account
         Account softDeletedAccount = accountRepository.save(account);
 
         // Map account's information from soft-deleted account
-        AccountInfoResponse accountInfoDTO = accountMapper.toAccountInfoDTO(softDeletedAccount);
+        AccountInfoResponse accountInfoDTO = accountMapper.toResponse(softDeletedAccount);
 
         // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
@@ -324,7 +324,7 @@ public class AccountService {
         log.info("event=account_locked account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return account's information
         return accountInfo;
@@ -353,7 +353,7 @@ public class AccountService {
         log.info("event=account_unlocked account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(updatedAccount);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return account's information
         return accountInfo;

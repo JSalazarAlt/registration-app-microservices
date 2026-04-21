@@ -18,10 +18,10 @@ import com.suyos.authservice.model.Session;
 public interface SessionMapper {
 
     /**
-     * Converts a {@link SessionDTO} to a {@link Session} entity.
+     * Converts a {@link SessionCreationRequest} to a {@link Session} entity.
      * 
-     * @param request Account's registration data
-     * @return Created account entity
+     * @param request Session creation data
+     * @return Created session entity
      */
      
     @Mapping(target = "id", ignore = true)
@@ -32,7 +32,7 @@ public interface SessionMapper {
     @Mapping(target = "lastAccessedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Session toEntity(SessionCreationRequest request);
+    Session createFromRequest(SessionCreationRequest request);
 
     /**
      * Converts a {@link Session} entity to a {@link SessionInfoResponse}.
@@ -40,6 +40,6 @@ public interface SessionMapper {
      * @param session Session entity
      * @return Session's information
      */
-    SessionInfoResponse toSessionInfoDTO(Session session);
+    SessionInfoResponse toResponse(Session session);
     
 }

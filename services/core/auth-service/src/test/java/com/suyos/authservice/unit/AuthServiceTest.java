@@ -26,10 +26,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.suyos.authservice.dto.internal.AuthenticationTokens;
 import com.suyos.authservice.dto.internal.SessionCreationRequest;
 import com.suyos.authservice.dto.request.AuthenticationRequest;
+import com.suyos.authservice.dto.request.EmailResendRequest;
 import com.suyos.authservice.dto.request.EmailVerificationRequest;
 import com.suyos.authservice.dto.request.RefreshTokenRequest;
 import com.suyos.authservice.dto.request.RegistrationRequest;
 import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.GenericMessageResponse;
 import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.exception.exceptions.AccountDisabledException;
 import com.suyos.authservice.exception.exceptions.AccountLockedException;
@@ -37,6 +39,7 @@ import com.suyos.authservice.exception.exceptions.DuplicateRequestException;
 import com.suyos.authservice.exception.exceptions.EmailAlreadyRegisteredException;
 import com.suyos.authservice.exception.exceptions.EmailNotVerifiedException;
 import com.suyos.authservice.exception.exceptions.InvalidCredentialsException;
+import com.suyos.authservice.exception.exceptions.InvalidTokenException;
 import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
@@ -122,6 +125,9 @@ public class AuthServiceTest {
     /** Test email verification request */
     private EmailVerificationRequest emailVerificationRequest;
 
+    /** Test email verification request */
+    private EmailResendRequest emailResendRequest;
+
     /** Refresh token lifetime in hours */
     private static final Long REFRESH_TOKEN_LIFETIME_DAYS = 30L;
 
@@ -156,6 +162,11 @@ public class AuthServiceTest {
         emailVerificationRequest = EmailVerificationRequest.builder()
                 .value("email-verification-token")
                 .build();
+        
+        // Build test email resend request
+        emailResendRequest = EmailResendRequest.builder()
+                .email("test@example.com")
+                .build();
 
         // Generate test account's ID
         UUID accountId = UUID.randomUUID();
@@ -185,16 +196,16 @@ public class AuthServiceTest {
      */
     @Test
     void createAccount_Success() {
-        // Mock account repository to return false when searching for existing username
+        // Mock account repository to return false when searching for existent username
         when(accountRepository.existsByUsername(registrationRequest.getUsername()))
                 .thenReturn(false);
 
-        // Mock account repository to return false when searching for existing email
+        // Mock account repository to return false when searching for existent email
         when(accountRepository.existsByEmail(registrationRequest.getEmail()))
                 .thenReturn(false);
 
         // Mock account mapper to return test account when mapping test registration request
-        when(accountMapper.toEntity(registrationRequest))
+        when(accountMapper.createFromRequest(registrationRequest))
                 .thenReturn(testAccount);
         
         // Mock account repository to return test account when saved
@@ -202,7 +213,7 @@ public class AuthServiceTest {
                 .thenReturn(testAccount);
         
         // Mock account mapper to return test account's information when mapping test account
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(testAccountInfo);
 
         // Call service method to create new account
@@ -221,7 +232,7 @@ public class AuthServiceTest {
         // Verify interactions
         verify(accountRepository).existsByUsername(registrationRequest.getUsername());
         verify(accountRepository).existsByEmail(registrationRequest.getEmail());
-        verify(accountMapper).toEntity(registrationRequest);
+        verify(accountMapper).createFromRequest(registrationRequest);
         verify(accountRepository).save(testAccount);
         verify(tokenService).issueToken(
             testAccount,
@@ -229,7 +240,7 @@ public class AuthServiceTest {
             EMAIL_TOKEN_LIFETIME_HOURS
         );
         verify(accountEventProducer).publishUserCreation(any(UserCreationEvent.class));
-        verify(accountMapper).toAccountInfoDTO(testAccount);
+        verify(accountMapper).toResponse(testAccount);
     }
 
     /**
@@ -240,7 +251,7 @@ public class AuthServiceTest {
         // Generate idempotency key
         String idempotencyKey = "idem-key";
 
-        // Mock account repository to return true when searching for existing username
+        // Mock account repository to return true when searching for existent username
         when(idempotencyService.checkAndLock(any(), any()))
                 .thenReturn(false);
 
@@ -258,7 +269,7 @@ public class AuthServiceTest {
      */
     @Test
     void createAccount_UsernameAlreadyTaken() {
-        // Mock account repository to return true when searching for existing username
+        // Mock account repository to return true when searching for existent username
         when(accountRepository.existsByUsername(registrationRequest.getUsername()))
                 .thenReturn(true);
 
@@ -278,11 +289,11 @@ public class AuthServiceTest {
      */
     @Test
     void createAccount_EmailAlreadyRegistered() {
-        // Mock account repository to return true when searching for existing username
+        // Mock account repository to return true when searching for existent username
         when(accountRepository.existsByUsername(registrationRequest.getUsername()))
                 .thenReturn(false);
 
-        // Mock account repository to return true when searching for existing email
+        // Mock account repository to return true when searching for existent email
         when(accountRepository.existsByEmail(registrationRequest.getEmail()))
                 .thenReturn(true);
 
@@ -320,9 +331,9 @@ public class AuthServiceTest {
         testAccount.setEnabled(true);
         testAccount.setEmailVerified(true);
         testAccount.setLocked(false);
-        testAccount.setDeleted(false);
+        testAccount.setSoftDeleted(false);
         
-        // Mock account repository to return false when searching for existing username
+        // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(testAccount.getUsername()))
             .thenReturn(Optional.of(testAccount));
 
@@ -374,7 +385,7 @@ public class AuthServiceTest {
      */
     @Test
     void authenticateAccount_IdenfierNotFound() {
-        // Generate authentication request with non-existing username
+        // Generate authentication request with non-existent username
         AuthenticationRequest randomAuthenticationRequest = AuthenticationRequest.builder()
                 .identifier("random-username")
                 .password("test123")
@@ -384,11 +395,11 @@ public class AuthServiceTest {
         // Mock HTTP request for authentication
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
         
-        // Mock account repository to return false when searching for existing username
+        // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(randomAuthenticationRequest.getIdentifier()))
             .thenReturn(Optional.empty());
         
-        // Mock account repository to return empty when searching for non-existing email
+        // Mock account repository to return empty when searching for non-existent email
         when(accountRepository.findByEmail(randomAuthenticationRequest.getIdentifier()))
                 .thenReturn(Optional.empty());
 
@@ -413,7 +424,7 @@ public class AuthServiceTest {
         // Set test account's state to disabled
         testAccount.setEnabled(false);
         
-        // Mock account repository to return false when searching for existing username
+        // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(testAccount.getUsername()))
             .thenReturn(Optional.of(testAccount));
 
@@ -439,7 +450,7 @@ public class AuthServiceTest {
         testAccount.setEnabled(true);
         testAccount.setEmailVerified(false);
         
-        // Mock account repository to return false when searching for existing username
+        // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(testAccount.getUsername()))
             .thenReturn(Optional.of(testAccount));
 
@@ -470,7 +481,7 @@ public class AuthServiceTest {
         testAccount.setLocked(true);
         testAccount.setLockedUntil(lockedUntil);
         
-        // Mock account repository to return false when searching for existing username
+        // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(testAccount.getUsername()))
             .thenReturn(Optional.of(testAccount));
 
@@ -504,7 +515,7 @@ public class AuthServiceTest {
         testAccount.setEmailVerified(true);
         testAccount.setLocked(false);
         
-        // Mock account repository to return false when searching for existing username
+        // Mock account repository to return false when searching for existent username
         when(accountRepository.findByUsername(testAccount.getUsername()))
             .thenReturn(Optional.of(testAccount));
         
@@ -587,14 +598,14 @@ public class AuthServiceTest {
     // ----------------------------------------------------------------
 
     /**
-     * Authenticates an account successfully.
+     * Verifies an email successfully.
      */
     @Test
     void verifyEmail_Success() {
         // Define expire time for email verification token
         Instant expiresAt = Instant.now().plus(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS));
 
-        // Build test refresh token
+        // Build test email verification token
         Token emailVerificationToken = Token.builder()
                 .value("email-verification-token")
                 .type(TokenType.EMAIL_VERIFICATION)
@@ -603,10 +614,11 @@ public class AuthServiceTest {
                 .expiresAt(expiresAt)
                 .build();
         
+        // Set test account's state to not verified
         testAccount.setEmailVerified(false);
 
         // Mock token service to return token when searching by value and type
-        when(tokenService.findTokenByValueAndType(emailVerificationToken.getValue(), TokenType.EMAIL_VERIFICATION))
+        when(tokenService.findTokenByValueAndType(emailVerificationRequest.getValue(), TokenType.EMAIL_VERIFICATION))
                 .thenReturn(emailVerificationToken);
         
         // Mock token service to return true when validating email verification token
@@ -618,7 +630,7 @@ public class AuthServiceTest {
                 .thenReturn(testAccount);
 
          // Mock account repository to return test account when saved
-        when(accountMapper.toAccountInfoDTO(testAccount))
+        when(accountMapper.toResponse(testAccount))
                 .thenReturn(testAccountInfo);
 
         // Call service method to verify email
@@ -634,62 +646,96 @@ public class AuthServiceTest {
                 .as("email should be verified after successful verification")
                 .isTrue();
 
-        // Verify interactions
+        // Verify interactions and no interactions
         verify(tokenService).findTokenByValueAndType(emailVerificationRequest.getValue(), TokenType.EMAIL_VERIFICATION);
         verify(tokenService).isTokenValid(emailVerificationToken);
         verify(accountRepository).save(testAccount);
         verify(tokenService).revokeTokenByValue(emailVerificationRequest.getValue());
-        verify(accountMapper).toAccountInfoDTO(testAccount);
+        verify(accountMapper).toResponse(testAccount);
     }
 
     /**
-     * Authenticates an account successfully.
+     * Throws exception when verifying an email and email verification token
+     * is not found.
      */
     @Test
-    void resendEmailVerification_Success() {
-        // Generate session ID for test session
-        UUID sessionId = UUID.randomUUID();
+    void verifyEmail_TokenNotFound() {
+        // Build email verification request with non-existent token value
+        EmailVerificationRequest randomEmailVerificationRequest = EmailVerificationRequest.builder()
+                .value("random-email-verification-token")
+                .build();
+        
+        // Mock token service to return null when searching by value and type
+        when(tokenService.findTokenByValueAndType(randomEmailVerificationRequest.getValue(), TokenType.EMAIL_VERIFICATION))
+                .thenReturn(null);
 
-        // Define expire time for refresh token
-        Instant expiresAt = Instant.now().plus(Duration.ofDays(REFRESH_TOKEN_LIFETIME_DAYS));
+        // Assert expected account's information is returned
+        assertThatThrownBy(() -> authService.verifyEmail(randomEmailVerificationRequest))
+                .isNotNull()
+                .isInstanceOf(InvalidTokenException.class);
 
-        // Build test refresh token
-        Token refreshToken = Token.builder()
-                .value("refresh-token")
-                .type(TokenType.REFRESH)
+        // Verify interactions
+        verify(tokenService).findTokenByValueAndType(randomEmailVerificationRequest.getValue(), TokenType.EMAIL_VERIFICATION);
+        verify(tokenService, never()).isTokenValid(any(Token.class));
+        verify(tokenService, never()).revokeTokenByValue(randomEmailVerificationRequest.getValue());
+        verifyNoInteractions(accountRepository, accountMapper);
+    }
+
+    @Test
+    void verifyEmail_InvalidToken() {
+        // Define expire time for expired (invalid) email verification token
+        Instant expiresAt = Instant.now().minus(Duration.ofHours(1L));
+
+        // Build invalid email verification token
+        Token invalidEmailVerificationToken = Token.builder()
+                .value("email-verification-token")
+                .type(TokenType.EMAIL_VERIFICATION)
                 .account(testAccount)
-                .sessionId(sessionId)
                 .revoked(false)
                 .expiresAt(expiresAt)
                 .build();
-                
+
         // Mock token service to return token when searching by value and type
-        when(tokenService.findTokenByValueAndType(refreshTokenRequest.getValue(), TokenType.REFRESH))
-                .thenReturn(refreshToken);
+        when(tokenService.findTokenByValueAndType(emailVerificationRequest.getValue(), TokenType.EMAIL_VERIFICATION))
+                .thenReturn(invalidEmailVerificationToken);
         
-        // Mock token service to return true when validating refresh token
-        when(tokenService.isTokenValid(refreshToken)).
-                thenReturn(true);
-
-        // Mock account repository to return test account when saved
-        when(accountRepository.save(testAccount))
-                .thenReturn(testAccount);
-
-        // Call service method to deauthenticate account
-        authService.deauthenticateAccount(refreshTokenRequest);
-
-        // Capture saved account to assert business state changes
-        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
-        verify(accountRepository).save(captor.capture());
-
-        // Assert last logout at field is set
-        assertThat(captor.getValue().getLastLogoutAt()).isNotNull();
+        // Assert expected account's information is returned
+        assertThatThrownBy(() -> authService.verifyEmail(emailVerificationRequest))
+                .isNotNull()
+                .isInstanceOf(InvalidTokenException.class);
 
         // Verify interactions
-        verify(tokenService).findTokenByValueAndType(refreshTokenRequest.getValue(), TokenType.REFRESH);
-        verify(tokenService).isTokenValid(refreshToken);
-        verify(tokenService).revokeTokenByValue(refreshTokenRequest.getValue());
-        verify(sessionService).terminateSessionById(sessionId, SessionTerminationReason.LOGOUT);
+        verify(tokenService).findTokenByValueAndType(emailVerificationRequest.getValue(), TokenType.EMAIL_VERIFICATION);
+        verify(tokenService).isTokenValid(invalidEmailVerificationToken);
+        verify(tokenService, never()).revokeTokenByValue(emailVerificationRequest.getValue());
+        verifyNoInteractions(accountRepository, accountMapper);
+    }
+
+    /**
+     * Resends an email verification successfully.
+     */
+    @Test
+    void resendEmailVerification_Success() {
+        // Set test account's state to not verified
+        testAccount.setEmailVerified(false);
+                
+        // Mock token service to return token when searching by value and type
+        when(accountRepository.findByEmail(emailResendRequest.getEmail()))
+                .thenReturn(Optional.of(testAccount));
+
+        // Call service method to deauthenticate account
+        GenericMessageResponse response = authService.resendEmailVerification(emailResendRequest);
+
+        // Assert expected message is returned
+        assertThat(response)
+                .isNotNull()
+                .extracting(GenericMessageResponse::getMessage)
+                .isEqualTo("If your email is registered, a verification link has been sent.");
+
+        // Verify interactions
+        verify(accountRepository).findByEmail(emailResendRequest.getEmail());
+        verify(tokenService).revokeAllTokensByAccountIdAndType(testAccount.getId(), TokenType.EMAIL_VERIFICATION);
+        verify(tokenService).issueToken(testAccount, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
     }
     
 }

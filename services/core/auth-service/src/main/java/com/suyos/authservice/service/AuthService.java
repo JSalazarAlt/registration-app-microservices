@@ -109,7 +109,10 @@ public class AuthService {
      * @throws UsernameAlreadyTakenException If username is already in use
      * @throws EmailAlreadyRegisteredException If email is already registered
      */
-    public AccountInfoResponse createAccount(RegistrationRequest request, String idempotencyKey) {
+    public AccountInfoResponse createAccount(
+        RegistrationRequest request,
+        String idempotencyKey
+    ) {
         // Log account creation attempt
         log.info("event=account_creation_attempt email={}", request.getEmail());
 
@@ -132,7 +135,7 @@ public class AuthService {
         }
 
         // Map account from registration data
-        Account account = accountMapper.toEntity(request);
+        Account account = accountMapper.createFromRequest(request);
 
         // Set password and default role
         account.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -142,7 +145,7 @@ public class AuthService {
         Account createdAccount = accountRepository.save(account);
 
         // Log account creation success
-        log.info("event=account_created account_id={}", createdAccount.getId());
+        log.info("event=account_created account_id={} email={}", createdAccount.getId(), createdAccount.getEmail());
 
         // Issue email verification token
         tokenService.issueToken(createdAccount, TokenType.EMAIL_VERIFICATION, EMAIL_TOKEN_LIFETIME_HOURS);
@@ -170,7 +173,7 @@ public class AuthService {
         accountEventProducer.publishUserCreation(event);
 
         // Map account's information from created account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(createdAccount);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(createdAccount);
 
         // Mark idempotency key as complete in Redis
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
@@ -236,8 +239,8 @@ public class AuthService {
         }
 
         // Reactivate account if was soft deleted
-        if (account.getDeleted()) {
-            account.setDeleted(false);
+        if (account.getSoftDeleted()) {
+            account.setSoftDeleted(false);
         }
         
         // Verify password match
@@ -393,8 +396,8 @@ public class AuthService {
         }
 
         // Reactivate account if was soft deleted
-        if (account.getDeleted()) {
-            account.setDeleted(false);
+        if (account.getSoftDeleted()) {
+            account.setSoftDeleted(false);
         }
         
         // Update last login time
@@ -540,7 +543,7 @@ public class AuthService {
         tokenService.revokeTokenByValue(value);
 
         // Map account's information from verified account
-        AccountInfoResponse accountInfo = accountMapper.toAccountInfoDTO(account);
+        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
 
         // Return verified account's information
         return accountInfo;

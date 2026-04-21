@@ -20,7 +20,7 @@ import com.suyos.authservice.model.Account;
 public interface AccountMapper {
 
     /**
-     * Converts a {@link AccountUpsertDTO} to a {@link Account} entity.
+     * Converts a {@link RegistrationRequest} to a {@link Account} entity.
      * 
      * @param request Account's registration data
      * @return Created account entity
@@ -32,8 +32,6 @@ public interface AccountMapper {
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "locked", ignore = true)
     @Mapping(target = "lockedUntil", ignore = true)
-    @Mapping(target = "deleted", ignore = true)
-    @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "mustChangePassword", ignore = true)
     @Mapping(target = "lastPasswordChangedAt", ignore = true)
     @Mapping(target = "lastLoginAt", ignore = true)
@@ -45,11 +43,13 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Account toEntity(RegistrationRequest request);
+    @Mapping(target = "softDeleted", ignore = true)
+    @Mapping(target = "softDeletedAt", ignore = true)
+    Account createFromRequest(RegistrationRequest request);
 
     /**
      * Updates an existing {@link Account} entity with fields from
-     * {@link AccountUpdateRequestDTO}.
+     * {@link AccountUpdateRequest}.
      * 
      * @param request Account's update data
      * @param account Account entity to be updated
@@ -62,8 +62,6 @@ public interface AccountMapper {
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "locked", ignore = true)
     @Mapping(target = "lockedUntil", ignore = true)
-    @Mapping(target = "deleted", ignore = true)
-    @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "mustChangePassword", ignore = true)
     @Mapping(target = "lastPasswordChangedAt", ignore = true)
     @Mapping(target = "lastLoginAt", ignore = true)
@@ -75,7 +73,9 @@ public interface AccountMapper {
     @Mapping(target = "mfaEnabledAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Account updateAccountFromDTO(AccountUpdateRequest request, @MappingTarget Account account);
+    @Mapping(target = "softDeleted", ignore = true)
+    @Mapping(target = "softDeletedAt", ignore = true)
+    Account updateFromRequest(AccountUpdateRequest request, @MappingTarget Account account);
 
     /**
      * Converts a {@link Account} entity to a {@link AccountInfoResponse}.
@@ -83,6 +83,6 @@ public interface AccountMapper {
      * @param account Account entity
      * @return Account's information
      */
-    AccountInfoResponse toAccountInfoDTO(Account account);
+    AccountInfoResponse toResponse(Account account);
     
 }

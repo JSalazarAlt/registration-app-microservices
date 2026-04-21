@@ -90,17 +90,6 @@ public class Account {
     private Instant lockedUntil;
 
     // ----------------------------------------------------------------
-    // LIFECYCLE
-    // ----------------------------------------------------------------
-
-    @Builder.Default
-    @Column(name = "soft_deleted", nullable = false)
-    private Boolean softDeleted = false;
-
-    @Column(name = "soft_deleted_at")
-    private Instant softDeletedAt;
-
-    // ----------------------------------------------------------------
     // PASSWORD MANAGEMENT
     // ----------------------------------------------------------------
 
@@ -147,7 +136,7 @@ public class Account {
     private Instant mfaEnabledAt;
     
     // ----------------------------------------------------------------
-    // AUDITORY
+    // AUDITORY AND LIFECYCLE
     // ----------------------------------------------------------------
 
     @CreatedDate
@@ -157,5 +146,15 @@ public class Account {
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Builder.Default
+    @Column(name = "soft_deleted", nullable = false)
+    private Boolean softDeleted = false;
+
+    @Column(name = "soft_deleted_at")
+    private Instant softDeletedAt;
+
+    @Column(name = "reactivated_at")
+    private Instant reactivatedAt;
     
 }

@@ -56,20 +56,6 @@ public class Session {
     private Boolean active = true;
 
     // ----------------------------------------------------------------
-    // LIFECYCLE
-    // ----------------------------------------------------------------
-
-    @Column(name = "expires_at", nullable = false)
-    private Instant expiresAt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "termination_reason")
-    private SessionTerminationReason terminationReason;
-
-    @Column(name = "terminated_at")
-    private Instant terminatedAt;
-
-    // ----------------------------------------------------------------
     // DEVICE & NETWORK
     // ----------------------------------------------------------------
 
@@ -92,7 +78,7 @@ public class Session {
     private Instant lastAccessedAt;
 
     // ----------------------------------------------------------------
-    // AUDITORY
+    // AUDITORY AND LIFECYCLE
     // ----------------------------------------------------------------
 
     @CreatedDate
@@ -102,6 +88,16 @@ public class Session {
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "expires_at", nullable = false)
+    private Instant expiresAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "termination_reason")
+    private SessionTerminationReason terminationReason;
+
+    @Column(name = "terminated_at")
+    private Instant terminatedAt;
 
     // ----------------------------------------------------------------
     // RELATIONSHIPS
