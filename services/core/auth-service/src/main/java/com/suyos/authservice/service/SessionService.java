@@ -78,7 +78,7 @@ public class SessionService {
      */
     public List<SessionInfoResponse> findAllSessionsByAccountId(UUID accountId) {
         // Find all active sessions by account ID and map them to sessions' information
-        List<SessionInfoResponse> sessions = sessionRepository.findAllActiveByAccountId(accountId)
+        List<SessionInfoResponse> sessions = sessionRepository.findAllByAccountIdAndActiveTrue(accountId)
             .stream()
             .map(sessionMapper::toResponse)
             .toList();
@@ -194,7 +194,7 @@ public class SessionService {
     public void updateLastActivity(UUID sessionId, String ipAddress) {
         sessionRepository.findById(sessionId).ifPresent(session ->{
             session.setLastIpAddress(ipAddress);
-            session.setLastAccessedAt(Instant.now());
+            session.setLastActivityAt(Instant.now());
         });
     }
 

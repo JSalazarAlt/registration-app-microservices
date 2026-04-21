@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
+import com.suyos.authservice.specification.AccountSpecification;
 import com.suyos.common.dto.response.PagedResponseDTO;
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
@@ -70,21 +72,32 @@ public class AccountService {
      * @param size Page size
      * @param sortBy Field to sort by
      * @param sortDir Sort direction (asc/desc)
+     * @param searchText 
      * @return Paginated list of accounts' information
      */
-    public PagedResponseDTO<AccountInfoResponse> findAllAccounts(int page, int size, 
-        String sortBy, String sortDir) {
+    public PagedResponseDTO<AccountInfoResponse> findAllAccounts(
+        int page,
+        int size,
+        String sortBy,
+        String sortDir,
+        String searchText
+    ) {
         // Define dynamic sorting rules
         Sort sort = Sort.by(sortBy);
         if ("desc".equalsIgnoreCase(sortDir)) {
             sort = sort.descending();
         }
 
+        // Create search specification
+        Specification<Account> spec = AccountSpecification.filter(
+            searchText
+        );
+
         // Create pageable request with dynamic sorting
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // Look up all accounts paginated
-        Page<Account> accountPage = accountRepository.findAll(pageable);
+        Page<Account> accountPage = accountRepository.findAll(spec, pageable);
         
         // Map accounts' information from accounts
         List<AccountInfoResponse> accountInfos = accountPage.getContent()

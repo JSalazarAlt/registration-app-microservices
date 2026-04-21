@@ -77,11 +77,17 @@ public class AdminAccountController {
         @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
         @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
-        @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir
+        @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir,
+        @Parameter(description = "Text to search for") @RequestParam(required = false) String searchText
     ) {
         // Find paginated list of accounts' information
-        PagedResponseDTO<AccountInfoResponse> accountInfos = accountService.findAllAccounts(page, size,
-                sortBy, sortDir);
+        PagedResponseDTO<AccountInfoResponse> accountInfos = accountService.findAllAccounts(
+            page,
+            size,
+            sortBy,
+            sortDir,
+            searchText
+        );
         
         // Return paginated list of accounts' information with "200 OK" status
         return ResponseEntity.ok(accountInfos);
@@ -189,11 +195,11 @@ public class AdminAccountController {
     }
 
     // ----------------------------------------------------------------
-    // SOFT-DELETION
+    // SOFT DELETION
     // ----------------------------------------------------------------
 
     /**
-     * Soft-deletes an account's information by ID.
+     * Soft deletes an account's information by ID.
      * 
      * @param id Account's ID to soft-delete
      * @return Soft-deleted authenticated account's information with "200 OK"
@@ -201,8 +207,8 @@ public class AdminAccountController {
      */
     @DeleteMapping("/{id}")
     @Operation(
-        summary = "Soft-delete account by ID",
-        description = "Soft-deletes an account's information using its ID",
+        summary = "Soft delete account by ID",
+        description = "Soft deletes an account's information using its ID",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account soft deleted successfully",
@@ -216,7 +222,7 @@ public class AdminAccountController {
     public ResponseEntity<AccountInfoResponse> softDeleteAccountById(
         @Parameter(description = "Account's ID") @PathVariable UUID id
     ) {
-        // Soft-delete account's information by ID
+        // Soft delete account's information by ID
         AccountInfoResponse accountInfo = accountService.softDeleteAccountById(id);
 
         // Return soft-deleted account's information with "200 OK" status

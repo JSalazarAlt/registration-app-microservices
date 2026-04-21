@@ -121,11 +121,11 @@ public class AccountController {
     }
 
     // ----------------------------------------------------------------
-    // SOFT-DELETION
+    // SOFT DELETION
     // ----------------------------------------------------------------
 
     /**
-     * Soft-deletes the currently authenticated account.
+     * Soft deletes the currently authenticated account.
      * 
      * @param jwt Authentication principal containing JWT token
      * @return Soft-deleted authenticated account's information with "200 OK"
@@ -133,8 +133,8 @@ public class AccountController {
      */
     @DeleteMapping("/me")
     @Operation(
-        summary = "Soft-delete authenticated account",
-        description = "Soft-deletes the authenticated account's information",
+        summary = "Soft delete authenticated account",
+        description = "Soft deletes the authenticated account's information",
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Account soft deleted successfully",
@@ -151,7 +151,7 @@ public class AccountController {
         // Extract authenticated account's ID from access token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
-        // Soft-delete authenticated account
+        // Soft delete authenticated account
         AccountInfoResponse accountInfo = accountService.softDeleteAccountById(authenticatedAccountId);
         
         // Return soft-deleted authenticated account's information with "200
