@@ -34,6 +34,7 @@ import com.suyos.authservice.exception.exceptions.UsernameAlreadyTakenException;
 import com.suyos.authservice.mapper.AccountMapper;
 import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.AccountRole;
+import com.suyos.authservice.model.AccountStatus;
 import com.suyos.authservice.model.Session;
 import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.model.Token;
@@ -212,9 +213,13 @@ public class AuthService {
                 .or(() -> accountRepository.findByEmail(request.getIdentifier()))
                 .orElseThrow(() -> new InvalidCredentialsException());
 
-        // Ensure account is enabled
-        if (!account.getEnabled()) {
+        // Forbid access if account is disabled
+        if (account.getStatus() == AccountStatus.DISABLED) {
             throw new AccountDisabledException();
+        // Reactivate account if was soft deleted
+        } else if (account.getStatus() == AccountStatus.SOFT_DELETED) {
+            account.setStatus(AccountStatus.ACTIVE);
+            account.setReactivatedAt(Instant.now());
         }
 
         // Ensure account is verified
@@ -236,11 +241,6 @@ public class AuthService {
                 Duration remainingLockTime = Duration.between(Instant.now(), account.getLockedUntil());
                 throw new AccountLockedException(String.valueOf(remainingLockTime.toMinutes()));
             }
-        }
-
-        // Reactivate account if was soft deleted
-        if (account.getSoftDeleted()) {
-            account.setSoftDeleted(false);
         }
         
         // Verify password match
@@ -316,7 +316,7 @@ public class AuthService {
                 .oauth2Provider("google")
                 .oauth2ProviderId(request.getProviderId())
                 .emailVerified(true)
-                .enabled(true)
+                .status(AccountStatus.ACTIVE)
                 .locked(false)
                 .failedLoginAttempts(0)
                 .build();
@@ -369,9 +369,13 @@ public class AuthService {
         // Log account authentication attempt
         log.info("event=oauth2_account_authentication_attempt email_id={}", request.getEmail());
 
-        // Ensure account is enabled
-        if (!account.getEnabled()) {
+        // Forbid access if account is disabled
+        if (account.getStatus() == AccountStatus.DISABLED) {
             throw new AccountDisabledException();
+        // Reactivate account if was soft deleted
+        } else if (account.getStatus() == AccountStatus.SOFT_DELETED) {
+            account.setStatus(AccountStatus.ACTIVE);
+            account.setReactivatedAt(Instant.now());
         }
 
         // Ensure account is verified
@@ -393,11 +397,6 @@ public class AuthService {
                 Duration remainingLockTime = Duration.between(Instant.now(), account.getLockedUntil());
                 throw new AccountLockedException(String.valueOf(remainingLockTime.toMinutes()));
             }
-        }
-
-        // Reactivate account if was soft deleted
-        if (account.getSoftDeleted()) {
-            account.setSoftDeleted(false);
         }
         
         // Update last login time

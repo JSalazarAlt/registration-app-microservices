@@ -75,12 +75,12 @@ public class Account {
     // ----------------------------------------------------------------
 
     @Builder.Default
-    @Column(name = "email_verified", nullable = false)
-    private Boolean emailVerified = false;
+    @Column(name = "status", nullable = false)
+    private AccountStatus status = AccountStatus.ACTIVE;
 
     @Builder.Default
-    @Column(name = "enabled", nullable = false)
-    private Boolean enabled = true;
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
 
     @Builder.Default
     @Column(name = "locked", nullable = false)
@@ -146,10 +146,6 @@ public class Account {
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    @Builder.Default
-    @Column(name = "soft_deleted", nullable = false)
-    private Boolean softDeleted = false;
 
     @Column(name = "soft_deleted_at")
     private Instant softDeletedAt;

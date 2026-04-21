@@ -26,14 +26,17 @@ import com.suyos.common.event.AccountUsernameUpdateEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
+
+import com.suyos.authservice.model.AccountStatus;
 
 /**
  * Service for account management operations.
  * 
  * <p>Handles account retrieval, update, and deletion operations. Provides
  * methods for locating accounts (e.g., by email or username) and supports 
- * soft-deletion for audit and recovery purposes.</p>
+ * soft deletion for audit and recovery purposes.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -256,13 +259,13 @@ public class AccountService {
     }
 
     // ----------------------------------------------------------------
-    // SOFT-DELETION
+    // SOFT DELETION
     // ----------------------------------------------------------------
 
     /**
-     * Soft-deletes an account by ID.
+     * Soft deletes an account by ID.
      * 
-     * <p>Performs a soft-deletion by marking the account as deleted and
+     * <p>Performs a soft deletion by marking the account as deleted and
      * setting the deletion timestamp.</p>
      * 
      * @param id Account's ID to soft-delete
@@ -270,15 +273,15 @@ public class AccountService {
      * @throws AccountNotFoundException If account is not found
      */
     public AccountInfoResponse softDeleteAccountById(UUID id) {
-        // Log account soft-deletion attempt
+        // Log account soft deletion attempt
         log.info("event=account_soft_deletion_attempt account_id={}", id);
 
         // Look up account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
-        // Soft-delete account
-        account.setSoftDeleted(true);
+        // Soft delete account
+        account.setStatus(AccountStatus.SOFT_DELETED);
         account.setSoftDeletedAt(Instant.now());
 
         // Persist soft-deleted account
@@ -290,7 +293,7 @@ public class AccountService {
         // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
         
-        // Log account soft-deletion success
+        // Log account soft deletion success
         log.info("event=account_soft_deleted account_id={}", softDeletedAccount.getId());
 
         // Return soft-deleted account's information
