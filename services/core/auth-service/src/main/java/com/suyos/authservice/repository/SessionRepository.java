@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.model.Session;
+import com.suyos.authservice.model.SessionTerminationReason;
 
 /**
  * Repository interface for Session entity data access operations.
@@ -20,33 +20,24 @@ import com.suyos.authservice.model.Session;
 public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     // ----------------------------------------------------------------
-    // LOOKUP
+    // RETRIEVAL
     // ----------------------------------------------------------------
 
     /**
-     * Finds all sessions by account's ID.
+     * Finds all sessions by account ID.
      * 
      * @param accountId Account ID to search for
      * @return List of sessions associated with the account
      */
-    @Query("""
-        SELECT s FROM Session s 
-        WHERE s.accountId = :accountId
-    """)
     List<Session> findAllByAccountId(UUID accountId);
 
     /**
-     * Finds all active sessions by account's ID.
+     * Finds all active sessions by account ID.
      * 
-     * @param accountId Account ID linked to active sessions
+     * @param accountId Account ID to search for
      * @return List of active sessions associated with the account
      */
-    @Query("""
-        SELECT s FROM Session s 
-        WHERE s.accountId = :accountId
-        AND s.active = true
-    """)
-    List<Session> findAllActiveByAccountId(UUID accountId);
+    List<Session> findAllByAccountIdAndActiveTrue(UUID accountId);
 
     // ----------------------------------------------------------------
     // TERMINATION
@@ -75,11 +66,6 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
      * 
      * @param accountId Account ID to delete sessions for
      */
-    @Modifying
-    @Query("""
-        DELETE FROM Session s 
-        WHERE s.accountId = :accountId
-    """)
     void deleteAllByAccountId(UUID accountId);
 
     /**
@@ -87,12 +73,6 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
      * 
      * @param now Current timestamp
      */
-    @Modifying
-    @Query("""
-        DELETE FROM Session s 
-        WHERE s.active = false
-        AND s.terminatedAt < :cutoffDate  
-    """)
-    void deleteAllInactive(Instant cutoffDate);
+    void deleteAllByActiveFalseAndTerminatedAtBefore(Instant cutoffDate);
     
 }

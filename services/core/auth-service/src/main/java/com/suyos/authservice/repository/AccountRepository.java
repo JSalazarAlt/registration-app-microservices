@@ -20,7 +20,7 @@ import com.suyos.authservice.model.Account;
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     
     // ----------------------------------------------------------------
-    // EXISTENCE CHECKS
+    // EXISTENCE
     // ----------------------------------------------------------------
 
     /**
@@ -40,7 +40,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     boolean existsByUsername(String username);
 
     // ----------------------------------------------------------------
-    // LOOKUP
+    // RETRIEVAL
     // ----------------------------------------------------------------
 
     /**
@@ -75,7 +75,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     /**
      * Locks an account by ID.
      * 
-     * @param id Account's ID to lock
+     * @param id Account ID to lock
      * @return Number of rows affected by the operation
      */
     @Modifying
@@ -85,12 +85,12 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         SET a.locked = true, a.lockedUntil = :until 
         WHERE a.id = :id
     """)
-    int lockAccount(UUID id, Instant until);
+    int lockAccountById(UUID id, Instant until);
 
     /**
      * Unlocks an account by ID.
      * 
-     * @param id Account's ID to unlock
+     * @param id Account ID to unlock
      * @return Number of rows affected by the operation
      */
     @Modifying
@@ -100,6 +100,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
         SET a.locked = false, a.lockedUntil = null 
         WHERE a.id = :id
     """)
-    int unlockAccount(UUID id);
+    int unlockAccountById(UUID id);
 
 }

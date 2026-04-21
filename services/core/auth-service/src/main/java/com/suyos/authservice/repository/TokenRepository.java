@@ -21,7 +21,7 @@ import com.suyos.authservice.model.TokenType;
 public interface TokenRepository extends JpaRepository<Token, UUID> {
 
     // ----------------------------------------------------------------
-    // LOOKUP
+    // RETRIEVAL
     // ----------------------------------------------------------------
 
     /**
