@@ -24,8 +24,8 @@ import lombok.NoArgsConstructor;
 /**
  * Entity representing an authentication session.
  *
- * <p>Maps to the <b>sessions</b> table and stores refresh token metadata,
- * device information, and session lifecycle state.</p>
+ * <p>Maps to the <b>sessions</b> table. Contains fields for session status,
+ * device and network information, and identifier of associated account.</p>
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -74,8 +74,8 @@ public class Session {
     @Column(name = "location")
     private String location;
 
-    @Column(name = "last_accessed_at")
-    private Instant lastAccessedAt;
+    @Column(name = "last_activity_at")
+    private Instant lastActivityAt;
 
     // ----------------------------------------------------------------
     // AUDITORY AND LIFECYCLE

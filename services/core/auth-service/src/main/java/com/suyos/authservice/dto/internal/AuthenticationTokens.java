@@ -5,19 +5,23 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Data Transfer Object for authentication responses.
  * 
- * <p>Contains the access and refresh tokens used for session management,
- * and the linked account ID.</p>
+ * <p>Contains the authenticated account identifier and access and refresh
+ * tokens.</p>
  */
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class AuthenticationTokens {
     
-    /** Authenticated account's ID */
+    /** Authenticated account ID */
     private UUID accountId;
 
     /** JWT access token for API authentication */
@@ -30,7 +34,7 @@ public class AuthenticationTokens {
     /** JWT access token expiration time in seconds */
     private Long accessTokenExpiresIn;
 
-    /** Refresh token for renewing expired access tokens */
+    /** Refresh token value for renewing expired access tokens */
     private String refreshToken;
     
 }

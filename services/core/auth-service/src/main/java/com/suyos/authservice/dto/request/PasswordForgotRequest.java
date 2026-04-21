@@ -4,16 +4,14 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for forgot password requests.
  * 
- * <p>Contains an account's email address to send a password reset link.</p>
+ * <p>Contains the account email address to send a password reset link.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class PasswordForgotRequest {
@@ -21,6 +19,6 @@ public class PasswordForgotRequest {
     /** Email address to send the password reset link */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    private String email;
+    private final String email;
     
 }

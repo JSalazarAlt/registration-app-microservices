@@ -3,31 +3,29 @@ package com.suyos.authservice.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for account authentication requests.
  * 
- * <p>Contains an account's identifier and password to authenticate the account
- * and the device name from which a user is logging in to create a session.</p>
+ * <p>Contains the account identifier and password to authenticate an account
+ * and device name from which a user is logging in to create a session.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class AuthenticationRequest {
 
     /** Username or email */
     @NotBlank(message = "Username or email is required")
-    private String identifier;
+    private final String identifier;
 
     /** Password */
     @NotBlank(message = "Password is required")
-    private String password;
+    private final String password;
 
     /** Device name from which a user is logging in */
     @NotBlank(message = "Device name is required")
-    private String deviceName;
+    private final String deviceName;
 
 }

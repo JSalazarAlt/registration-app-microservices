@@ -5,24 +5,22 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for password reset requests.
  *
  * <p>Contains the password reset token and a new password to complete the
- * forgot-password process.</p>
+ * password reset process.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class PasswordResetRequest {
 
     /** Password reset token value */
     @NotBlank(message = "Password reset token value is required")
-    private String value;
+    private final String value;
 
     /** New password */
     @NotBlank(message = "New password is required")
@@ -31,6 +29,6 @@ public class PasswordResetRequest {
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
         message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
     )
-    private String newPassword;
+    private final String newPassword;
     
 }

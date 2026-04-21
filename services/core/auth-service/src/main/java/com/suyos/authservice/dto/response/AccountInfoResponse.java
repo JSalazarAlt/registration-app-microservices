@@ -9,26 +9,26 @@ import lombok.Getter;
 /**
  * Data Transfer Object for basic account information.
  *
- * <p>Contains account's ID, username, email, and some flags.</p>
+ * <p>Contains the identifier, username, email, and some flags.</p>
  */
 @Getter
 @AllArgsConstructor
 @Builder
 public class AccountInfoResponse {
 
-    /** Account's ID */
-    private UUID id;
+    /** Unique identifier */
+    private final UUID id;
 
     /** Username */
-    private String username;
+    private final String username;
 
     /** Email address */
-    private String email;
+    private final String email;
 
     /** Flag indicating if email address has been verified */
-    private Boolean emailVerified;
+    private final Boolean emailVerified;
 
     /** Flag indicating if multi-factor authentication is enabled */
-    private Boolean mfaEnabled;
+    private final Boolean mfaEnabled;
 
 }

@@ -23,13 +23,12 @@ public interface SessionMapper {
      * @param request Session creation data
      * @return Created session entity
      */
-     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "active", ignore = true)
     @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "terminationReason", ignore = true)
     @Mapping(target = "terminatedAt", ignore = true)
-    @Mapping(target = "lastAccessedAt", ignore = true)
+    @Mapping(target = "lastActivityAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Session createFromRequest(SessionCreationRequest request);
@@ -38,7 +37,7 @@ public interface SessionMapper {
      * Converts a {@link Session} entity to a {@link SessionInfoResponse}.
      *
      * @param session Session entity
-     * @return Session's information
+     * @return Session information
      */
     SessionInfoResponse toResponse(Session session);
     

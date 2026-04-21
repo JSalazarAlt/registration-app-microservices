@@ -5,17 +5,15 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for password change requests.
  *
- * <p>Contains the old password and a new password to complete the password
+ * <p>Contains the old password and new password to complete the password
  * change process.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class PasswordChangeRequest {
@@ -27,7 +25,7 @@ public class PasswordChangeRequest {
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
         message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
     )
-    private String currentPassword;
+    private final String currentPassword;
 
     /** New password */
     @NotBlank(message = "New password is required")
@@ -36,6 +34,6 @@ public class PasswordChangeRequest {
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
         message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
     )
-    private String newPassword;
+    private final String newPassword;
     
 }

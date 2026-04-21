@@ -4,8 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for OAuth2 authentication requests.
@@ -13,30 +12,29 @@ import lombok.NoArgsConstructor;
  * <p>Contains information from OAuth2 providers to authenticate an account
  * during login or account creation.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class OAuth2AuthenticationRequest {
 
-    /** OAuth2 account's email address */
+    /** OAuth2 account email address */
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required")
-    private String email;
+    private final String email;
 
-    /** OAuth2 account's name */
+    /** OAuth2 account name */
     @NotBlank(message = "Name is required")
-    private String name;
+    private final String name;
 
     /** OAuth2 provider */
-    private String provider;
+    private final String provider;
 
     /** OAuth2 provider ID */
     @NotBlank(message = "Provider ID is required")
-    private String providerId;
+    private final String providerId;
 
-    /** Client's device name */
+    /** Client device name */
     @NotBlank(message = "Device name is required")
-    private String deviceName;
+    private final String deviceName;
     
 }

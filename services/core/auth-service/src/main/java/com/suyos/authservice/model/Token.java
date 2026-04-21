@@ -19,10 +19,10 @@ import lombok.NoArgsConstructor;
 
 /**
  * Entity representing an authentication token associated with an
- * {@link Account}.
+ * {@link Account} and a {@link Session}.
  * 
- * <p>Maps to the <b>tokens</b> table. Tokens are uniquely associated
- * with an account and used to validate authentication requests.</p>
+ * <p>Maps to the <b>tokens</b> table. Contains fields for token rotation,
+ * and identifiers of associated account and session.</p>
  */
 @Entity
 @Table(name = "tokens", indexes = {

@@ -5,8 +5,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
-import com.suyos.authservice.dto.request.RegistrationRequest;
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
+import com.suyos.authservice.dto.request.RegistrationRequest;
 import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.model.Account;
 
@@ -22,7 +22,7 @@ public interface AccountMapper {
     /**
      * Converts a {@link RegistrationRequest} to a {@link Account} entity.
      * 
-     * @param request Account's registration data
+     * @param request Account registration data
      * @return Created account entity
      */
     @Mapping(target = "id", ignore = true)
@@ -45,13 +45,14 @@ public interface AccountMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "softDeleted", ignore = true)
     @Mapping(target = "softDeletedAt", ignore = true)
+    @Mapping(target = "reactivatedAt", ignore = true)
     Account createFromRequest(RegistrationRequest request);
 
     /**
      * Updates an existing {@link Account} entity with fields from
      * {@link AccountUpdateRequest}.
      * 
-     * @param request Account's update data
+     * @param request Account update data
      * @param account Account entity to be updated
      * @return Updated account entity
      */
@@ -75,13 +76,14 @@ public interface AccountMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "softDeleted", ignore = true)
     @Mapping(target = "softDeletedAt", ignore = true)
+    @Mapping(target = "reactivatedAt", ignore = true)
     Account updateFromRequest(AccountUpdateRequest request, @MappingTarget Account account);
 
     /**
      * Converts a {@link Account} entity to a {@link AccountInfoResponse}.
      *
      * @param account Account entity
-     * @return Account's information
+     * @return Account information
      */
     AccountInfoResponse toResponse(Account account);
     

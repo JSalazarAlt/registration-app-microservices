@@ -6,23 +6,21 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for account registration requests.
  * 
- * <p>Contains account's information and user's profile to create a new
+ * <p>Contains the account credentials and user profile to create a new
  * account.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class RegistrationRequest {
 
     // ----------------------------------------------------------------
-    // ACCOUNT'S INFORMATION
+    // ACCOUNT CREDENTIALS
     // ----------------------------------------------------------------
 
     /** Username */
@@ -32,12 +30,12 @@ public class RegistrationRequest {
         regexp = "^[a-zA-Z0-9]+$", 
         message = "Username must contain only alphanumeric characters"
     )
-    private String username;
+    private final String username;
 
     /** Email address */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    private String email;
+    private final String email;
 
     /** Password */
     @NotBlank(message = "Password is required")
@@ -46,10 +44,10 @@ public class RegistrationRequest {
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$",
         message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
     )
-    private String password;
+    private final String password;
 
     // ----------------------------------------------------------------
-    // USER'S PROFILE
+    // USER PROFILE
     // ----------------------------------------------------------------
 
     /** First name */
@@ -58,7 +56,7 @@ public class RegistrationRequest {
         regexp = "^[\\p{L} ]+$", 
         message = "First name must contain only letters and spaces"
     )
-    private String firstName;
+    private final String firstName;
 
     /** Last name */
     @NotBlank(message = "Last name is required")
@@ -66,22 +64,22 @@ public class RegistrationRequest {
         regexp = "^[\\p{L} ]+$", 
         message = "Last name must contain only letters and spaces"
     )
-    private String lastName;
+    private final String lastName;
 
     /** Phone number */
     @Pattern(
         regexp = "^$|^\\+?[0-9]{7,15}$",
         message = "Phone must be 7–15 digits, optional + for country code"
     )
-    private String phone;
+    private final String phone;
     
     /** Profile picture URL */
-    private String profilePictureUrl;
+    private final String profilePictureUrl;
     
     /** Preferred language locale */
-    private String locale;
+    private final String locale;
     
     /** Preferred timezone */
-    private String timezone;
+    private final String timezone;
     
 }

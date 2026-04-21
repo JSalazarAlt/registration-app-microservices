@@ -3,8 +3,7 @@ package com.suyos.authservice.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for refresh token requests.
@@ -12,14 +11,13 @@ import lombok.NoArgsConstructor;
  * <p>Contains the refresh token to obtain a new access token or invalidate
  * an existing session.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class RefreshTokenRequest {
 
     /** Refresh token value */
     @NotBlank(message = "Refresh token value is required")
-    private String value;
+    private final String value;
 
 }

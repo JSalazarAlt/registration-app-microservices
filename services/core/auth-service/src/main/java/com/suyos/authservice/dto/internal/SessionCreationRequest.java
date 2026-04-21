@@ -5,34 +5,26 @@ import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * DTO for session creation requests.
  * 
- * <p>Contains sessions's device and network information and account's ID
- * linked to session.</p>
+ * <p>Contains the device and network information, session expiration time,
+ * and associated account identifier.</p>
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SessionCreationRequest {
 
     // ----------------------------------------------------------------
-    // RELATIONSHIPS
-    // ----------------------------------------------------------------
-
-    /** Unique identifier linking to account */
-    private UUID accountId;
-
-    // ----------------------------------------------------------------
     // DEVICE & NETWORK
     // ----------------------------------------------------------------
-
-    /** Timestamp when session expires */
-    private Instant expiresAt;
 
     /** Reported user agent (e.g., Chrome, Safari, Android, iOS) */
     private String userAgent;
@@ -50,10 +42,17 @@ public class SessionCreationRequest {
     private String location;
 
     // ----------------------------------------------------------------
-    // AUDITORY
+    // AUDITORY AND LIFECYCLE
     // ----------------------------------------------------------------
 
-    /** Timestamp when session was created */
-    private Instant createdAt;
+    /** Timestamp of session expiration */
+    private Instant expiresAt;
+
+    // ----------------------------------------------------------------
+    // RELATIONSHIPS
+    // ----------------------------------------------------------------
+
+    /** Unique identifier of associated account */
+    private UUID accountId;
     
 }

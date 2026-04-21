@@ -5,16 +5,14 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * Data Transfer Object for account update requests.
  * 
- * <p>Contains the fields a user can modify to update their account.</p>
+ * <p>Contains the account new username or email.</p>
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 @Builder
 public class AccountUpdateRequest {
@@ -25,10 +23,10 @@ public class AccountUpdateRequest {
         regexp = "^[a-zA-Z0-9]+$", 
         message = "Username must contain only alphanumeric characters"
     )
-    private String username;
+    private final String username;
 
     /** New email address */
     @Email(message = "Invalid email format")
-    private String email;
+    private final String email;
     
 }

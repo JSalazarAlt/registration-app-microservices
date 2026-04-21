@@ -16,6 +16,6 @@ import lombok.Getter;
 public class GenericMessageResponse {
 
     /** Message after request */
-    private String message;
+    private final String message;
     
 }
