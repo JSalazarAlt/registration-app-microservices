@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.authservice.dto.response.SessionInfoResponse;
+import com.suyos.authservice.dto.response.SessionResponse;
 import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.service.SessionService;
 
@@ -61,14 +61,14 @@ public class SessionController {
         }
     )
     @SecurityRequirement(name = "Bearer Authentication")
-    public ResponseEntity<List<SessionInfoResponse>> getAuthenticatedAccountSessions(
+    public ResponseEntity<List<SessionResponse>> getAuthenticatedAccountSessions(
         @AuthenticationPrincipal Jwt jwt
     ) {
         // Extract authenticated account ID from JWT token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
         // Retrieve list of active sessions' information of authenticated account
-        List<SessionInfoResponse> sessions = sessionService.getAllSessionsByAccountId(authenticatedAccountId);
+        List<SessionResponse> sessions = sessionService.getAllSessionsByAccountId(authenticatedAccountId);
 
         // Return list of active sessions' information of authenticated account with "200 OK" status
         return ResponseEntity.ok(sessions);

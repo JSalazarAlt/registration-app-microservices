@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.service.AccountService;
 import com.suyos.common.dto.response.PagedResponseDTO;
 
@@ -68,8 +68,7 @@ public class AdminAccountController {
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    
-    public ResponseEntity<PagedResponseDTO<AccountInfoResponse>> getAllAccounts(
+    public ResponseEntity<PagedResponseDTO<AccountResponse>> getAllAccounts(
         @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
         @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
@@ -77,7 +76,7 @@ public class AdminAccountController {
         @Parameter(description = "Text to search for") @RequestParam(required = false) String searchText
     ) {
         // Retrieve a paginated response of all accounts' information
-        PagedResponseDTO<AccountInfoResponse> accountInfos = accountService.getAllAccounts(
+        PagedResponseDTO<AccountResponse> accountInfos = accountService.getAllAccounts(
             page,
             size,
             sortBy,
@@ -107,11 +106,11 @@ public class AdminAccountController {
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    public ResponseEntity<AccountInfoResponse> getAccountById(
+    public ResponseEntity<AccountResponse> getAccountById(
         @Parameter(description = "Account ID") @PathVariable UUID id
     ) {
         // Find account's information by ID
-        AccountInfoResponse accountInfo = accountService.getAccountById(id);
+        AccountResponse accountInfo = accountService.getAccountById(id);
 
         // Return account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
@@ -135,11 +134,11 @@ public class AdminAccountController {
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    public ResponseEntity<AccountInfoResponse> getAccountByUsername(
+    public ResponseEntity<AccountResponse> getAccountByUsername(
         @Parameter(description = "Account's username") @PathVariable String username
     ) {
         // Find account's information by username
-        AccountInfoResponse accountInfo = accountService.getAccountByUsername(username);
+        AccountResponse accountInfo = accountService.getAccountByUsername(username);
 
         // Return account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
@@ -168,12 +167,12 @@ public class AdminAccountController {
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    public ResponseEntity<AccountInfoResponse> updateAccountById(
+    public ResponseEntity<AccountResponse> updateAccountById(
         @Parameter(description = "Account ID") @PathVariable UUID id,
         @Parameter(description = "Account's update data") @Valid @RequestBody AccountUpdateRequest request
     ) {
         // Update account's information by ID
-        AccountInfoResponse updatedAccountInfo = accountService.updateAccountById(id, request);
+        AccountResponse updatedAccountInfo = accountService.updateAccountById(id, request);
         
         // Return updated account's information with "200 OK" status
         return ResponseEntity.ok(updatedAccountInfo);
@@ -201,11 +200,11 @@ public class AdminAccountController {
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    public ResponseEntity<AccountInfoResponse> softDeleteAccountById(
+    public ResponseEntity<AccountResponse> softDeleteAccountById(
         @Parameter(description = "Account ID") @PathVariable UUID id
     ) {
         // Soft delete account's information by ID
-        AccountInfoResponse softDeleteAccountInfo = accountService.softDeleteAccountById(id);
+        AccountResponse softDeleteAccountInfo = accountService.softDeleteAccountById(id);
 
         // Return soft-deleted account's information with "200 OK" status
         return ResponseEntity.ok(softDeleteAccountInfo);

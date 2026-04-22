@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.service.AccountService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,14 +63,14 @@ public class AccountController {
         }
     )
     @SecurityRequirement(name = "Bearer Authentication")
-    public ResponseEntity<AccountInfoResponse> getAuthenticatedAccount(
+    public ResponseEntity<AccountResponse> getAuthenticatedAccount(
         @AuthenticationPrincipal Jwt jwt
     ) {
         // Extract authenticated account's ID from access token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
         
         // Find authenticated account
-        AccountInfoResponse accountInfo = accountService.getAccountById(authenticatedAccountId);
+        AccountResponse accountInfo = accountService.getAccountById(authenticatedAccountId);
 
         // Return authenticated account's information with "200 OK" status
         return ResponseEntity.ok(accountInfo);
@@ -99,7 +99,7 @@ public class AccountController {
         }
     )
     @SecurityRequirement(name = "Bearer Authentication")
-    public ResponseEntity<AccountInfoResponse> updateAuthenticatedAccount(
+    public ResponseEntity<AccountResponse> updateAuthenticatedAccount(
         @AuthenticationPrincipal Jwt jwt,
         @Parameter(description = "Account's update data") @Valid @RequestBody AccountUpdateRequest request
     ) {
@@ -107,7 +107,7 @@ public class AccountController {
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
         // Update authenticated account
-        AccountInfoResponse updatedAccountInfo = accountService.updateAccountById(authenticatedAccountId, request);
+        AccountResponse updatedAccountInfo = accountService.updateAccountById(authenticatedAccountId, request);
         
         // Return updated authenticated account's information with "200 OK" status
         return ResponseEntity.ok(updatedAccountInfo);
@@ -135,14 +135,14 @@ public class AccountController {
         }
     )
     @SecurityRequirement(name = "Bearer Authentication")
-    public ResponseEntity<AccountInfoResponse> softDeleteAuthenticatedAccount(
+    public ResponseEntity<AccountResponse> softDeleteAuthenticatedAccount(
         @AuthenticationPrincipal Jwt jwt
     ) {
         // Extract authenticated account's ID from access token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
         // Soft delete authenticated account
-        AccountInfoResponse softDeletedAccountInfo = accountService.softDeleteAccountById(authenticatedAccountId);
+        AccountResponse softDeletedAccountInfo = accountService.softDeleteAccountById(authenticatedAccountId);
         
         // Return soft-deleted authenticated account's information with "200 OK" status
         return ResponseEntity.ok(softDeletedAccountInfo);

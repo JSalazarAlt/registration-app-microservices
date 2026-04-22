@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.authservice.dto.response.SessionInfoResponse;
+import com.suyos.authservice.dto.response.SessionResponse;
 import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.service.SessionService;
 
@@ -62,7 +62,7 @@ public class AdminSessionController {
         }
     )
     @GetMapping("/account/{accountId}")
-    public ResponseEntity<List<SessionInfoResponse>> getAllSessionsByAccountId(
+    public ResponseEntity<List<SessionResponse>> getAllSessionsByAccountId(
         @Parameter(description = "Account ID") @PathVariable UUID accountId
     ) {
         // Return list of account's active sessions' information with "200 OK" status
@@ -88,7 +88,7 @@ public class AdminSessionController {
         }
     )
     @GetMapping("/{id}")
-    public ResponseEntity<SessionInfoResponse> getSessionById(
+    public ResponseEntity<SessionResponse> getSessionById(
         @Parameter(description = "Session ID") @PathVariable UUID id
     ) {
         // Return session's information with "200 OK" status
