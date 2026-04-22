@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
@@ -45,7 +46,11 @@ public class SwaggerConfig {
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT")
-                        .description("Enter JWT token obtained from login endpoint")));
+                        .description("Enter JWT token obtained from login endpoint"))
+                .addResponses("Unauthorized",
+                    new ApiResponse().description("Invalid or missing JWT token"))
+                .addResponses("InternalError",
+                    new ApiResponse().description("Internal server error")));
     }
     
 }
