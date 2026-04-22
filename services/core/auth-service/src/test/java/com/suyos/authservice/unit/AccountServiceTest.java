@@ -23,7 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.exception.exceptions.AccountNotFoundException;
 import com.suyos.authservice.mapper.AccountMapper;
@@ -65,13 +65,13 @@ public class AccountServiceTest {
     private Account testAccount;
 
     /** Test account profile */
-    private AccountInfoResponse testAccountInfo;
+    private AccountResponse testAccountInfo;
 
     /** Test update request */
     private AccountUpdateRequest updateRequest;
 
 	/** Updated test account profile */
-    //private AccountInfoResponse updatedTestAccountInfo;
+    //private AccountResponse updatedTestAccountInfo;
     
     /**
      * Initializes common test data before each test.
@@ -90,7 +90,7 @@ public class AccountServiceTest {
                 .build();
 
         // Build test account's profile
-        testAccountInfo = AccountInfoResponse.builder()
+        testAccountInfo = AccountResponse.builder()
                 .id(accountId)
                 .username("testuser")
                 .email("test@example.com")
@@ -127,7 +127,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to find all accounts with pagination
-        PagedResponseDTO<AccountInfoResponse> response = accountService.getAllAccounts(
+        PagedResponseDTO<AccountResponse> response = accountService.getAllAccounts(
                 0,
                 10,
                 "username",
@@ -158,7 +158,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to find account by ID
-        AccountInfoResponse response = accountService.getAccountById(testAccount.getId());
+        AccountResponse response = accountService.getAccountById(testAccount.getId());
 
         // Assert expected account's information is returned
         assertThat(response)
@@ -201,7 +201,7 @@ public class AccountServiceTest {
     @Test
     void updateAccountById_Success() {
         // Build test account's updated profile
-        AccountInfoResponse updatedTestAccountInfo = AccountInfoResponse.builder()
+        AccountResponse updatedTestAccountInfo = AccountResponse.builder()
                 .id(testAccount.getId())
                 .username("testuser1")
                 .email("test@example.com")
@@ -225,7 +225,7 @@ public class AccountServiceTest {
                 .thenReturn(updatedTestAccountInfo);
         
         // Call service method to update account by ID
-        AccountInfoResponse response = accountService.updateAccountById(testAccount.getId(), updateRequest);
+        AccountResponse response = accountService.updateAccountById(testAccount.getId(), updateRequest);
 
         // Assert expected account's information is returned
         assertThat(response)
@@ -267,7 +267,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
         
         // Call service method to update account by ID
-        AccountInfoResponse response = accountService.softDeleteAccountById(testAccount.getId());
+        AccountResponse response = accountService.softDeleteAccountById(testAccount.getId());
 
         // Assert expected account's information is returned
         assertThat(response)
@@ -310,7 +310,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
         
         // Call service method to update account by ID
-        AccountInfoResponse response = accountService.lockAccountById(testAccount.getId());
+        AccountResponse response = accountService.lockAccountById(testAccount.getId());
 
         // Assert expected account's information is returned
         assertThat(response)
@@ -345,7 +345,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
         
         // Call service method to update account by ID
-        AccountInfoResponse response = accountService.unlockAccountById(testAccount.getId());
+        AccountResponse response = accountService.unlockAccountById(testAccount.getId());
 
         // Assert expected account's information is returned
         assertThat(response)

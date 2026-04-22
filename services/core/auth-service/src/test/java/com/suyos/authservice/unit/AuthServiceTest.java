@@ -22,14 +22,14 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.suyos.authservice.dto.internal.AuthenticationTokens;
 import com.suyos.authservice.dto.internal.SessionCreationRequest;
 import com.suyos.authservice.dto.request.AuthenticationRequest;
 import com.suyos.authservice.dto.request.EmailResendRequest;
 import com.suyos.authservice.dto.request.EmailVerificationRequest;
 import com.suyos.authservice.dto.request.RefreshTokenRequest;
 import com.suyos.authservice.dto.request.RegistrationRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
+import com.suyos.authservice.dto.response.AuthenticationResponse;
 import com.suyos.authservice.dto.response.GenericMessageResponse;
 import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.exception.exceptions.AccountDisabledException;
@@ -111,7 +111,7 @@ public class AuthServiceTest {
     private Account testAccount;
 
     /** Test account's information */
-    private AccountInfoResponse testAccountInfo;
+    private AccountResponse testAccountInfo;
 
     /** Test registration request */
     private RegistrationRequest registrationRequest;
@@ -180,7 +180,7 @@ public class AuthServiceTest {
                 .build();
         
         // Build test account's profile
-        testAccountInfo = AccountInfoResponse.builder()
+        testAccountInfo = AccountResponse.builder()
                 .id(testAccount.getId())
                 .username("testuser")
                 .email("test@example.com")
@@ -217,7 +217,7 @@ public class AuthServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to create new account
-        AccountInfoResponse response = authService.createAccount(registrationRequest, null);
+        AccountResponse response = authService.createAccount(registrationRequest, null);
 
         // Assert expected account's information is returned
         assertThat(response)
@@ -314,7 +314,7 @@ public class AuthServiceTest {
     @Test
     void authenticateAccount_Success() {
         // Build test authentication response
-        AuthenticationTokens tokens = AuthenticationTokens.builder()
+        AuthenticationResponse testAuthResponse = AuthenticationResponse.builder()
                 .accessToken("access")
                 .refreshToken("refresh")
                 .build();
@@ -362,13 +362,13 @@ public class AuthServiceTest {
 
         // Mock token service to return 
         when(tokenService.issueRefreshAndAccessTokens(testAccount, session.getId()))
-                .thenReturn(tokens);
+                .thenReturn(testAuthResponse);
 
         // Call service method to authenticate account
-        AuthenticationTokens response = authService.authenticateAccount(authenticationRequest, httpRequest);
+        AuthenticationResponse authResponse = authService.authenticateAccount(authenticationRequest, httpRequest);
 
         // Assert expected tokens are returned
-        assertThat(response).isEqualTo(tokens);
+        assertThat(authResponse).isEqualTo(testAuthResponse);
 
         // Verify interactions
         verify(accountRepository).findByUsername(testAccount.getUsername());
@@ -633,7 +633,7 @@ public class AuthServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to verify email
-        AccountInfoResponse response = authService.verifyEmail(emailVerificationRequest);
+        AccountResponse response = authService.verifyEmail(emailVerificationRequest);
 
         // Assert expected account's information is returned
         assertThat(response)
