@@ -18,11 +18,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing an authentication token associated with an
- * {@link Account} and a {@link Session}.
+ * Entity representing an authentication token.
  * 
  * <p>Maps to the <b>tokens</b> table. Contains fields for token rotation,
- * and identifiers of associated account and session.</p>
+ * and associated account and session.</p>
  */
 @Entity
 @Table(name = "tokens", indexes = {
@@ -44,6 +43,7 @@ public class Token {
     @Column(name = "id")
     private UUID id;
 
+    /** Unique token value represented as UUID string */
     @Column(name = "value", nullable = false, unique = true, length = 512)
     private String value;
 

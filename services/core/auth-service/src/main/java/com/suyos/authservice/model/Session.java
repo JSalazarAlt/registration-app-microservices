@@ -22,10 +22,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing an authentication session.
+ * Entity representing a authentication session.
  *
  * <p>Maps to the <b>sessions</b> table. Contains fields for session status,
- * device and network information, and identifier of associated account.</p>
+ * device and network information, and associated account.</p>
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -59,15 +59,19 @@ public class Session {
     // DEVICE & NETWORK
     // ----------------------------------------------------------------
 
+    /** Reported user agent (e.g., Chrome, Safari, Android, iOS) */
     @Column(name = "user_agent")
     private String userAgent;
 
+    /** Device name (e.g., iPhone 12, Dell XPS 13) */
     @Column(name = "device_name")
     private String deviceName;
 
-    @Column(name = "ip_address")
-    private String ipAddress;
+    /** IP address used during session creation */
+    @Column(name = "first_ip_address")
+    private String firstIpAddress;
 
+    /** Most recent IP address observed during session activity */
     @Column(name = "last_ip_address")
     private String lastIpAddress;
 

@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * Enumeration of account roles.
  * 
- * <p>Defines the various roles that can be assigned to accounts, each with
- * specific permissions and access levels.</p>
+ * <p>Defines the roles that can be assigned to accounts.</p>
  */
 @Getter
 @AllArgsConstructor

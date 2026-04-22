@@ -6,7 +6,7 @@ import lombok.Getter;
 /**
  * Enumeration of session termination reasons.
  * 
- * <p>Defines the various reasons why a user session might be terminated.</p>
+ * <p>Defines the reasons why a session might be terminated.</p>
  */
 @Getter
 @AllArgsConstructor
