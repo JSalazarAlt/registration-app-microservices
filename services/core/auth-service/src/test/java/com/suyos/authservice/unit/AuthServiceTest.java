@@ -168,7 +168,7 @@ public class AuthServiceTest {
                 .email("test@example.com")
                 .build();
 
-        // Generate test account's ID
+        // Generate test account ID
         UUID accountId = UUID.randomUUID();
 
         // Build test account

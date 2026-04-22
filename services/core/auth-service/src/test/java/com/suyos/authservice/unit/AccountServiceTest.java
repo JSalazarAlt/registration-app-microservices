@@ -78,7 +78,7 @@ public class AccountServiceTest {
      */
     @BeforeEach
     void setUp() {
-        // Generate test account's ID
+        // Generate test account ID
         UUID accountId = UUID.randomUUID();
 
         // Build test account
@@ -127,7 +127,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to find all accounts with pagination
-        PagedResponseDTO<AccountInfoResponse> response = accountService.findAllAccounts(
+        PagedResponseDTO<AccountInfoResponse> response = accountService.getAllAccounts(
                 0,
                 10,
                 "username",
@@ -158,7 +158,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to find account by ID
-        AccountInfoResponse response = accountService.findAccountById(testAccount.getId());
+        AccountInfoResponse response = accountService.getAccountById(testAccount.getId());
 
         // Assert expected account's information is returned
         assertThat(response)
@@ -183,7 +183,7 @@ public class AccountServiceTest {
                 .thenReturn(Optional.empty());
 
         // Assert expected exception is thrown
-        assertThatThrownBy(() -> accountService.findAccountById(id))
+        assertThatThrownBy(() -> accountService.getAccountById(id))
                 .isInstanceOf(AccountNotFoundException.class);
 
         // Verify interactions and no interactions
