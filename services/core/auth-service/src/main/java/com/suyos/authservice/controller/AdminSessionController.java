@@ -71,7 +71,7 @@ public class AdminSessionController {
     ) {
         // Return list of account's active sessions' information with "200
         // OK" status
-        return ResponseEntity.ok(sessionService.findAllSessionsByAccountId(accountId));
+        return ResponseEntity.ok(sessionService.getAllSessionsByAccountId(accountId));
     }
 
     /**

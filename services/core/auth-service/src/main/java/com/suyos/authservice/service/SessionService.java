@@ -76,7 +76,7 @@ public class SessionService {
      * @param accountId Account's ID to search sessions for
      * @return List of active sessions' information
      */
-    public List<SessionInfoResponse> findAllSessionsByAccountId(UUID accountId) {
+    public List<SessionInfoResponse> getAllSessionsByAccountId(UUID accountId) {
         // Find all active sessions by account ID and map them to sessions' information
         List<SessionInfoResponse> sessions = sessionRepository.findAllByAccountIdAndActiveTrue(accountId)
             .stream()
@@ -84,7 +84,7 @@ public class SessionService {
             .toList();
 
         // Log all active sessions found by account ID success
-        log.info("event=all_sessions_found_by_account_id account_id={}", accountId);
+        log.info("event=all_sessions_retrieved_by_account_id account_id={}", accountId);
 
         // Return list of active sessions' information
         return sessions;

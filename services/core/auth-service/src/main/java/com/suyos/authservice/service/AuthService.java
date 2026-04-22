@@ -174,15 +174,15 @@ public class AuthService {
         accountEventProducer.publishUserCreation(event);
 
         // Map account's information from created account
-        AccountInfoResponse accountInfo = accountMapper.toResponse(createdAccount);
+        AccountInfoResponse createdAccountInfo = accountMapper.toResponse(createdAccount);
 
         // Mark idempotency key as complete in Redis
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
-            idempotencyService.markComplete(idempotencyKey, accountInfo.toString(), Duration.ofMinutes(10));
+            idempotencyService.markComplete(idempotencyKey, createdAccountInfo.toString(), Duration.ofMinutes(10));
         }
     
         // Return created account's information
-        return accountInfo;
+        return createdAccountInfo;
     }
 
     /**
@@ -255,11 +255,11 @@ public class AuthService {
         account.setLocked(false);
         account.setLockedUntil(null);
         
-        // Persist updated account
-        Account updatedAccount = accountRepository.save(account);
+        // Persist authenticated account
+        Account authenticatedAccount = accountRepository.save(account);
 
         // Log account authentication success
-        log.info("event=account_authenticated account_id={}", updatedAccount.getId());
+        log.info("event=account_authenticated account_id={}", authenticatedAccount.getId());
 
         // Extract user agent and device name
         String userAgent = httpRequest.getHeader("User-Agent");
@@ -271,7 +271,7 @@ public class AuthService {
 
         // Build session creation request
         SessionCreationRequest session = SessionCreationRequest.builder()
-                .accountId(account.getId())
+                .accountId(authenticatedAccount.getId())
                 .expiresAt(null)
                 .userAgent(userAgent)
                 .deviceName(deviceName)
@@ -287,10 +287,10 @@ public class AuthService {
         UUID sessionId = createdSession.getId();
 
         // Issue refresh and access tokens on successful login
-        AuthenticationTokens response = tokenService.issueRefreshAndAccessTokens(updatedAccount, sessionId);
+        AuthenticationTokens authResponse = tokenService.issueRefreshAndAccessTokens(authenticatedAccount, sessionId);
 
         // Return refresh and access tokens
-        return response;
+        return authResponse;
     }
 
     // ----------------------------------------------------------------
@@ -403,10 +403,10 @@ public class AuthService {
         account.setLastLoginAt(Instant.now());
 
         // Persist updated account
-        Account savedAccount = accountRepository.save(account);
+        Account authenticatedAccount = accountRepository.save(account);
 
         // Log account authentication success
-        log.info("event=oauth2_account_authenticated account_id={}", savedAccount.getId());
+        log.info("event=oauth2_account_authenticated account_id={}", authenticatedAccount.getId());
 
         // Extract IP address and user agent
         String ipAddress = clientIpResolver.extractClientIp(httpRequest);
@@ -429,10 +429,10 @@ public class AuthService {
         UUID sessionId = createdSession.getId();
 
         // Issue refresh and access tokens for successful Google OAuth2 login
-        AuthenticationTokens response = tokenService.issueRefreshAndAccessTokens(savedAccount, sessionId);
+        AuthenticationTokens authResponse = tokenService.issueRefreshAndAccessTokens(authenticatedAccount, sessionId);
 
         // Return refresh and access tokens
-        return response;
+        return authResponse;
     }
 
     // ----------------------------------------------------------------
@@ -476,7 +476,7 @@ public class AuthService {
         // Revoke refresh token
         tokenService.revokeTokenByValue(value);
 
-        // Retrieve session's ID
+        // Retrieve session ID
         UUID sessionId = refreshToken.getSessionId();
 
         // Define session termination reason
@@ -532,20 +532,20 @@ public class AuthService {
         // Set email as verified
         account.setEmailVerified(true);
 
-        // Persist updated account
-        accountRepository.save(account);
+        // Persist verified account
+        Account verifiedAccount = accountRepository.save(account);
 
         // Log email verification success
-        log.info("event=email_verified account_id={}", account.getId());
+        log.info("event=email_verified account_id={}", verifiedAccount.getId());
 
         // Revoke email verification token used
         tokenService.revokeTokenByValue(value);
 
         // Map account's information from verified account
-        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
+        AccountInfoResponse verifiedAccountInfo = accountMapper.toResponse(verifiedAccount);
 
         // Return verified account's information
-        return accountInfo;
+        return verifiedAccountInfo;
     }
 
     /**
