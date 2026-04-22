@@ -9,7 +9,7 @@ import lombok.Getter;
 /**
  * Data Transfer Object for forgot password requests.
  * 
- * <p>Contains the account email address to send a password reset link.</p>
+ * <p>Contains the email address to send a password reset link.</p>
  */
 @Getter
 @AllArgsConstructor

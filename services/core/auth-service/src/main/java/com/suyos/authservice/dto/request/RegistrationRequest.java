@@ -11,7 +11,7 @@ import lombok.Getter;
 /**
  * Data Transfer Object for account registration requests.
  * 
- * <p>Contains the account credentials and user profile to create a new
+ * <p>Contains the account's credentials and user's information to create a new
  * account.</p>
  */
 @Getter
