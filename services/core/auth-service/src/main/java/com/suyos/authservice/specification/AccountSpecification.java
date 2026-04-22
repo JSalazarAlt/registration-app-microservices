@@ -9,29 +9,36 @@ import com.suyos.authservice.model.Account;
 
 import jakarta.persistence.criteria.Predicate;
 
+/**
+ * Specification builder for {@link Account} queries.
+ * 
+ * <p>Constructs dynamic query predicates based on input criteria. Filters
+ * accounts by username or email.</p>
+ */
 public class AccountSpecification {
 
-    public static Specification<Account> filter(
-        String searchText
-    ) {
+    /**
+     * Filters accounts by search text (email or username).
+     *
+     * @param searchText Text to filter by (case-insensitive, partial match)
+     * @return Specification for filtering accounts
+     */
+    public static Specification<Account> filter(String searchText) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Username or email search
+            // Apply email/username search if provided
             if (searchText != null && !searchText.trim().isEmpty()) {
                 String pattern = "%" + searchText.trim().toLowerCase() + "%";
 
                 Predicate emailPredicate = cb.like(cb.lower(root.get("email")), pattern);
                 Predicate usernamePredicate = cb.like(cb.lower(root.get("username")), pattern);
-                Predicate searchPredicates = cb.or(
-                    emailPredicate, 
-                    usernamePredicate
-                );
-                predicates.add(searchPredicates);
+
+                predicates.add(cb.or(emailPredicate, usernamePredicate));
             }
 
+            // Return combined predicates (no filter if empty)
             return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
-
 }
