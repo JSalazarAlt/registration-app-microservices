@@ -7,7 +7,7 @@ import org.mapstruct.MappingTarget;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
 import com.suyos.authservice.dto.request.RegistrationRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.model.Account;
 
 /**
@@ -52,7 +52,7 @@ public interface AccountMapper {
      * {@link AccountUpdateRequest}.
      * 
      * @param request Account update data
-     * @param account Account entity to be updated
+     * @param account Account entity to update
      * @return Updated account entity
      */
     @Mapping(target = "id", ignore = true)
@@ -83,6 +83,6 @@ public interface AccountMapper {
      * @param account Account entity
      * @return Account information
      */
-    AccountInfoResponse toResponse(Account account);
+    AccountResponse toResponse(Account account);
     
 }

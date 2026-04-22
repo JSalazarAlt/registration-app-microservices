@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 import com.suyos.authservice.dto.internal.SessionCreationRequest;
-import com.suyos.authservice.dto.response.SessionInfoResponse;
+import com.suyos.authservice.dto.response.SessionResponse;
 import com.suyos.authservice.model.Session;
 
 /**
@@ -25,6 +25,7 @@ public interface SessionMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "active", ignore = true)
+    @Mapping(target = "lastIpAddress", source = "firstIpAddress")
     @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "terminationReason", ignore = true)
     @Mapping(target = "terminatedAt", ignore = true)
@@ -39,6 +40,6 @@ public interface SessionMapper {
      * @param session Session entity
      * @return Session information
      */
-    SessionInfoResponse toResponse(Session session);
+    SessionResponse toResponse(Session session);
     
 }

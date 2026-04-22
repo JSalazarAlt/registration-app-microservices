@@ -16,8 +16,8 @@ import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.service.SessionService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
  * <p>Handles session retrieval endpoints.</p>
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/sessions")
 @RequiredArgsConstructor
 @Tag(
     name = "Admin Session Management", 
@@ -53,52 +53,43 @@ public class AdminSessionController {
     @Secured("ROLE_ADMIN")
     @Operation(
         summary = "Get all sessions by account ID",
-        description = "Retrieves an account's active sessions using its ID",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Sessions retrieved successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
-            ),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
-            @ApiResponse(responseCode = "404", description = "Account not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "Sessions retrieved successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    @GetMapping("/accounts/{accountId}/sessions")
+    @GetMapping("/account/{accountId}")
     public ResponseEntity<List<SessionInfoResponse>> getAllSessionsByAccountId(
-        @PathVariable UUID accountId
+        @Parameter(description = "Account ID") @PathVariable UUID accountId
     ) {
-        // Return list of account's active sessions' information with "200
-        // OK" status
+        // Return list of account's active sessions' information with "200 OK" status
         return ResponseEntity.ok(sessionService.getAllSessionsByAccountId(accountId));
     }
 
     /**
      * Retrieves a session by ID.
      * 
-     * @param id Session's ID
+     * @param id Session ID
      * @return Account's list of active sessions' information with "200 OK"
      * status
      */
     @Secured("ROLE_ADMIN")
     @Operation(
         summary = "Get session by ID",
-        description = "Retrieves an active session using its ID",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Session retrieved successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
-            ),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
-            @ApiResponse(responseCode = "404", description = "Session not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "Session retrieved successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Session not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    @GetMapping("/sessions/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<SessionInfoResponse> getSessionById(
-        @PathVariable UUID id
+        @Parameter(description = "Session ID") @PathVariable UUID id
     ) {
         // Return session's information with "200 OK" status
         return ResponseEntity.ok(sessionService.findSessionById(id));
@@ -116,22 +107,18 @@ public class AdminSessionController {
      */
     @Secured("ROLE_ADMIN")
     @Operation(
-        summary = "Terminate sessions by account ID",
-        description = "Terminates an account's all active sessions using its ID",
+        summary = "Terminate all sessions by account ID",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Sessions terminated successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
-            ),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
-            @ApiResponse(responseCode = "404", description = "Account not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "Sessions terminated successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    @DeleteMapping("/accounts/{accountId}/sessions")
+    @DeleteMapping("/account/{accountId}")
     public ResponseEntity<Void> terminateAllSessionsByAccountId(
-        @PathVariable UUID accountId
+        @Parameter(description = "Account ID") @PathVariable UUID accountId
     ) {
         // Terminate account's active sessions
         sessionService.terminateAllSessionsByAccountId(accountId, SessionTerminationReason.ADMIN_TERMINATED);
@@ -143,7 +130,7 @@ public class AdminSessionController {
     /**
      * Terminates a session by ID.
      * 
-     * @param id Session's ID
+     * @param id Session ID
      * @return Account's list of active sessions' information with "200 OK"
      * status
      */
@@ -152,19 +139,16 @@ public class AdminSessionController {
         summary = "Terminate session by ID",
         description = "Terminates an active session using its ID",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Session terminated successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
-            ),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
-            @ApiResponse(responseCode = "404", description = "Session not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "Session terminated successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Session not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    @DeleteMapping("/sessions/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> terminateSessionById(
-        @PathVariable UUID id
+        @Parameter(description = "Session ID") @PathVariable UUID id
     ) {
         // Terminate session by ID
         sessionService.terminateSessionById(id, SessionTerminationReason.ADMIN_TERMINATED);

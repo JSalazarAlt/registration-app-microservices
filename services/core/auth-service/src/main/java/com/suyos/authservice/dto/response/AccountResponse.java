@@ -14,21 +14,16 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class AccountInfoResponse {
+public class AccountResponse {
 
-    /** Unique identifier */
     private final UUID id;
 
-    /** Username */
     private final String username;
 
-    /** Email address */
     private final String email;
 
-    /** Flag indicating if email address has been verified */
     private final Boolean emailVerified;
-
-    /** Flag indicating if multi-factor authentication is enabled */
+    
     private final Boolean mfaEnabled;
 
 }

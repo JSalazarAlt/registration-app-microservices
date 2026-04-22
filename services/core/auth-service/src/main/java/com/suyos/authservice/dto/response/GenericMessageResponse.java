@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for generic message responses.
+ * Data transfer object for generic message responses.
  * 
  * <p>Contains a simple message string used for confirmations or informational
  * responses.</p>
@@ -15,7 +15,6 @@ import lombok.Getter;
 @Builder
 public class GenericMessageResponse {
 
-    /** Message after request */
     private final String message;
     
 }

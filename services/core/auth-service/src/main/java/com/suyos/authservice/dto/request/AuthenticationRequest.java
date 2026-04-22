@@ -24,7 +24,7 @@ public class AuthenticationRequest {
     @NotBlank(message = "Password is required")
     private final String password;
 
-    /** Device name from which a user is logging in */
+    /** Device name (e.g., iPhone 12, Dell XPS 13) */
     @NotBlank(message = "Device name is required")
     private final String deviceName;
 

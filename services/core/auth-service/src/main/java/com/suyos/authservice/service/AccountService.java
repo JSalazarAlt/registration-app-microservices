@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.exception.exceptions.AccountNotFoundException;
 import com.suyos.authservice.exception.exceptions.EmailAlreadyRegisteredException;
@@ -66,16 +66,16 @@ public class AccountService {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves a paginated response of accounts' information.
+     * Retrieves a paginated response of all accounts' information.
      * 
      * @param page Zero-based page index
      * @param size Page size
      * @param sortBy Field to sort by
      * @param sortDir Sort direction (asc/desc)
      * @param searchText Text to filter
-     * @return Paginated response of accounts' information
+     * @return Paginated response of all accounts' information
      */
-    public PagedResponseDTO<AccountInfoResponse> getAllAccounts(
+    public PagedResponseDTO<AccountResponse> getAllAccounts(
         int page,
         int size,
         String sortBy,
@@ -100,13 +100,13 @@ public class AccountService {
         Page<Account> accountPage = accountRepository.findAll(spec, pageable);
         
         // Map accounts' information from accounts
-        List<AccountInfoResponse> accountInfos = accountPage.getContent()
+        List<AccountResponse> accountInfos = accountPage.getContent()
                 .stream()
                 .map(accountMapper::toResponse)
                 .toList();
 
-        // Build paginated response of accounts' information
-        PagedResponseDTO<AccountInfoResponse> response = PagedResponseDTO.<AccountInfoResponse>builder()
+        // Build paginated response of all accounts' information
+        PagedResponseDTO<AccountResponse> response = PagedResponseDTO.<AccountResponse>builder()
                 .content(accountInfos)
                 .currentPage(accountPage.getNumber())
                 .totalPages(accountPage.getTotalPages())
@@ -116,7 +116,7 @@ public class AccountService {
                 .last(accountPage.isLast())
                 .build();
         
-        // Return paginated response of accounts' information
+        // Return paginated response of all accounts' information
         return response;
     }
 
@@ -127,7 +127,7 @@ public class AccountService {
      * @return Account's information
      * @throws AccountNotFoundException If account is not found
      */
-    public AccountInfoResponse getAccountById(UUID id) {
+    public AccountResponse getAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
@@ -136,7 +136,7 @@ public class AccountService {
         log.info("event=account_retrieved_by_id account_id={}", account.getId());
 
         // Map account's information from account
-        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
+        AccountResponse accountInfo = accountMapper.toResponse(account);
 
         // Return account's information
         return accountInfo;
@@ -149,7 +149,7 @@ public class AccountService {
      * @return Account's information
      * @throws AccountNotFoundException If account is not found
      */
-    public AccountInfoResponse getAccountByEmail(String email) {
+    public AccountResponse getAccountByEmail(String email) {
         // Look up account by email
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AccountNotFoundException("email=" + email));
@@ -158,7 +158,7 @@ public class AccountService {
         log.info("event=account_retrieved_by_email account_id={} email={}", account.getId(), account.getEmail());
 
         // Map account's information from account
-        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
+        AccountResponse accountInfo = accountMapper.toResponse(account);
 
         // Return account's information
         return accountInfo;
@@ -171,7 +171,7 @@ public class AccountService {
      * @return Account's information
      * @throws AccountNotFoundException If account is not found
      */
-    public AccountInfoResponse getAccountByUsername(String username) {
+    public AccountResponse getAccountByUsername(String username) {
         // Look up account by username
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new AccountNotFoundException("username=" + username));
@@ -180,7 +180,7 @@ public class AccountService {
         log.info("event=account_retrieved_by_username account_id={} username={}", account.getId(), account.getUsername());
         
         // Map account's information from account
-        AccountInfoResponse accountInfo = accountMapper.toResponse(account);
+        AccountResponse accountInfo = accountMapper.toResponse(account);
         
         // Return account's information
         return accountInfo;
@@ -198,7 +198,7 @@ public class AccountService {
      * @return Updated account's information
      * @throws AccountNotFoundException If account is not found
      */
-    public AccountInfoResponse updateAccountById(UUID id, AccountUpdateRequest request) {
+    public AccountResponse updateAccountById(UUID id, AccountUpdateRequest request) {
         // Log account update attempt
         log.info("event=account_update_attempt account_id={}", id);
 
@@ -265,7 +265,7 @@ public class AccountService {
         log.info("event=account_updated account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse updatedAccountInfo = accountMapper.toResponse(updatedAccount);
+        AccountResponse updatedAccountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return updated account's information
         return updatedAccountInfo;
@@ -282,7 +282,7 @@ public class AccountService {
      * @return Soft-deleted account's information
      * @throws AccountNotFoundException If account is not found
      */
-    public AccountInfoResponse softDeleteAccountById(UUID id) {
+    public AccountResponse softDeleteAccountById(UUID id) {
         // Log account soft deletion attempt
         log.info("event=account_soft_deletion_attempt account_id={}", id);
 
@@ -298,7 +298,7 @@ public class AccountService {
         Account softDeletedAccount = accountRepository.save(account);
 
         // Map account's information from soft-deleted account
-        AccountInfoResponse softDeletedAccountInfo = accountMapper.toResponse(softDeletedAccount);
+        AccountResponse softDeletedAccountInfo = accountMapper.toResponse(softDeletedAccount);
 
         // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
@@ -321,7 +321,7 @@ public class AccountService {
      * @return Account's information
      * @throws AccountNotFoundException If account is not found
      */
-    public AccountInfoResponse lockAccountById(UUID id) {
+    public AccountResponse lockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
@@ -337,7 +337,7 @@ public class AccountService {
         log.info("event=account_locked account_id={}", lockedAccount.getId());
 
         // Map account's information from locked account
-        AccountInfoResponse lockedAccountInfo = accountMapper.toResponse(lockedAccount);
+        AccountResponse lockedAccountInfo = accountMapper.toResponse(lockedAccount);
 
         // Return locked account's information
         return lockedAccountInfo;
@@ -350,7 +350,7 @@ public class AccountService {
      * @return Account's information
      * @throws AccountNotFoundException If account is not found
      */
-    public AccountInfoResponse unlockAccountById(UUID id) {
+    public AccountResponse unlockAccountById(UUID id) {
         // Look up account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
@@ -366,7 +366,7 @@ public class AccountService {
         log.info("event=account_unlocked account_id={}", unlockedAccount.getId());
 
         // Map account's information from unlocked account
-        AccountInfoResponse unlockedAccountInfo = accountMapper.toResponse(unlockedAccount);
+        AccountResponse unlockedAccountInfo = accountMapper.toResponse(unlockedAccount);
 
         // Return account's information
         return unlockedAccountInfo;

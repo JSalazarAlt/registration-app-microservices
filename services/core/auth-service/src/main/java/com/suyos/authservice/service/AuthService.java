@@ -8,7 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.suyos.authservice.dto.internal.AuthenticationTokens;
 import com.suyos.authservice.dto.internal.SessionCreationRequest;
 import com.suyos.authservice.dto.request.AuthenticationRequest;
 import com.suyos.authservice.dto.request.RegistrationRequest;
@@ -16,7 +15,8 @@ import com.suyos.authservice.dto.request.EmailResendRequest;
 import com.suyos.authservice.dto.request.EmailVerificationRequest;
 import com.suyos.authservice.dto.request.OAuth2AuthenticationRequest;
 import com.suyos.authservice.dto.request.RefreshTokenRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
+import com.suyos.authservice.dto.response.AuthenticationResponse;
 import com.suyos.authservice.dto.response.GenericMessageResponse;
 import com.suyos.authservice.event.AccountEventProducer;
 import com.suyos.authservice.exception.exceptions.AccountDeletedException;
@@ -110,7 +110,7 @@ public class AuthService {
      * @throws UsernameAlreadyTakenException If username is already in use
      * @throws EmailAlreadyRegisteredException If email is already registered
      */
-    public AccountInfoResponse createAccount(
+    public AccountResponse createAccount(
         RegistrationRequest request,
         String idempotencyKey
     ) {
@@ -174,7 +174,7 @@ public class AuthService {
         accountEventProducer.publishUserCreation(event);
 
         // Map account's information from created account
-        AccountInfoResponse createdAccountInfo = accountMapper.toResponse(createdAccount);
+        AccountResponse createdAccountInfo = accountMapper.toResponse(createdAccount);
 
         // Mark idempotency key as complete in Redis
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
@@ -201,7 +201,7 @@ public class AuthService {
      * @throws AccountLockedException If account is currently locked
      * @throws InvalidPasswordException If provided password is incorrect
      */
-    public AuthenticationTokens authenticateAccount(
+    public AuthenticationResponse authenticateAccount(
         AuthenticationRequest request,
         HttpServletRequest httpRequest
     ) {
@@ -275,8 +275,7 @@ public class AuthService {
                 .expiresAt(null)
                 .userAgent(userAgent)
                 .deviceName(deviceName)
-                .ipAddress(ipAddress)
-                .lastIpAddress(ipAddress)
+                .firstIpAddress(ipAddress)
                 .location(location)
                 .build();
         
@@ -287,7 +286,10 @@ public class AuthService {
         UUID sessionId = createdSession.getId();
 
         // Issue refresh and access tokens on successful login
-        AuthenticationTokens authResponse = tokenService.issueRefreshAndAccessTokens(authenticatedAccount, sessionId);
+        AuthenticationResponse authResponse = tokenService.issueRefreshAndAccessTokens(
+            authenticatedAccount,
+            sessionId
+        );
 
         // Return refresh and access tokens
         return authResponse;
@@ -346,7 +348,7 @@ public class AuthService {
      * @throws AccountDeletedException If account is deleted
      * @throws AccountLockedException If account is currently locked
      */
-    public AuthenticationTokens processGoogleOAuth2Account(
+    public AuthenticationResponse processGoogleOAuth2Account(
         OAuth2AuthenticationRequest request,
         HttpServletRequest httpRequest
     ) {
@@ -418,8 +420,7 @@ public class AuthService {
                 .expiresAt(null)
                 .userAgent(userAgent)
                 .deviceName(request.getDeviceName())
-                .ipAddress(ipAddress)
-                .lastIpAddress(ipAddress)
+                .firstIpAddress(ipAddress)
                 .build();
         
         // Create a new session
@@ -429,7 +430,10 @@ public class AuthService {
         UUID sessionId = createdSession.getId();
 
         // Issue refresh and access tokens for successful Google OAuth2 login
-        AuthenticationTokens authResponse = tokenService.issueRefreshAndAccessTokens(authenticatedAccount, sessionId);
+        AuthenticationResponse authResponse = tokenService.issueRefreshAndAccessTokens(
+            authenticatedAccount,
+            sessionId
+        );
 
         // Return refresh and access tokens
         return authResponse;
@@ -506,7 +510,7 @@ public class AuthService {
      * token is invalid
      * @throws EmailAlreadyRegisteredException If email is already verified
      */
-    public AccountInfoResponse verifyEmail(EmailVerificationRequest request) {
+    public AccountResponse verifyEmail(EmailVerificationRequest request) {
         // Log email verification attempt
         log.info("event=email_verification_attempt token={}", request.getValue());
 
@@ -542,7 +546,7 @@ public class AuthService {
         tokenService.revokeTokenByValue(value);
 
         // Map account's information from verified account
-        AccountInfoResponse verifiedAccountInfo = accountMapper.toResponse(verifiedAccount);
+        AccountResponse verifiedAccountInfo = accountMapper.toResponse(verifiedAccount);
 
         // Return verified account's information
         return verifiedAccountInfo;

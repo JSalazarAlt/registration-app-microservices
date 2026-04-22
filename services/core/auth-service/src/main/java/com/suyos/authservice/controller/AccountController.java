@@ -15,13 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
 import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.service.AccountService;
-import com.suyos.common.exception.ApiErrorResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,30 +55,14 @@ public class AccountController {
     @GetMapping("/me")
     @Operation(
         summary = "Get authenticated account",
-        description = "Retrieves the authenticated account's information",
         responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "Account retrieved successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Account retrieved successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<AccountInfoResponse> getAuthenticatedAccount(
         @AuthenticationPrincipal Jwt jwt
     ) {
@@ -107,34 +90,15 @@ public class AccountController {
     @PatchMapping("/me")
     @Operation(
         summary = "Update authenticated account",
-        description = "Updates the authenticated account's information",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Account updated successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "400",
-                description = "Invalid request body or validation errors",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Account updated successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or validation errors", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<AccountInfoResponse> updateAuthenticatedAccount(
         @AuthenticationPrincipal Jwt jwt,
         @Parameter(description = "Account's update data") @Valid @RequestBody AccountUpdateRequest request
@@ -163,29 +127,14 @@ public class AccountController {
     @DeleteMapping("/me")
     @Operation(
         summary = "Soft delete authenticated account",
-        description = "Soft deletes the authenticated account's information",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Account soft deleted successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Account soft deleted successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<AccountInfoResponse> softDeleteAuthenticatedAccount(
         @AuthenticationPrincipal Jwt jwt
     ) {

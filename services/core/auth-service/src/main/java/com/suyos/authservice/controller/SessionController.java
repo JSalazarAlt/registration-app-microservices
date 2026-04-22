@@ -14,12 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.suyos.authservice.dto.response.SessionInfoResponse;
 import com.suyos.authservice.model.SessionTerminationReason;
 import com.suyos.authservice.service.SessionService;
-import com.suyos.common.exception.ApiErrorResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -51,43 +50,27 @@ public class SessionController {
      * @return Authenticated account's list of active sessions' information
      * with "200 OK" status
      */
+    @GetMapping("/me")
     @Operation(
         summary = "Get authenticated account's sessions",
-        description = "Retrieves all authenticated account's active sessions",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Sessions retrieved successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Sessions retrieved successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    @GetMapping("/me")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ResponseEntity<List<SessionInfoResponse>> getAuthenticatedAccountSessions(
         @AuthenticationPrincipal Jwt jwt
     ) {
         // Extract authenticated account ID from JWT token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 
-        // Find authenticated account's list of active sessions' information
+        // Retrieve list of active sessions' information of authenticated account
         List<SessionInfoResponse> sessions = sessionService.getAllSessionsByAccountId(authenticatedAccountId);
 
-        // Return authenticated account's list of active sessions' information
-        // with "200 OK" status
+        // Return list of active sessions' information of authenticated account with "200 OK" status
         return ResponseEntity.ok(sessions);
     }
 
@@ -100,38 +83,22 @@ public class SessionController {
      * 
      * @param jwt Authentication principal containing JWT token
      */
+    @DeleteMapping("/me")
     @Operation(
         summary = "Terminate authenticated account's sessions",
         description = "Terminates all the authenticated account's active sessions",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Sessions deleted successfully",
-                content = @Content(schema = @Schema(implementation = SessionInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "400",
-                description = "Invalid request body or validation error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Sessions deleted successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or validation error", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    @DeleteMapping("/me")
-    public ResponseEntity<Void> terminateAuthenticatedAccountSessions(@AuthenticationPrincipal Jwt jwt) {
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<Void> terminateAuthenticatedAccountSessions(
+        @AuthenticationPrincipal Jwt jwt
+    ) {
         // Extract authenticated account ID from JWT token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
 

@@ -17,12 +17,10 @@ import com.suyos.authservice.dto.request.AccountUpdateRequest;
 import com.suyos.authservice.dto.response.AccountInfoResponse;
 import com.suyos.authservice.service.AccountService;
 import com.suyos.common.dto.response.PagedResponseDTO;
-import com.suyos.common.exception.ApiErrorResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -46,50 +44,31 @@ public class AdminAccountController {
     private final AccountService accountService;
 
     // ----------------------------------------------------------------
-    // LOOKUP
+    // RETRIEVAL
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves a paginated list of all accounts.
+     * Retrieves a paginated response of all accounts' information.
      * 
      * @param page Zero-based page index
      * @param size Page size
      * @param sortBy Field to sort by
      * @param sortDir Sort direction (asc/desc)
-     * @return Paginated list of accounts' information with "200 OK" status
+     * @return Paginated response of all accounts' information with "200 OK" status
      */
     @Secured("ROLE_ADMIN")
     @GetMapping
     @Operation(
-        summary = "Get all accounts", 
-        description = "Retrieves a paginated list of accounts with sorting options",
+        summary = "Get all accounts paginated", 
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Accounts retrieved successfully",
-                content = @Content(schema = @Schema(implementation = PagedResponseDTO.class))
-            ),
-            @ApiResponse(
-                responseCode = "400",
-                description = "Invalid pagination or sort parameters",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "403",
-                description = "Access denied",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid pagination or sort parameters", content = @Content),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
+    
     public ResponseEntity<PagedResponseDTO<AccountInfoResponse>> getAllAccounts(
         @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
@@ -97,7 +76,7 @@ public class AdminAccountController {
         @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir,
         @Parameter(description = "Text to search for") @RequestParam(required = false) String searchText
     ) {
-        // Retrieve a paginated response of accounts' information
+        // Retrieve a paginated response of all accounts' information
         PagedResponseDTO<AccountInfoResponse> accountInfos = accountService.getAllAccounts(
             page,
             size,
@@ -106,7 +85,7 @@ public class AdminAccountController {
             searchText
         );
         
-        // Return paginated response of accounts' information with "200 OK" status
+        // Return paginated response of all accounts' information with "200 OK" status
         return ResponseEntity.ok(accountInfos);
     }
 
@@ -120,32 +99,12 @@ public class AdminAccountController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Get account by ID",
-        description = "Retrieves account's information using its ID",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Account retrieved successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "403",
-                description = "Access denied",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Account retrieved successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
     public ResponseEntity<AccountInfoResponse> getAccountById(
@@ -168,32 +127,12 @@ public class AdminAccountController {
     @GetMapping("/username/{username}")
     @Operation(
         summary = "Get account by username",
-        description = "Retrieves account's information using its username",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Account retrieved successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "403",
-                description = "Access denied",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Account retrieved successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
     public ResponseEntity<AccountInfoResponse> getAccountByUsername(
@@ -220,37 +159,13 @@ public class AdminAccountController {
     @PatchMapping("/{id}")
     @Operation(
         summary = "Update account by ID",
-        description = "Updates an account's information using its ID",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Account updated successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "400",
-                description = "Invalid request body or validation errors",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "403",
-                description = "Access denied",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Account updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or validation errors", content = @Content),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
     public ResponseEntity<AccountInfoResponse> updateAccountById(
@@ -278,32 +193,12 @@ public class AdminAccountController {
     @DeleteMapping("/{id}")
     @Operation(
         summary = "Soft delete account by ID",
-        description = "Soft deletes an account's information using its ID",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Account soft deleted successfully",
-                content = @Content(schema = @Schema(implementation = AccountInfoResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Invalid or missing JWT token",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "403",
-                description = "Access denied",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Account not found",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
+            @ApiResponse(responseCode = "200", description = "Account soft deleted successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
     public ResponseEntity<AccountInfoResponse> softDeleteAccountById(

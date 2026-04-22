@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.suyos.authservice.dto.request.PasswordChangeRequest;
 import com.suyos.authservice.dto.request.PasswordForgotRequest;
 import com.suyos.authservice.dto.request.PasswordResetRequest;
-import com.suyos.authservice.dto.response.AccountInfoResponse;
+import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.dto.response.GenericMessageResponse;
 import com.suyos.authservice.exception.exceptions.AccountNotFoundException;
 import com.suyos.authservice.exception.exceptions.InvalidTokenException;
@@ -110,7 +110,7 @@ public class PasswordService {
      * @return Updated account's information
      * @throws InvalidPasswordTokenException If password reset token is invalid
      */
-    public AccountInfoResponse confirmPasswordReset(PasswordResetRequest request) {
+    public AccountResponse confirmPasswordReset(PasswordResetRequest request) {
         // Log password reset attempt
         log.info("event=password_reset_confirmation_attempt token={}", request.getValue());
 
@@ -142,7 +142,7 @@ public class PasswordService {
         log.info("event=password_reset_confirmed account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse updatedAccountInfo = accountMapper.toResponse(updatedAccount);
+        AccountResponse updatedAccountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return updated account's information
         return updatedAccountInfo;
@@ -163,7 +163,7 @@ public class PasswordService {
      * @return Updated account's information
      * @throws PasswordMismatchException If current password is invalid
      */
-    public AccountInfoResponse changePassword(UUID id, PasswordChangeRequest request) {
+    public AccountResponse changePassword(UUID id, PasswordChangeRequest request) {
         // Log password change attempt
         log.info("event=password_change_attempt account_id={}", id);
 
@@ -190,7 +190,7 @@ public class PasswordService {
         log.info("event=password_changed account_id={}", updatedAccount.getId());
 
         // Map account's information from updated account
-        AccountInfoResponse updatedAccountInfo = accountMapper.toResponse(updatedAccount);
+        AccountResponse updatedAccountInfo = accountMapper.toResponse(updatedAccount);
 
         // Return updated account's information
         return updatedAccountInfo;

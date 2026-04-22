@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.authservice.dto.internal.SessionCreationRequest;
-import com.suyos.authservice.dto.response.SessionInfoResponse;
+import com.suyos.authservice.dto.response.SessionResponse;
 import com.suyos.authservice.exception.exceptions.SessionNotFoundException;
 import com.suyos.authservice.mapper.SessionMapper;
 import com.suyos.authservice.model.Session;
@@ -55,7 +55,7 @@ public class SessionService {
      * @param id Session's ID to search for
      * @return Session's information
      */
-    public SessionInfoResponse findSessionById(UUID id) {
+    public SessionResponse findSessionById(UUID id) {
         // Look up session by ID
         Session session = sessionRepository.findById(id)
                 .orElseThrow(() -> new SessionNotFoundException("session_id=" + id));
@@ -64,7 +64,7 @@ public class SessionService {
         log.info("event=session_found_by_id session_id={}", session.getId());
 
         // Map session's information from session
-        SessionInfoResponse sessionInfo = sessionMapper.toResponse(session);
+        SessionResponse sessionInfo = sessionMapper.toResponse(session);
 
         // Return session's information
         return sessionInfo;
@@ -76,9 +76,9 @@ public class SessionService {
      * @param accountId Account's ID to search sessions for
      * @return List of active sessions' information
      */
-    public List<SessionInfoResponse> getAllSessionsByAccountId(UUID accountId) {
+    public List<SessionResponse> getAllSessionsByAccountId(UUID accountId) {
         // Find all active sessions by account ID and map them to sessions' information
-        List<SessionInfoResponse> sessions = sessionRepository.findAllByAccountIdAndActiveTrue(accountId)
+        List<SessionResponse> sessions = sessionRepository.findAllByAccountIdAndActiveTrue(accountId)
             .stream()
             .map(sessionMapper::toResponse)
             .toList();

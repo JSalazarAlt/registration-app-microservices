@@ -5,38 +5,35 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for OAuth2 account information from Google.
+ * Data transfer object for OAuth2 account information.
  * 
  * <p>Contains basic account's information from an OAuth2 provider.</p>
  */
 @Getter
 @AllArgsConstructor
 @Builder
-public class OAuth2AccountInfoResponse {
+public class OAuth2AccountResponse {
 
-    /** Email address from OAuth2 provider */
-    private String email;
+    private final String email;
 
-    /** Flag indicating if email address has been verified by OAuth2 provider */
-    @Builder.Default
-    private Boolean emailVerified = true;
+    private final Boolean emailVerified;
 
     /** OAuth2 provider name (e.g., Google, Facebook) */
-    private String provider;
+    private final String provider;
 
     /** Unique identifier from OAuth2 provider */
-    private String providerId;
+    private final String providerId;
 
     /** Full name from OAuth2 provider */
-    private String name;
+    private final String providerName;
 
     /** First name extracted from full name */
-    private String firstName;
+    private final String firstName;
 
     /** Last name extracted from full name */
-    private String lastName;
+    private final String lastName;
 
     /** Profile picture URL from OAuth2 provider */
-    private String profilePictureUrl;
+    private final String profilePictureUrl;
     
 }

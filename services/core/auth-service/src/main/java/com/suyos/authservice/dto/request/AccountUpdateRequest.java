@@ -8,9 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for account update requests.
+ * Data transfer object for account update requests.
  * 
- * <p>Contains the account new username or email.</p>
+ * <p>Contains the account's new username or email.</p>
  */
 @Getter
 @AllArgsConstructor
