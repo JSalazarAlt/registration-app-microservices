@@ -11,9 +11,9 @@ import com.suyos.common.exception.ErrorCode;
  * <p>Indicates authentication with the specified OAuth2 provider
  * could not be completed successfully.</p>
  */
-public class OAuth2AuthenticationFailerException extends ApiException {
+public class OAuth2AuthenticationFailedException extends ApiException {
 
-    public OAuth2AuthenticationFailerException(String provider) {
+    public OAuth2AuthenticationFailedException(String provider) {
         super(
             "OAuth2 authentication with " + provider + " failed",
             HttpStatus.UNAUTHORIZED,

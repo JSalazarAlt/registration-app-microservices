@@ -9,9 +9,17 @@ import org.springframework.core.io.ClassPathResource;
 
 import com.maxmind.geoip2.DatabaseReader;
 
+/**
+ * 
+ */
 @Configuration
 public class GeoLocationConfig {
 
+    /**
+     * 
+     * @return
+     * @throws IOException
+     */
     @Bean
     public DatabaseReader geoIpReader() throws IOException {
         InputStream db = new ClassPathResource("GeoLite2-City/GeoLite2-City.mmdb").getInputStream();

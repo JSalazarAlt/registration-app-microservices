@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for password reset requests.
+ * Data transfer object for password reset requests.
  *
  * <p>Contains the password reset token and a new password to complete the
  * password reset process.</p>
@@ -18,11 +18,10 @@ import lombok.Getter;
 @Builder
 public class PasswordResetRequest {
 
-    /** Password reset token value */
+    /** Unique value of password reset token */
     @NotBlank(message = "Password reset token value is required")
     private final String value;
 
-    /** New password */
     @NotBlank(message = "New password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(

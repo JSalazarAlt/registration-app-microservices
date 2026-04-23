@@ -7,33 +7,31 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for OAuth2 authentication requests.
+ * Data transfer object for OAuth2 authentication requests.
  * 
- * <p>Contains information from OAuth2 providers to authenticate an account
- * during login or account creation.</p>
+ * <p>Contains information from OAuth2 providers to authenticate an account.
+ * Used during OAuth2 account creation and login.</p>
  */
 @Getter
 @AllArgsConstructor
 @Builder
 public class OAuth2AuthenticationRequest {
 
-    /** OAuth2 account email address */
+    /** Account email address from OAuth2 provider */
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required")
     private final String email;
 
-    /** OAuth2 account name */
+    /** Account full name from OAuth2 provider */
     @NotBlank(message = "Name is required")
     private final String name;
 
-    /** OAuth2 provider */
     private final String provider;
 
-    /** OAuth2 provider ID */
-    @NotBlank(message = "Provider ID is required")
+    @NotBlank(message = "OAuth2 provider ID is required")
     private final String providerId;
 
-    /** Client device name */
+    /** Device name (e.g., iPhone 12, Dell XPS 13) */
     @NotBlank(message = "Device name is required")
     private final String deviceName;
     

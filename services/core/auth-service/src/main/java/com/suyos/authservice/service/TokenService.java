@@ -243,7 +243,7 @@ public class TokenService {
      * @param accountId Account ID
      */
     public void revokeAllTokensByAccountId(UUID accountId) {
-        tokenRepository.revokeAllValidByAccountId(accountId);
+        tokenRepository.revokeAllValidByAccount_Id(accountId);
 
         // Log all tokens revocation
         log.info("event=all_tokens_revoked account_id={}", accountId);
@@ -258,7 +258,7 @@ public class TokenService {
      * @param type Type of token to revoke
      */
     public void revokeAllTokensByAccountIdAndType(UUID accountId, TokenType type) {
-        tokenRepository.revokeAllValidByAccountIdAndType(accountId, type);
+        tokenRepository.revokeAllValidByAccount_IdAndType(accountId, type);
 
         // Log tokens revocation
         log.debug("event=all_tokens_revoked type={} account_id={}", type, accountId);

@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for basic account information.
+ * Data transfer object for basic account information.
  *
  * <p>Contains the identifier, username, email, and some flags.</p>
  */

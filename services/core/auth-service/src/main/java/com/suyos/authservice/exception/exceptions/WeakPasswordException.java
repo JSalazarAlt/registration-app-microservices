@@ -6,8 +6,7 @@ import com.suyos.common.exception.ApiException;
 import com.suyos.common.exception.ErrorCode;
 
 /**
- * Exception thrown when a password does not meet security
- * requirements.
+ * Exception thrown when a password does not meet security requirements.
  * 
  * <p>Indicates the password must contain at least 8 characters with
  * uppercase, lowercase, and numeric characters.</p>
@@ -16,7 +15,7 @@ public class WeakPasswordException extends ApiException {
     
     public WeakPasswordException() {
         super(
-            "Password does not meet security requirements. Must be at least 8 characters with uppercase, lowercase, and numbers",
+            "Password does not meet security requirements; must be at least 8 characters with uppercase, lowercase, and numbers",
             HttpStatus.BAD_REQUEST,
             "/errors/weak-password",
             ErrorCode.WEAK_PASSWORD

@@ -7,9 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for resend email verification requests.
+ * Data transfer object for resend email verification requests.
  * 
- * <p>Contains the account email address to send a new email verification
+ * <p>Contains the account's email address to send a new email verification
  * link.</p>
  */
 @Getter
@@ -17,7 +17,6 @@ import lombok.Getter;
 @Builder
 public class EmailResendRequest {
 
-    /** Email address to send the email verification link */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private final String email;

@@ -9,10 +9,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for account registration requests.
+ * Data transfer object for account registration requests.
  * 
- * <p>Contains the account's credentials and user's information to create a new
- * account.</p>
+ * <p>Contains the account's credentials and user's profile data to create
+ * a new account.</p>
  */
 @Getter
 @AllArgsConstructor
@@ -23,7 +23,6 @@ public class RegistrationRequest {
     // ACCOUNT CREDENTIALS
     // ----------------------------------------------------------------
 
-    /** Username */
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 20, message = "Username must be 3–20 characters")
     @Pattern(
@@ -32,12 +31,10 @@ public class RegistrationRequest {
     )
     private final String username;
 
-    /** Email address */
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private final String email;
 
-    /** Password */
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(
@@ -50,7 +47,6 @@ public class RegistrationRequest {
     // USER PROFILE
     // ----------------------------------------------------------------
 
-    /** First name */
     @NotBlank(message = "First name is required")
     @Pattern(
         regexp = "^[\\p{L} ]+$", 
@@ -58,7 +54,6 @@ public class RegistrationRequest {
     )
     private final String firstName;
 
-    /** Last name */
     @NotBlank(message = "Last name is required")
     @Pattern(
         regexp = "^[\\p{L} ]+$", 
@@ -66,20 +61,16 @@ public class RegistrationRequest {
     )
     private final String lastName;
 
-    /** Phone number */
     @Pattern(
         regexp = "^$|^\\+?[0-9]{7,15}$",
         message = "Phone must be 7–15 digits, optional + for country code"
     )
-    private final String phone;
+    private final String phoneNumber;
     
-    /** Profile picture URL */
     private final String profilePictureUrl;
     
-    /** Preferred language locale */
     private final String locale;
     
-    /** Preferred timezone */
     private final String timezone;
     
 }

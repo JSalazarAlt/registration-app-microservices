@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for password change requests.
+ * Data transfer object for password change requests.
  *
  * <p>Contains the old password and new password to complete the password
  * change process.</p>
@@ -18,7 +18,6 @@ import lombok.Getter;
 @Builder
 public class PasswordChangeRequest {
 
-    /** Current password */
     @NotBlank(message = "Current password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(
@@ -27,7 +26,6 @@ public class PasswordChangeRequest {
     )
     private final String currentPassword;
 
-    /** New password */
     @NotBlank(message = "New password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(

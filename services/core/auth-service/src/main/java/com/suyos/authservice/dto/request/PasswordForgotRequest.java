@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for forgot password requests.
+ * Data transfer object for forgot password requests.
  * 
  * <p>Contains the email address to send a password reset link.</p>
  */

@@ -6,21 +6,19 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Data Transfer Object for account authentication requests.
+ * Data transfer object for authentication requests.
  * 
- * <p>Contains the account identifier and password to authenticate an account
- * and device name from which a user is logging in to create a session.</p>
+ * <p>Contains the account's username or email, password, and device name to
+ * authenticate an account.</p>
  */
 @Getter
 @AllArgsConstructor
 @Builder
 public class AuthenticationRequest {
 
-    /** Username or email */
     @NotBlank(message = "Username or email is required")
     private final String identifier;
 
-    /** Password */
     @NotBlank(message = "Password is required")
     private final String password;
 

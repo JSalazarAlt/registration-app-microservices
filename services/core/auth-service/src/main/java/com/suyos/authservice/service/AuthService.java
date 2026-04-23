@@ -164,7 +164,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
-                .phone(request.getPhone())
+                .phoneNumber(request.getPhoneNumber())
                 .profilePictureUrl(request.getProfilePictureUrl())
                 .locale(request.getLocale())
                 .timezone(request.getTimezone())

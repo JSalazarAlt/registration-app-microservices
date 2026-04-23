@@ -41,4 +41,5 @@ public class AccountSpecification {
             return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
+    
 }

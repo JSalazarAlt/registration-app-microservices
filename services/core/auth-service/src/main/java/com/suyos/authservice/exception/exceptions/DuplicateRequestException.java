@@ -8,7 +8,8 @@ import com.suyos.common.exception.ErrorCode;
 /**
  * Exception thrown when a request is duplicated.
  * 
- * <p>Indicates the request is duplicated.</p>
+ * <p>Indicates the request is duplicated and must not be processed. Used
+ * for idempotency purposes.</p>
  */
 public class DuplicateRequestException extends ApiException {
     

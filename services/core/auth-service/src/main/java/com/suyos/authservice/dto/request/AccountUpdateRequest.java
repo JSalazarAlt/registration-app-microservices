@@ -10,14 +10,13 @@ import lombok.Getter;
 /**
  * Data transfer object for account update requests.
  * 
- * <p>Contains the account's new username or email.</p>
+ * <p>Contains the account's new username and email.</p>
  */
 @Getter
 @AllArgsConstructor
 @Builder
 public class AccountUpdateRequest {
 
-    /** New username */
     @Size(min = 3, max = 20, message = "Username must be 3–20 characters")
     @Pattern(
         regexp = "^[a-zA-Z0-9]+$", 
@@ -25,7 +24,6 @@ public class AccountUpdateRequest {
     )
     private final String username;
 
-    /** New email address */
     @Email(message = "Invalid email format")
     private final String email;
     

@@ -42,7 +42,7 @@ public class AccountEventProducer {
         // Log user's creation event publication
         log.info("event=kafka_user_creation_published account_id={}", event.getAccountId());
 
-        // Send event to Kafka topic with account ID as key
+        // Publish event to Kafka topic with account ID as key
         kafkaTemplate.send(USER_CREATION_TOPIC, event.getAccountId().toString(), event);
     }
 
@@ -55,7 +55,7 @@ public class AccountEventProducer {
         // Log account's username update event publication
         log.info("event=kafka_username_update_published account_id={}", event.getAccountId());
 
-        // Send event to Kafka topic with account ID as key
+        // Publish event to Kafka topic with account ID as key
         kafkaTemplate.send(ACCOUNT_USERNAME_UPDATE_TOPIC, event.getAccountId().toString(), event);
     }
 
@@ -68,7 +68,7 @@ public class AccountEventProducer {
         // Log account's email update event publication
         log.info("event=kafka_email_update_published account_id={}", event.getAccountId());
 
-        // Send event to Kafka topic with account ID as key
+        // Publish event to Kafka topic with account ID as key
         kafkaTemplate.send(ACCOUNT_EMAIL_UPDATE_TOPIC, event.getAccountId().toString(), event);
     }
 

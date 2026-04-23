@@ -12,10 +12,10 @@ import com.suyos.authservice.model.Session;
 import com.suyos.authservice.model.SessionTerminationReason;
 
 /**
- * Repository interface for Session entity data access operations.
+ * Repository for session data access operations.
  * 
- * <p>Provides standard CRUD operations for session entities. Handles session
- * termination and cleanup operations.</p>
+ * <p>Provides standard CRUD, bulk termination, and cleanup operations for
+ * session entities.</p>
  */
 public interface SessionRepository extends JpaRepository<Session, UUID> {
 
@@ -23,35 +23,20 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     // RETRIEVAL
     // ----------------------------------------------------------------
 
-    /**
-     * Finds all sessions by account ID.
-     * 
-     * @param accountId Account ID to search for
-     * @return List of sessions associated with the account
-     */
     List<Session> findAllByAccountId(UUID accountId);
 
-    /**
-     * Finds all active sessions by account ID.
-     * 
-     * @param accountId Account ID to search for
-     * @return List of active sessions associated with the account
-     */
     List<Session> findAllByAccountIdAndActiveTrue(UUID accountId);
 
     // ----------------------------------------------------------------
     // TERMINATION
     // ----------------------------------------------------------------
 
-    /**
-     * Terminates all active sessions by account's ID.
-     * 
-     * @param accountId Account linked to the session to terminate
-     */
     @Modifying
     @Query("""
         UPDATE Session s 
-        SET s.active = false, s.terminationReason = :terminationReason, s.terminatedAt = CURRENT_TIMESTAMP
+        SET s.active = false,
+            s.terminationReason = :terminationReason,
+            s.terminatedAt = CURRENT_TIMESTAMP
         WHERE s.accountId = :accountId
         AND s.active = true
     """)
@@ -61,17 +46,12 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     // DELETION
     // ----------------------------------------------------------------
     
-    /**
-     * Deletes all sessions for an account by account's ID.
-     * 
-     * @param accountId Account ID to delete sessions for
-     */
     void deleteAllByAccountId(UUID accountId);
 
     /**
-     * Deletes all expired sessions by account's ID.
+     * Deletes all expired sessions by their account ID.
      * 
-     * @param now Current timestamp
+     * @param cutoffDate Threshold timestamp
      */
     void deleteAllByActiveFalseAndTerminatedAtBefore(Instant cutoffDate);
     

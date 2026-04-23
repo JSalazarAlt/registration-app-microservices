@@ -34,7 +34,7 @@ public class TokenCleanupService {
         log.info("event=token_cleanup_started");
 
         // Delete expired or revoked tokens
-        tokenRepository.deleteAllExpiredOrRevoked(Instant.now());
+        tokenRepository.deleteAllByRevokedTrueAndExpiresAtBefore(Instant.now());
 
         // Log cleanup completion
         log.info("event=token_cleanup_completed");

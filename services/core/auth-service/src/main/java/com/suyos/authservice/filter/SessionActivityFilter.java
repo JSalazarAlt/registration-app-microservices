@@ -31,10 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SessionActivityFilter extends OncePerRequestFilter {
 
-    /** Service for session management */
     private final SessionService sessionService;
 
-    /** Utility for resolving client IP address */
     private final ClientIpResolver clientIpResolver;
 
     /**
@@ -50,20 +48,19 @@ public class SessionActivityFilter extends OncePerRequestFilter {
         HttpServletResponse response,
         FilterChain filterChain
     ) throws ServletException, IOException {
-
+        // 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // Process only authenticated JWT-based requests
         if (authentication instanceof JwtAuthenticationToken jwtAuth && jwtAuth.isAuthenticated()) {
 
             Jwt jwt = jwtAuth.getToken();
-            String sessionIdClaim = jwt.getClaimAsString("sessionId");
+            String sessionIdClaim = jwt.getClaimAsString("sid");
 
             // Update session activity if sessionId is present
             if (sessionIdClaim != null) {
                 UUID sessionId = UUID.fromString(sessionIdClaim);
                 String ipAddress = clientIpResolver.extractClientIp(request);
-
                 sessionService.updateLastActivity(sessionId, ipAddress);
             }
         }

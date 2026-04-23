@@ -15,8 +15,8 @@ import com.suyos.authservice.model.TokenType;
 /**
  * Repository for token data access operations.
  *
- * <p>Provides standard CRUD operations for account entities. Handles token
- * lookup, revocation, deletion, and cleanup operations.</p>
+ * <p>Provides standard CRUD, revocation, and cleanup operations for token
+ * entities.</p>
  */
 public interface TokenRepository extends JpaRepository<Token, UUID> {
 
@@ -24,41 +24,20 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     // RETRIEVAL
     // ----------------------------------------------------------------
 
-    /**
-     * Finds a token by value.
-     * 
-     * @param value Token value to search for
-     * @return Optional containing token if found, empty otherwise
-     */
     Optional<Token> findByValue(String value);
 
-    /**
-     * Finds a token by value and type.
-     *
-     * @param value Token value to search for
-     * @param type Token type to search for
-     * @return Optional containing token if found, empty otherwise
-     */
     Optional<Token> findByValueAndType(String value, TokenType type);
 
-    /**
-     * Finds all tokens by account ID.
-     * 
-     * @param accountId Account ID to search tokens for
-     * @return List of tokens associated with the account
-     */
-    List<Token> findAllByAccountId(UUID accountId);
+    List<Token> findAllByAccount_Id(UUID accountId);
 
     // ----------------------------------------------------------------
     // REVOCATION
     // ----------------------------------------------------------------
 
     /**
-     * Revokes all valid tokens by account ID.
+     * Revokes all valid tokens by their account ID.
      * 
      * <p>Used during account deletion and password changes.</p>
-     * 
-     * @param accountId Account ID to revoke tokens for
      */
     @Modifying
     @Query("""
@@ -69,13 +48,10 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
         AND t.revoked = false
         AND t.expiresAt > CURRENT_TIMESTAMP
     """)
-    void revokeAllValidByAccountId(UUID accountId);
+    void revokeAllValidByAccount_Id(UUID accountId);
 
     /**
-     * Revokes all valid tokens by account ID and type.
-     * 
-     * @param accountId Account ID to revoke valid tokens for
-     * @param type Token type to revoke
+     * Revokes all valid tokens by their account ID and type.
      */
     @Modifying
     @Query("""
@@ -87,23 +63,13 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
         AND t.revoked = false
         AND t.expiresAt > CURRENT_TIMESTAMP
     """)
-    void revokeAllValidByAccountIdAndType(UUID accountId, TokenType type);
+    void revokeAllValidByAccount_IdAndType(UUID accountId, TokenType type);
 
     // ----------------------------------------------------------------
     // DELETION
     // ----------------------------------------------------------------
-
-    /**
-     * Deletes all tokens for an account.
-     * 
-     * @param accountId Account ID to delete tokens for
-     */
-    @Modifying
-    @Query("""
-        DELETE FROM Token t 
-        WHERE t.account.id = :accountId
-    """)
-    void deleteAllByAccountId(UUID accountId);
+    
+    void deleteAllByAccount_Id(UUID accountId);
 
     // ----------------------------------------------------------------
     // CLEAN-UP
@@ -112,14 +78,8 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     /**
      * Deletes all expired or revoked tokens.
      * 
-     * @param now Current timestamp
+     * @param cutoffDate Threshold timestamp
      */
-    @Modifying
-    @Query("""
-        DELETE FROM Token t
-        WHERE t.revoked = true
-        OR t.expiresAt < :now
-    """)
-    void deleteAllExpiredOrRevoked(Instant now);
+    void deleteAllByRevokedTrueAndExpiresAtBefore(Instant cutoffDate);
     
 }
