@@ -11,8 +11,8 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     networks:
-      - observability
+      - tracing
 
 networks:
-  observability:
+  tracing:
     driver: bridge

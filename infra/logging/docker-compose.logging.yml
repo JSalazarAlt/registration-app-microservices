@@ -13,7 +13,7 @@ services:
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
     networks:
-      - elk
+      - logging
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
@@ -25,7 +25,7 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - elk
+      - logging
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
@@ -37,11 +37,11 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - elk
+      - logging
 
 volumes:
   elasticsearch-data:
 
 networks:
-  elk:
+  logging:
     driver: bridge
