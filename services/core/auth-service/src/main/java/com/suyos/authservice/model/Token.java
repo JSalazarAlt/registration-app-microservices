@@ -55,11 +55,13 @@ public class Token {
     // ----------------------------------------------------------------
 
     /** Root token ID for tracking token rotation chains */
-    @Column(name = "root_token_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "root_token_id")
     private Token rootTokenId;
 
     /** Parent token ID for tracking token rotation chains */
-    @Column(name = "parent_token_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_token_id")
     private Token parentTokenId;
 
     @Builder.Default
