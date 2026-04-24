@@ -5,6 +5,11 @@ rule_files:
   - 'alerts.yml'
 
 scrape_configs:
+  - job_name: 'gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+
   - job_name: 'auth-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
@@ -14,8 +19,3 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['host.docker.internal:8082']
-
-  - job_name: 'gateway'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['host.docker.internal:8080']
