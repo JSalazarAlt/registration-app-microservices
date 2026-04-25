@@ -3,11 +3,6 @@ package com.suyos.authservice.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Enumeration of account roles.
- * 
- * <p>Defines the roles that can be assigned to accounts.</p>
- */
 @Getter
 @AllArgsConstructor
 public enum AccountRole {

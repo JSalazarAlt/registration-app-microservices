@@ -7,12 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for password reset requests.
- *
- * <p>Contains the password reset token and a new password to complete the
- * password reset process.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

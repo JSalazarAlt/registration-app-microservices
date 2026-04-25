@@ -17,12 +17,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Entity representing an authentication token.
- * 
- * <p>Maps to the <b>tokens</b> table. Contains fields for token rotation,
- * and associated account and session.</p>
- */
 @Entity
 @Table(name = "tokens", indexes = {
     @Index(name = "idx_token_account", columnList = "account_id"),

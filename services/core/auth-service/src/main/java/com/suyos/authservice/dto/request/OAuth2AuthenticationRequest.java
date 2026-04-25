@@ -6,12 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for OAuth2 authentication requests.
- * 
- * <p>Contains information from OAuth2 providers to authenticate an account.
- * Used during OAuth2 account creation and login.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

@@ -7,12 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for password change requests.
- *
- * <p>Contains the old password and new password to complete the password
- * change process.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

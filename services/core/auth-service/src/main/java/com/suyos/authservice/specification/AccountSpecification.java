@@ -9,12 +9,6 @@ import com.suyos.authservice.model.Account;
 
 import jakarta.persistence.criteria.Predicate;
 
-/**
- * Specification builder for {@link Account} queries.
- * 
- * <p>Constructs dynamic query predicates based on input criteria. Filters
- * accounts by username or email.</p>
- */
 public class AccountSpecification {
 
     /**

@@ -5,12 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for refresh token requests.
- *
- * <p>Contains the refresh token to obtain a new access token or invalidate
- * an existing session during logout.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

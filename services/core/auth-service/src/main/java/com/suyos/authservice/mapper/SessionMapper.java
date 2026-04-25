@@ -8,12 +8,6 @@ import com.suyos.authservice.dto.internal.SessionCreationRequest;
 import com.suyos.authservice.dto.response.SessionResponse;
 import com.suyos.authservice.model.Session;
 
-/**
- * Mapper for converting between {@link Session} entities and DTOs.
- * 
- * <p>Defines the mapping contract between the session entity and related
- * DTOs. MapStruct generates the implementation at compile time.</p>
- */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface SessionMapper {
 
@@ -35,7 +29,7 @@ public interface SessionMapper {
     Session createFromRequest(SessionCreationRequest request);
 
     /**
-     * Converts a {@link Session} entity to a {@link SessionInfoResponse}.
+     * Converts a {@link Session} entity to a {@link SessionResponse}.
      *
      * @param session Session entity
      * @return Session information

@@ -5,11 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for email verification requests.
- *
- * <p>Contains the email verification token to verify an account email.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

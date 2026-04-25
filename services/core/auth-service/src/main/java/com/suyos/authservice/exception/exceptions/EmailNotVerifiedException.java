@@ -11,7 +11,7 @@ public class EmailNotVerifiedException extends ApiException {
         super(
             "Email '" + email + "' has not been verified; please check your inbox",
             HttpStatus.FORBIDDEN,
-            "/errors/email-not-verified",
+            "/docs/errors/email-not-verified",
             ErrorCode.EMAIL_NOT_VERIFIED
         );
     }

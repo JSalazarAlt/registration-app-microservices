@@ -17,7 +17,7 @@ public class DuplicateRequestException extends ApiException {
         super(
             "Duplicate request detected",
             HttpStatus.CONFLICT,
-            "/errors/duplicate-request",
+            "/docs/errors/duplicate-request",
             ErrorCode.DUPLICATE_REQUEST
         );
     }

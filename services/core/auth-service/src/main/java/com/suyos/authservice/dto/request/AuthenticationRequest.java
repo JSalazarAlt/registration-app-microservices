@@ -5,12 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for authentication requests.
- * 
- * <p>Contains the account's username or email, password, and device name to
- * authenticate an account.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

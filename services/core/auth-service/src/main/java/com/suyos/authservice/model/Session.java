@@ -21,12 +21,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Entity representing a authentication session.
- *
- * <p>Maps to the <b>sessions</b> table. Contains fields for session status,
- * device and network information, and associated account.</p>
- */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "sessions", indexes = {

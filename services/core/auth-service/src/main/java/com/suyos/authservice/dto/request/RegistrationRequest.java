@@ -8,12 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for account registration requests.
- * 
- * <p>Contains the account's credentials and user's profile data to create
- * a new account.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

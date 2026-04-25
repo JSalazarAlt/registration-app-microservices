@@ -3,11 +3,6 @@ package com.suyos.authservice.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Enumeration of token types within the authentication system.
- * 
- * <p>Defines the types of tokens used for authentication.</p>
- */
 @Getter
 @AllArgsConstructor
 public enum TokenType {

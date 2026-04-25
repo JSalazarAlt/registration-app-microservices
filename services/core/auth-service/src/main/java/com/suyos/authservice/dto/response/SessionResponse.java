@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * DTO for session information.
+ * Data transfer object for session information.
  * 
  * <p>Contains the session status, device and network information, session
  * lifecycle information, and associated account identifier.</p>

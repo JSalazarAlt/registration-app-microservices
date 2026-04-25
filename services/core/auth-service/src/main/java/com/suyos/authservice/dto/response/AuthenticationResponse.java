@@ -6,12 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for authentication responses.
- * 
- * <p>Contains the authenticated account identifier and access and refresh
- * tokens.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

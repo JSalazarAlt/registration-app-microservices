@@ -11,7 +11,7 @@ public class EmailAlreadyRegisteredException extends ApiException {
         super(
             "Email '" + email + "' is already registered",
             HttpStatus.CONFLICT,
-            "/errors/email-already-registered",
+            "/docs/errors/email-already-registered",
             ErrorCode.EMAIL_ALREADY_REGISTERED
         );
     }

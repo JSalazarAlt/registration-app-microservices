@@ -11,7 +11,7 @@ public class AccountNotFoundException extends ApiException {
         super(
             "Account not found with " + detail,
             HttpStatus.NOT_FOUND,
-            "/errors/account-not-found",
+            "/docs/errors/account-not-found",
             ErrorCode.ACCOUNT_NOT_FOUND
         );
     }

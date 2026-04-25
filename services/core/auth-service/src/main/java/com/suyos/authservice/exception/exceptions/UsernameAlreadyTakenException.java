@@ -11,7 +11,7 @@ public class UsernameAlreadyTakenException extends ApiException {
         super(
             "Username '" + username + "' is already taken",
             HttpStatus.CONFLICT,
-            "/errors/username-already-taken",
+            "/docs/errors/username-already-taken",
             ErrorCode.USERNAME_ALREADY_TAKEN
         );
     }

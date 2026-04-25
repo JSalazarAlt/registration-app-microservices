@@ -11,7 +11,7 @@ public class AccountDisabledException extends ApiException {
         super(
             "Account has been disabled by administrator",
             HttpStatus.FORBIDDEN,
-            "/errors/account-disabled",
+            "/docs/errors/account-disabled",
             ErrorCode.ACCOUNT_DISABLED
         );
     }

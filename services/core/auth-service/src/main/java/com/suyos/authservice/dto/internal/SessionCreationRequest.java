@@ -7,12 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for session creation requests.
- * 
- * <p>Contains the device and network information, session expiration time,
- * and associated account identifier.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

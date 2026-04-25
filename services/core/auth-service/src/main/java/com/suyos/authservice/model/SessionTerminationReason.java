@@ -3,11 +3,6 @@ package com.suyos.authservice.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Enumeration of session termination reasons.
- * 
- * <p>Defines the reasons why a session might be terminated.</p>
- */
 @Getter
 @AllArgsConstructor
 public enum SessionTerminationReason {

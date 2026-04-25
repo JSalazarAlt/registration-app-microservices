@@ -11,7 +11,7 @@ public class AccountLockedException extends ApiException {
         super(
             "Account is locked due to multiple failed login attempts; try again after " + unlockTime + " minutes",
             HttpStatus.LOCKED,
-            "/errors/account-locked",
+            "/docs/errors/account-locked",
             ErrorCode.ACCOUNT_LOCKED
         );
     }

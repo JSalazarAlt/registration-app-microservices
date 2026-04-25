@@ -11,7 +11,7 @@ public class TokenNotFoundException extends ApiException {
         super(
             "Token not found with value=" + value,
             HttpStatus.NOT_FOUND,
-            "/errors/token-not-found",
+            "/docs/errors/token-not-found",
             ErrorCode.TOKEN_NOT_FOUND
         );
     }

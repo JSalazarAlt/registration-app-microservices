@@ -3,11 +3,6 @@ package com.suyos.authservice.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Enumeration of account status.
- * 
- * <p>Defines the operational states an account can transition through.</p>
- */
 @Getter
 @AllArgsConstructor
 public enum AccountStatus {

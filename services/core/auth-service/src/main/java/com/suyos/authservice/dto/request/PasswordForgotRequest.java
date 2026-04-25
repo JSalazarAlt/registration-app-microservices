@@ -6,11 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for forgot password requests.
- * 
- * <p>Contains the email address to send a password reset link.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

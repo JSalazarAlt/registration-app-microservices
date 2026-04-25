@@ -6,12 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Data transfer object for resend email verification requests.
- * 
- * <p>Contains the account's email address to send a new email verification
- * link.</p>
- */
 @Getter
 @AllArgsConstructor
 @Builder

@@ -4,11 +4,6 @@ import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-/**
- * Component for resolving the client's IP address from HTTP requests.
- *
- * <p>Extracts the originating IP by checking common proxy headers.</p>
- */
 @Component
 public class ClientIpResolver {
 
@@ -31,7 +26,7 @@ public class ClientIpResolver {
         for (String header : headers) {
             String value = request.getHeader(header);
             if (value != null && !value.isBlank()) {
-                // X-Forwarded-For may contain multiple IPs → take first
+                // Take first IP from X-Forwarded-For
                 return value.split(",")[0].trim();
             }
         }

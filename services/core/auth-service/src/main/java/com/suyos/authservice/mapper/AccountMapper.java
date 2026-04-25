@@ -10,12 +10,6 @@ import com.suyos.authservice.dto.request.RegistrationRequest;
 import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.model.Account;
 
-/**
- * Mapper for converting between {@link Account} entities and DTOs.
- * 
- * <p>Defines the mapping contract between the account entity and related
- * DTOs. MapStruct generates the implementation at compile time.</p>
- */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AccountMapper {
 
@@ -78,7 +72,7 @@ public interface AccountMapper {
     Account updateFromRequest(AccountUpdateRequest request, @MappingTarget Account account);
 
     /**
-     * Converts a {@link Account} entity to a {@link AccountInfoResponse}.
+     * Converts an {@link Account} entity to a {@link AccountResponse}.
      *
      * @param account Account entity
      * @return Account information

@@ -20,12 +20,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Filter for tracking session activity on each request.
- *
- * <p>Updates the last activity timestamp and client IP address for
- * authenticated sessions based on JWT information.</p>
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -36,7 +30,8 @@ public class SessionActivityFilter extends OncePerRequestFilter {
     private final ClientIpResolver clientIpResolver;
 
     /**
-     * Intercepts each request to update session activity if authenticated.
+     * Intercepts each request to update last activity timestamp and client IP
+     * address for authenticated sessions based on JWT information.
      *
      * @param request HTTP request
      * @param response HTTP response
@@ -48,16 +43,16 @@ public class SessionActivityFilter extends OncePerRequestFilter {
         HttpServletResponse response,
         FilterChain filterChain
     ) throws ServletException, IOException {
-        // 
+        // Extract authentication from security context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // Process only authenticated JWT-based requests
         if (authentication instanceof JwtAuthenticationToken jwtAuth && jwtAuth.isAuthenticated()) {
-
+            // Extract session ID from JWT claims
             Jwt jwt = jwtAuth.getToken();
             String sessionIdClaim = jwt.getClaimAsString("sid");
 
-            // Update session activity if sessionId is present
+            // Update session activity if session ID is present
             if (sessionIdClaim != null) {
                 UUID sessionId = UUID.fromString(sessionIdClaim);
                 String ipAddress = clientIpResolver.extractClientIp(request);

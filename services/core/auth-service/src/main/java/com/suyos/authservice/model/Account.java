@@ -21,12 +21,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Entity representing an account.
- * 
- * <p>Maps to the <b>accounts</b> table. Contains fields for account management
- * and authentication.</p>
- */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "accounts", indexes = {

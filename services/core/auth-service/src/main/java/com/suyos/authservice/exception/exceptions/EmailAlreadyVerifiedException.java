@@ -11,7 +11,7 @@ public class EmailAlreadyVerifiedException extends ApiException {
         super(
             "Email '" + email + "' is already verified",
             HttpStatus.BAD_REQUEST,
-            "/errors/email-already-verified",
+            "/docs/errors/email-already-verified",
             ErrorCode.EMAIL_ALREADY_VERIFIED
         );
     }
