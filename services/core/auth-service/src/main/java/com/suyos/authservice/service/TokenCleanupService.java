@@ -11,18 +11,12 @@ import com.suyos.authservice.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Service for token cleanup operations.
- *
- * <p>Handles cleanup tasks such as removing expired or revoked tokens.</p>
- */
 @Service
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
 public class TokenCleanupService {
-
-    /** Repository for token operations */
+    
     private final TokenRepository tokenRepository;
 
     /**

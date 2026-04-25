@@ -1,6 +1,7 @@
 package com.suyos.authservice.service;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.springframework.stereotype.Service;
 
@@ -9,12 +10,6 @@ import com.maxmind.geoip2.model.CityResponse;
 
 import lombok.RequiredArgsConstructor;
 
-/**
- * Service for resolving geolocation information from IP addresses.
- *
- * <p>Handles IP validation and maps public IPs to city/country using a GeoIP
- * database.</p>
- */
 @Service
 @RequiredArgsConstructor
 public class GeoLocationService {
@@ -34,7 +29,7 @@ public class GeoLocationService {
             return addr.isAnyLocalAddress()
                 || addr.isLoopbackAddress()
                 || addr.isSiteLocalAddress();
-        } catch (Exception e) {
+        } catch (UnknownHostException e) {
             // Treat invalid IPs as private
             return true;
         }
@@ -56,6 +51,7 @@ public class GeoLocationService {
             InetAddress address = InetAddress.getByName(ip);
             CityResponse response = geoIpReader.city(address);
 
+            // Extract city and country
             String city = response.getCity().getName();
             String country = response.getCountry().getIsoCode();
 

@@ -24,14 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LoginAttemptService {
     
-    /** Repository for account data access operations */
     private final AccountRepository accountRepository;
 
-    /** Maximum allowed failed login attempts before account lock */
     private static final int MAX_FAILED_ATTEMPTS = 5;
-    
-    /** Account lock duration in hours */
-    private static final int LOCK_DURATION_HOURS = 2;
+
+    private static final int ACCOUNT_LOCK_DURATION_HOURS = 2;
 
     /**
      * Records a failed login attempt and locks account if threshold reached.
@@ -50,7 +47,7 @@ public class LoginAttemptService {
         // Lock account if maximum attempts exceeded and log account lock event
         if (attempts >= MAX_FAILED_ATTEMPTS) {
             account.setLocked(true);
-            account.setLockedUntil(Instant.now().plusSeconds(LOCK_DURATION_HOURS * 3600));
+            account.setLockedUntil(Instant.now().plusSeconds(ACCOUNT_LOCK_DURATION_HOURS * 3600));
             log.warn("event=account_locked account_id={}", account.getId());
         }
 
