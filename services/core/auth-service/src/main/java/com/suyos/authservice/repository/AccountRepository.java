@@ -11,11 +11,6 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.suyos.authservice.model.Account;
 
-/**
- * Repository for account data access operations.
- * 
- * <p>Provides standard CRUD and lock/unlock operations for account entities.</p>
- */
 public interface AccountRepository extends JpaRepository<Account, UUID>, JpaSpecificationExecutor<Account> {
     
     // ----------------------------------------------------------------
@@ -34,9 +29,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID>, JpaSpec
 
     Optional<Account> findByEmail(String email);
 
-    /**
-     * Finds an account by OAuth2 provider (e.g., "google") and provider ID.
-     */
     Optional<Account> findByOauth2ProviderAndOauth2ProviderId(String provider, String providerId);
 
     // ----------------------------------------------------------------

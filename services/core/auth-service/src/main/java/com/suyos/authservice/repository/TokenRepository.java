@@ -12,12 +12,6 @@ import org.springframework.data.jpa.repository.Query;
 import com.suyos.authservice.model.Token;
 import com.suyos.authservice.model.TokenType;
 
-/**
- * Repository for token data access operations.
- *
- * <p>Provides standard CRUD, revocation, and cleanup operations for token
- * entities.</p>
- */
 public interface TokenRepository extends JpaRepository<Token, UUID> {
 
     // ----------------------------------------------------------------
@@ -75,11 +69,6 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     // CLEAN-UP
     // ----------------------------------------------------------------
 
-    /**
-     * Deletes all expired or revoked tokens.
-     * 
-     * @param cutoffDate Threshold timestamp
-     */
     void deleteAllByRevokedTrueAndExpiresAtBefore(Instant cutoffDate);
     
 }

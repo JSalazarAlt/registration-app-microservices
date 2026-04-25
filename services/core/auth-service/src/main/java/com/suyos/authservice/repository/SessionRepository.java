@@ -11,12 +11,6 @@ import org.springframework.data.jpa.repository.Query;
 import com.suyos.authservice.model.Session;
 import com.suyos.authservice.model.SessionTerminationReason;
 
-/**
- * Repository for session data access operations.
- * 
- * <p>Provides standard CRUD, bulk termination, and cleanup operations for
- * session entities.</p>
- */
 public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     // ----------------------------------------------------------------
@@ -47,12 +41,7 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     // ----------------------------------------------------------------
     
     void deleteAllByAccountId(UUID accountId);
-
-    /**
-     * Deletes all expired sessions by their account ID.
-     * 
-     * @param cutoffDate Threshold timestamp
-     */
+    
     void deleteAllByActiveFalseAndTerminatedAtBefore(Instant cutoffDate);
     
 }
