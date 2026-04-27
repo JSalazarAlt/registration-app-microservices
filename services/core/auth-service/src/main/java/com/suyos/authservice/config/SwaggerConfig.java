@@ -12,12 +12,6 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
-/**
- * Swagger/OpenAPI configuration for API documentation.
- * 
- * <p>Configures OpenAPI 3.0 documentation with JWT authentication support. 
- * Provides comprehensive API documentation accessible via Swagger UI.</p>
- */
 @Configuration
 public class SwaggerConfig {
 
