@@ -8,30 +8,24 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
-/**
- * Swagger/OpenAPI configuration for API documentation.
- * 
- * <p>Configures OpenAPI 3.0 documentation with JWT authentication support. 
- * Provides comprehensive API documentation accessible via Swagger UI.</p>
- */
 @Configuration
 public class SwaggerConfig {
 
     /**
-     * Configures OpenAPI documentation.
+     * Configures OpenAPI documentation with JWT security.
      * 
      * @return OpenAPI configuration object
      */
     @Bean
     public OpenAPI expenseTrackerOpenAPI() {
-        // Build OpenAPI configuration with API information
         return new OpenAPI()
             .info(new Info()
                 .title("Registration API")
-                .description("REST API for the User microservice of the registration application")
+                .description("REST API for the User microservice of the application")
                 .version("1.0.0")
                 .contact(new Contact()
                     .name("Joel Salazar")
@@ -46,7 +40,11 @@ public class SwaggerConfig {
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT")
-                        .description("Enter JWT token obtained from login endpoint")));
+                        .description("Enter JWT token obtained from login endpoint"))
+                .addResponses("Unauthorized",
+                    new ApiResponse().description("Invalid or missing JWT token"))
+                .addResponses("InternalError",
+                    new ApiResponse().description("Internal server error")));
     }
     
 }

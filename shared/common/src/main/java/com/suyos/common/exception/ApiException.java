@@ -9,8 +9,6 @@ import lombok.Getter;
  * 
  * <p>Enforces the inclusion of HTTP Status, RFC 7807 'type' URI, and the
  * ErrorCode.</p>
- * 
- * @author Joel Salazar
  */
 @Getter 
 public class ApiException extends RuntimeException {
@@ -21,7 +19,6 @@ public class ApiException extends RuntimeException {
     /** RFC 7807 URI identifying the problem type (e.g., /docs/errors/not-found) */
     private final String type;
 
-    /** Error code value */
     private final ErrorCode errorCode;
 
     /**

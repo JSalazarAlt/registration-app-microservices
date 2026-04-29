@@ -59,7 +59,7 @@ public class UserCreationEvent {
     private String lastName;
 
     /** Phone number */
-    private String phone;
+    private String phoneNumber;
     
     /** Profile picture URL */
     private String profilePictureUrl;

@@ -20,12 +20,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.dto.response.PagedResponse;
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
 import com.suyos.common.event.UserCreationEvent;
 import com.suyos.userservice.dto.request.UserUpdateRequest;
-import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.dto.response.UserResponse;
 import com.suyos.userservice.exception.exceptions.UserNotFoundException;
 import com.suyos.userservice.mapper.UserMapper;
 import com.suyos.userservice.model.ProcessedEvent;
@@ -43,6 +43,10 @@ import com.suyos.userservice.service.UserService;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
+    /** Mocked user mapper */
+    @Mock
+    private UserMapper userMapper;
+
     /** Mocked user repository */
     @Mock
     private UserRepository userRepository;
@@ -50,10 +54,6 @@ class UserServiceTest {
     /** Mocked processed event repository */
     @Mock
     private ProcessedEventRepository processedEventRepository;
-
-    /** Mocked user mapper */
-    @Mock
-    private UserMapper userMapper;
 
     /** Service under test */
     @InjectMocks
@@ -63,20 +63,20 @@ class UserServiceTest {
     private User testUser;
 
     /** Test user profile */
-    private UserProfileResponse testUserProfile;
+    private UserResponse testUserProfile;
 
     /** Test update request */
     private UserUpdateRequest updateRequest;
 
 	/** Updated test user profile */
-    private UserProfileResponse updatedTestUserProfile;
+    private UserResponse updatedTestUserProfile;
 
     /**
      * Initializes common test data before each test.
      */
     @BeforeEach
     void setUp() {
-        // Generate test user's ID and account ID
+        // Generate test user's ID and account's ID
         UUID userId = UUID.randomUUID();
         UUID accountId = UUID.randomUUID();
 
@@ -88,39 +88,72 @@ class UserServiceTest {
                 .email("test@example.com")
                 .firstName("Test")
                 .lastName("User")
-                .phone("1234567890")
+                .phoneNumber("1234567890")
                 .build();
 
         // Build test user's profile
-        testUserProfile = UserProfileResponse.builder()
+        testUserProfile = UserResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
                 .firstName("Test")
                 .lastName("User")
-                .phone("1234567890")
+                .phoneNumber("1234567890")
                 .build();
 
         // Build test user's update request
         updateRequest = UserUpdateRequest.builder()
                 .firstName("Updated")
-                .phone("0987654321")
+                .phoneNumber("0987654321")
                 .build();
 		
 	    // Build test user's updated profile
-        updatedTestUserProfile = UserProfileResponse.builder()
+        updatedTestUserProfile = UserResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
                 .firstName("Updated")
                 .lastName("Name")
-                .phone("0987654321")
+                .phoneNumber("0987654321")
                 .build();
     }
 
     // ----------------------------------------------------------
     // LOOKUP
     // ----------------------------------------------------------
+
+    /**
+     * Retrieves a paginated list of users successfully.
+     */
+    @Test
+    void findAllUsers_Success() {
+		// Build paginated response with test user
+        Page<User> page = new PageImpl<>(
+                List.of(testUser),
+                PageRequest.of(0, 10),
+                1
+        );
+
+        // Mock user repository to return all test users when searched by pageable
+        when(userRepository.findAll(any(Pageable.class)))
+                .thenReturn(page);
+
+        // Mock user mapper to return test user profile when mapping test users
+        when(userMapper.toResponse(testUser))
+                .thenReturn(testUserProfile);
+
+        // Call service method to find all users with pagination
+        PagedResponse<UserResponse> response =
+                userService.getAllUsers(0, 10, "username", "asc");
+
+        // Assert expected user profiles are returned
+		assertThat(response).isNotNull();
+		assertThat(response.getTotalElements())
+				.isEqualTo(1);
+		assertThat(response.getContent())
+				.hasSize(1)
+				.containsExactly(testUserProfile);
+    }
 
     /**
      * Retrieves a user profile by ID successfully.
@@ -131,21 +164,21 @@ class UserServiceTest {
         when(userRepository.findById(testUser.getId()))
                 .thenReturn(Optional.of(testUser));
 
-        // Mock user mapper to return test user profile when mapping test user
-        when(userMapper.toUserProfileDTO(testUser))
+        // Mock user mapper to return test user's profile when mapping test user
+        when(userMapper.toResponse(testUser))
                 .thenReturn(testUserProfile);
 
         // Call user service to find user by ID
-        UserProfileResponse response = userService.findUserById(testUser.getId());
+        UserResponse response = userService.findUserById(testUser.getId());
 
-        // Assert expected user profile is returned
+        // Assert expected user's profile is returned
         assertThat(response)
 				.isNotNull()
 				.isEqualTo(testUserProfile);
 
         // Verify interactions
         verify(userRepository).findById(testUser.getId());
-        verify(userMapper).toUserProfileDTO(testUser);
+        verify(userMapper).toResponse(testUser);
     }
 
     /**
@@ -175,11 +208,11 @@ class UserServiceTest {
                 .thenReturn(Optional.of(testUser));
 
         // Mock user mapper to return test user profile when mapping test user
-        when(userMapper.toUserProfileDTO(testUser))
+        when(userMapper.toResponse(testUser))
                 .thenReturn(testUserProfile);
 
         // Call service method to find user by account ID
-        UserProfileResponse response = userService.findUserByAccountId(testUser.getAccountId());
+        UserResponse response = userService.findUserByAccountId(testUser.getAccountId());
 
         // Assert expected user profile is returned
         assertThat(response)
@@ -188,40 +221,7 @@ class UserServiceTest {
 
         // Verify interactions
         verify(userRepository).findByAccountId(testUser.getAccountId());
-		verify(userMapper).toUserProfileDTO(testUser);
-    }
-
-    /**
-     * Retrieves a paginated list of users successfully.
-     */
-    @Test
-    void findAllUsers_Success() {
-		// Build paginated response with test user
-        Page<User> page = new PageImpl<>(
-                List.of(testUser),
-                PageRequest.of(0, 10),
-                1
-        );
-
-        // Mock user repository to return all test users when searched by pageable
-        when(userRepository.findAll(any(Pageable.class)))
-                .thenReturn(page);
-
-        // Mock user mapper to return test user profile when mapping test users
-        when(userMapper.toUserProfileDTO(testUser))
-                .thenReturn(testUserProfile);
-
-        // Call service method to find all users with pagination
-        PagedResponseDTO<UserProfileResponse> response =
-                userService.findAllUsers(0, 10, "username", "asc");
-
-        // Assert expected user profiles are returned
-		assertThat(response).isNotNull();
-		assertThat(response.getTotalElements())
-				.isEqualTo(1);
-		assertThat(response.getContent())
-				.hasSize(1)
-				.containsExactly(testUserProfile);
+		verify(userMapper).toResponse(testUser);
     }
 
     // ----------------------------------------------------------
@@ -242,7 +242,7 @@ class UserServiceTest {
 				.email(testUser.getEmail())
 				.firstName(testUser.getFirstName())
 				.lastName(testUser.getLastName())
-				.phone(testUser.getPhone())
+				.phoneNumber(testUser.getPhone())
                 .build();
 
 		// Mock processed event repository to check if event has been processed
@@ -258,11 +258,11 @@ class UserServiceTest {
                 .thenReturn(testUser);
 		
 		// Mock user mapper to return test user profile when mapping test user
-        when(userMapper.toUserProfileDTO(testUser))
+        when(userMapper.toResponse(testUser))
                 .thenReturn(testUserProfile);
 
 		// Call service method to create a new user
-        UserProfileResponse response = userService.createUser(event);
+        UserResponse response = userService.createUser(event);
 
 		// Assert expected user profile is returned
         assertThat(response)
@@ -281,7 +281,7 @@ class UserServiceTest {
 		verify(processedEventRepository).save(any(ProcessedEvent.class));
 		verify(userMapper).toEntity(event);
 		verify(userRepository).save(testUser);
-		verify(userMapper).toUserProfileDTO(testUser);
+		verify(userMapper).toResponse(testUser);
     }
 
     /**
@@ -298,7 +298,7 @@ class UserServiceTest {
 				.email(testUser.getEmail())
 				.firstName(testUser.getFirstName())
 				.lastName(testUser.getLastName())
-				.phone(testUser.getPhone())
+				.phoneNumber(testUser.getPhone())
                 .build();
 
 		// Mock processed event repository to indicate event has already been processed
@@ -306,7 +306,7 @@ class UserServiceTest {
                 .thenReturn(true);
 
 		// Call service method to create a new user from duplicate event
-        UserProfileResponse response = userService.createUser(event);
+        UserResponse response = userService.createUser(event);
 
 		// Assert null response for duplicate event
 		assertThat(response)
@@ -345,11 +345,11 @@ class UserServiceTest {
                 .thenReturn(testUser);
 		
 		// Mock user mapper to return updated test user profile when mapping test user
-        when(userMapper.toUserProfileDTO(testUser))
+        when(userMapper.toResponse(testUser))
                 .thenReturn(updatedTestUserProfile);
 
 		// Call service method to update user
-        UserProfileResponse response = userService.updateUserById(testUser.getId(), updateRequest);
+        UserResponse response = userService.updateUserById(testUser.getId(), updateRequest);
 
 		// Assert expected updated user profile is returned
         assertThat(response)
@@ -360,7 +360,7 @@ class UserServiceTest {
 		verify(userRepository).findById(testUser.getId());
 		verify(userMapper).updateUserFromDTO(updateRequest, testUser);
 		verify(userRepository).save(testUser);
-		verify(userMapper).toUserProfileDTO(testUser);
+		verify(userMapper).toResponse(testUser);
     }
 
     /**
@@ -398,11 +398,11 @@ class UserServiceTest {
                 .thenReturn(testUser);
 		
 		// Mock user mapper to return test user profile when mapping test user
-        when(userMapper.toUserProfileDTO(testUser))
+        when(userMapper.toResponse(testUser))
                 .thenReturn(testUserProfile);
 		
 		// Call service method to soft-delete user by account ID
-        UserProfileResponse response = userService.softDeleteUserByAccountId(testUser.getAccountId());
+        UserResponse response = userService.softDeleteUserByAccountId(testUser.getAccountId());
 		
 		// Assert user profile is returned
 		assertThat(response).isNotNull();

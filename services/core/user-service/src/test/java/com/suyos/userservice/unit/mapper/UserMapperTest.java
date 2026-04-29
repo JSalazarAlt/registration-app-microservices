@@ -10,7 +10,7 @@ import org.mapstruct.factory.Mappers;
 
 import com.suyos.common.event.UserCreationEvent;
 import com.suyos.userservice.dto.request.UserUpdateRequest;
-import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.dto.response.UserResponse;
 import com.suyos.userservice.mapper.UserMapper;
 import com.suyos.userservice.model.User;
 
@@ -39,7 +39,7 @@ public class UserMapperTest {
                 .email("test@example.com")
                 .firstName("Test")
                 .lastName("User")
-                .phone("1234567890")
+                .phoneNumber("1234567890")
                 .build();
         
         // Call user mapper to convert user creation event to user entity
@@ -62,7 +62,7 @@ public class UserMapperTest {
                         event.getEmail(),
                         event.getFirstName(),
                         event.getLastName(),
-                        event.getPhone()
+                        event.getPhoneNumber()
                 );
         
         // Assert unmapped fields are null
@@ -127,7 +127,7 @@ public class UserMapperTest {
      * Maps entity to profile response correctly.
      */
     @Test
-    void toUserProfileDTO_shouldMapEntityToProfileResponse() {
+    void toResponse_shouldMapEntityToProfileResponse() {
         // Build test user
         User testUser = User.builder()
                 .id(UUID.randomUUID())
@@ -135,22 +135,22 @@ public class UserMapperTest {
                 .email("original@email.com")
                 .firstName("Test")
                 .lastName("User")
-                .phone("111111")
+                .phoneNumber("111111")
                 .accountId(UUID.randomUUID())
                 .build();
 
         // Call user mapper to convert user entity to profile response
-        UserProfileResponse response = userMapper.toUserProfileDTO(testUser);
+        UserResponse response = userMapper.toResponse(testUser);
 
         // Assert mapped fields are correct
         assertThat(response)
                 .isNotNull()
                 .extracting(
-                        UserProfileResponse::getUsername,
-                        UserProfileResponse::getEmail,
-                        UserProfileResponse::getFirstName,
-                        UserProfileResponse::getLastName,
-                        UserProfileResponse::getPhone
+                        UserResponse::getUsername,
+                        UserResponse::getEmail,
+                        UserResponse::getFirstName,
+                        UserResponse::getLastName,
+                        UserResponse::getPhone
                 )
                 .containsExactly(
                         testUser.getUsername(),

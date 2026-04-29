@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 /**
  * Entity representing a processed Kafka event.
  * 
- * <p>Maps to the <b>processed_events</b> table and stores the event's its ID
- * and timestamp.</p>
+ * <p>Maps to the <b>processed_events</b> table and stores the event ID and
+ * timestamp.</p>
  */
 @Entity
 @Table(name = "processed_events")
@@ -25,12 +25,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProcessedEvent {
 
-    /** Unique identifier */
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     private String id;
 
-    /** Timestamp when event ocurred */
     @Column(name = "occurred_at")
     private Instant occurredAt;
     

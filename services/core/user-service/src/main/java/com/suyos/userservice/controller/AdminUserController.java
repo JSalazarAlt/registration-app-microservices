@@ -1,6 +1,5 @@
 package com.suyos.userservice.controller;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -12,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.dto.response.PagedResponse;
 import com.suyos.userservice.dto.request.UserUpdateRequest;
-import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.dto.response.UserResponse;
 import com.suyos.userservice.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,7 +63,7 @@ public class AdminUserController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "Users retrieved successfully",
-                content = @Content(schema = @Schema(implementation = PagedResponseDTO.class))
+                content = @Content(schema = @Schema(implementation = PagedResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid pagination or sort parameters"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
@@ -73,15 +72,21 @@ public class AdminUserController {
         }
     )
     @GetMapping
-    public ResponseEntity<PagedResponseDTO<UserProfileResponse>> getAllUsers(
+    public ResponseEntity<PagedResponse<UserResponse>> getAllUsers(
         @Parameter(description = "Page index (0-based)") @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
         @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
-        @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir
+        @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir,
+        @Parameter(description = "Text to filter by") @RequestParam(required = false) String searchText
     ) {
         // Find paginated list of users' profiles
-        PagedResponseDTO<UserProfileResponse> users = userService.findAllUsers(
-            page, size, sortBy, sortDir);
+        PagedResponse<UserResponse> users = userService.getAllUsers(
+            page,
+            size,
+            sortBy, 
+            sortDir,
+            searchText
+        );
 
         // Return paginated list of users' profiles with "200 OK" status
         return ResponseEntity.ok(users);
@@ -100,7 +105,7 @@ public class AdminUserController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "User retrieved successfully",
-                content = @Content(schema = @Schema(implementation = UserProfileResponse.class))
+                content = @Content(schema = @Schema(implementation = UserResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
             @ApiResponse(responseCode = "403", description = "Access denied"),
@@ -109,48 +114,15 @@ public class AdminUserController {
         }
     )
     @GetMapping("/{id}")
-    public ResponseEntity<UserProfileResponse> getUserById(
+    public ResponseEntity<UserResponse> getUserById(
         @Parameter(description = "User's unique ID", required = true)
         @PathVariable UUID id
     ) {
         // Find user's profile by id
-        UserProfileResponse userProfile = userService.findUserById(id);
+        UserResponse userProfile = userService.getUserById(id);
 
         // Return user's profile with "200 OK" status
         return ResponseEntity.ok(userProfile);
-    }
-
-    /**
-     * Searches users by a partial or full name match.
-     *
-     * @param name Partial or full first/last name to search
-     * @return List of user profiles matching the query
-     */
-    @Secured("ROLE_ADMIN")
-    @Operation(
-        summary = "Search users by name",
-        description = "Performs a case-insensitive search across first and last names.",
-        responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Users retrieved successfully",
-                content = @Content(schema = @Schema(implementation = PagedResponseDTO.class))
-            ),
-            @ApiResponse(responseCode = "400", description = "Invalid pagination or sort parameters"),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-        }
-    )
-    @GetMapping("/search")
-    public ResponseEntity<List<UserProfileResponse>> searchUsersByName(
-        @Parameter(description = "Partial or full name to search", required = true)
-        @RequestParam String name
-    ) {
-        // Search users by name
-        List<UserProfileResponse> users = userService.findUsersByName(name);
-        
-        // Return matching users' profile information with "200 OK" status
-        return ResponseEntity.ok(users);
     }
 
     // ----------------------------------------------------------------
@@ -170,7 +142,7 @@ public class AdminUserController {
         responses = {
             @ApiResponse(
                 responseCode = "200", description = "User profile updated successfully",
-                content = @Content(schema = @Schema(implementation = UserProfileResponse.class))
+                content = @Content(schema = @Schema(implementation = UserResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
@@ -180,13 +152,13 @@ public class AdminUserController {
         }
     )
     @PutMapping("/{id}")
-    public ResponseEntity<UserProfileResponse> updateUserById(
+    public ResponseEntity<UserResponse> updateUserById(
         @Parameter(description = "User's unique ID", required = true)
         @PathVariable UUID id,
         @RequestBody UserUpdateRequest userUpdateDTO
     ) {
         // Update user's profile by ID
-        UserProfileResponse userProfile = userService.updateUserById(id, userUpdateDTO);
+        UserResponse userProfile = userService.updateUserById(id, userUpdateDTO);
         
         // Return updated user's profile with "200 OK" status
         return ResponseEntity.ok(userProfile);

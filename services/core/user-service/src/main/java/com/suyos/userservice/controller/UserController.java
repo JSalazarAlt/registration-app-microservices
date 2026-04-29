@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.suyos.userservice.dto.request.UserUpdateRequest;
-import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.dto.response.UserResponse;
 import com.suyos.userservice.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,21 +55,21 @@ public class UserController {
         description = "Retrieves the authenticated user's profile.",
         responses = {
             @ApiResponse(responseCode = "200", description = "User profile retrieved successfully", 
-                         content = @Content(schema = @Schema(implementation = UserProfileResponse.class))),
+                         content = @Content(schema = @Schema(implementation = UserResponse.class))),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
             @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "500", description = "Internal Server Error")
         }
     )
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> getAuthenticatedUser(
+    public ResponseEntity<UserResponse> getAuthenticatedUser(
         @AuthenticationPrincipal Jwt jwt
     ) {
         // Extract authenticated account ID from JWT token
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
         
         // Find authenticated user's profile
-        UserProfileResponse userProfile = userService.findUserByAccountId(authenticatedAccountId);
+        UserResponse userProfile = userService.getUserByAccountId(authenticatedAccountId);
         
         // Return user's profile with "200 OK" status
         return ResponseEntity.ok(userProfile);
@@ -91,7 +91,7 @@ public class UserController {
         description = "Updates the authenticated user's profile",
         responses = {
             @ApiResponse(responseCode = "200", description = "User profile updated successfully",
-                         content = @Content(schema = @Schema(implementation = UserProfileResponse.class))),
+                         content = @Content(schema = @Schema(implementation = UserResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
             @ApiResponse(responseCode = "404", description = "User not found"),
@@ -99,7 +99,7 @@ public class UserController {
         }
     )
     @PutMapping("/me")
-    public ResponseEntity<UserProfileResponse> updateAuthenticatedUser(
+    public ResponseEntity<UserResponse> updateAuthenticatedUser(
         @AuthenticationPrincipal Jwt jwt,
         @RequestBody UserUpdateRequest updateDTO
     ) {
@@ -107,7 +107,7 @@ public class UserController {
         UUID authenticatedAccountId = UUID.fromString(jwt.getSubject());
         
         // Update authenticated user's profile
-        UserProfileResponse userProfile = userService.updateUserByAccountId(authenticatedAccountId, updateDTO);
+        UserResponse userProfile = userService.updateUserByAccountId(authenticatedAccountId, updateDTO);
         
         // Return updated user's profile with "200 OK" status
         return ResponseEntity.ok(userProfile);

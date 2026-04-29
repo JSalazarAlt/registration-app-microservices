@@ -1,9 +1,8 @@
-package com.suyos.userservice.dto.request;
+package com.suyos.userservice.dto.response;
 
+import java.time.Instant;
 import java.util.UUID;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,54 +10,48 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class UserCreationRequest {
+public class UserResponse {
+
+    // ----------------------------------------------------------------
+    // IDENTITY
+    // ----------------------------------------------------------------
+
+    private final UUID id;
 
     // ----------------------------------------------------------------
     // ACCOUNT'S CREDENTIALS
     // ----------------------------------------------------------------
 
-    private final String username;
-
     private final String email;
+
+    private final String username;
 
     // ----------------------------------------------------------------
     // PROFILE
     // ----------------------------------------------------------------
 
-    @NotBlank(message = "First name is required")
-    @Pattern(
-        regexp = "^[\\p{L} ]+$", 
-        message = "First name must contain only letters and spaces"
-    )
     private final String firstName;
-    
-    @NotBlank(message = "Last name is required")
-    @Pattern(
-        regexp = "^[\\p{L} ]+$", 
-        message = "Last name must contain only letters and spaces"
-    )
+
     private final String lastName;
-    
-    @Pattern(
-        regexp = "^$|^\\+?[0-9]{7,15}$",
-        message = "Phone must be 7–15 digits, optional + for country code"
-    )
-    private final String phone;
-    
+
+    private final String phoneNumber;
+
     private final String profilePictureUrl;
 
     // ----------------------------------------------------------------
     // PREFERENCES
     // ----------------------------------------------------------------
-    
+
     private final String locale;
-    
+
     private final String timezone;
 
     // ----------------------------------------------------------------
-    // RELATIONSHIPS
+    // LEGAL TERMS
     // ----------------------------------------------------------------
 
-    private final UUID accountId;
-    
+    private final Instant termsAcceptedAt;
+
+    private final Instant privacyPolicyAcceptedAt;
+
 }

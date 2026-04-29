@@ -19,13 +19,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Entity representing a user.
- * 
- * <p>Maps to the <b>users</b> table and stores user profile, preferences,
- * and acceptance timestamps for legal agreements. Mirrors core identity
- * fields from the Auth microservice and links each user to its account.</p>
- */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "users", indexes = {
@@ -42,29 +35,18 @@ public class User {
     // IDENTITY
     // ----------------------------------------------------------------
 
-    /** Unique identifier */
     @Id
     @GeneratedValue
     @Column(name = "id")
     private UUID id;
 
     // ----------------------------------------------------------------
-    // RELATIONSHIPS
+    // ACCOUNT'S CREDENTIALS (Mirrored from Auth microservice)
     // ----------------------------------------------------------------
 
-    /** Unique identifier linking to account */
-    @Column(name = "account_id", nullable = false, unique = true)
-    private UUID accountId;
-
-    // ----------------------------------------------------------------
-    // ACCOUNT'S INFORMATION
-    // ----------------------------------------------------------------
-
-    /** Username (mirrored from Auth microservice) */
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    /** Email address (mirrored from Auth microservice) */
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
@@ -72,19 +54,15 @@ public class User {
     // PROFILE
     // ----------------------------------------------------------------
 
-    /** First name */
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    /** Last name */
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    /** Phone number */
-    @Column(name = "phone")
-    private String phone;
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
-    /** Profile picture URL */
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
@@ -92,11 +70,9 @@ public class User {
     // PREFERENCES
     // ----------------------------------------------------------------
     
-    /** Preferred language locale */
     @Column(name = "locale")
     private String locale;
 
-    /** Preferred timezone */
     @Column(name = "timezone")
     private String timezone;
 
@@ -104,11 +80,9 @@ public class User {
     // LEGAL TERMS
     // ----------------------------------------------------------------
 
-    /** Timestamp when terms of service were accepted */
     @Column(name = "terms_accepted_at", nullable = false)
     private Instant termsAcceptedAt;
 
-    /** Timestamp when privacy policy was accepted */
     @Column(name = "privacy_policy_accepted_at", nullable = false)
     private Instant privacyPolicyAcceptedAt;
 
@@ -116,27 +90,30 @@ public class User {
     // STATUS
     // ----------------------------------------------------------------
 
-    /** Flag indicating if user was soft deleted */
     @Builder.Default
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false;
-
-    /** Timestamp when user was soft deleted */
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
 
     // ----------------------------------------------------------------
     // AUDITORY
     // ----------------------------------------------------------------
     
-    /** Timestamp when user record was first created */
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
 
-    /** Timestamp when user record was last modified */
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "soft_deleted_at")
+    private Instant softDeletedAt;
+
+    // ----------------------------------------------------------------
+    // RELATIONSHIPS
+    // ----------------------------------------------------------------
+
+    @Column(name = "account_id", nullable = false, unique = true)
+    private UUID accountId;
 
 }
