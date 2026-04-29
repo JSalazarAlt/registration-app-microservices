@@ -14,7 +14,7 @@ import com.suyos.authservice.model.Account;
 public interface AccountMapper {
 
     /**
-     * Converts a {@link RegistrationRequest} to a {@link Account} entity.
+     * Creates an {@link Account} entity from a {@link RegistrationRequest}.
      * 
      * @param request Account registration data
      * @return Created account entity
@@ -42,11 +42,11 @@ public interface AccountMapper {
     Account createFromRequest(RegistrationRequest request);
 
     /**
-     * Updates an existing {@link Account} entity with fields from
+     * Updates an existing {@link Account} entity with fields from an
      * {@link AccountUpdateRequest}.
      * 
-     * @param request Account update data
      * @param account Account entity to update
+     * @param request Account update data
      * @return Updated account entity
      */
     @Mapping(target = "id", ignore = true)
@@ -69,13 +69,13 @@ public interface AccountMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "softDeletedAt", ignore = true)
     @Mapping(target = "reactivatedAt", ignore = true)
-    Account updateFromRequest(AccountUpdateRequest request, @MappingTarget Account account);
+    Account updateFromRequest(@MappingTarget Account account, AccountUpdateRequest request);
 
     /**
      * Converts an {@link Account} entity to a {@link AccountResponse}.
      *
      * @param account Account entity
-     * @return Account information
+     * @return Account response
      */
     AccountResponse toResponse(Account account);
     

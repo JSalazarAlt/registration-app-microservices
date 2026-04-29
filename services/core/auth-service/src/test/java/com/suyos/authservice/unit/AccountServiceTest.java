@@ -32,7 +32,7 @@ import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
 import com.suyos.authservice.service.AccountService;
 import com.suyos.authservice.service.TokenService;
-import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.dto.response.PagedResponse;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
 
 @ExtendWith(MockitoExtension.class)
@@ -127,7 +127,7 @@ public class AccountServiceTest {
                 .thenReturn(testAccountInfo);
 
         // Call service method to find all accounts with pagination
-        PagedResponseDTO<AccountResponse> response = accountService.getAllAccounts(
+        PagedResponse<AccountResponse> response = accountService.getAllAccounts(
                 0,
                 10,
                 "username",

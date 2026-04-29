@@ -32,7 +32,7 @@ public interface SessionMapper {
      * Converts a {@link Session} entity to a {@link SessionResponse}.
      *
      * @param session Session entity
-     * @return Session information
+     * @return Session response
      */
     SessionResponse toResponse(Session session);
     

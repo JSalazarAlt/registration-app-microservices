@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.suyos.authservice.dto.request.AccountUpdateRequest;
 import com.suyos.authservice.dto.response.AccountResponse;
 import com.suyos.authservice.service.AccountService;
-import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.dto.response.PagedResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -68,15 +68,15 @@ public class AdminAccountController {
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
-    public ResponseEntity<PagedResponseDTO<AccountResponse>> getAllAccounts(
+    public ResponseEntity<PagedResponse<AccountResponse>> getAllAccounts(
         @Parameter(description = "Zero-based page number") @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Number of records per page (max 100)") @RequestParam(defaultValue = "10") int size,
         @Parameter(description = "Field to sort by") @RequestParam(defaultValue = "email") String sortBy,
         @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir,
-        @Parameter(description = "Text to search for") @RequestParam(required = false) String searchText
+        @Parameter(description = "Text to filter by") @RequestParam(required = false) String searchText
     ) {
         // Retrieve a paginated response of all accounts' information
-        PagedResponseDTO<AccountResponse> accountInfos = accountService.getAllAccounts(
+        PagedResponse<AccountResponse> accountInfos = accountService.getAllAccounts(
             page,
             size,
             sortBy,

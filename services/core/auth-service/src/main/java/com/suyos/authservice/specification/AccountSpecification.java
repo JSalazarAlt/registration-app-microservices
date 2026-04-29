@@ -12,7 +12,7 @@ import jakarta.persistence.criteria.Predicate;
 public class AccountSpecification {
 
     /**
-     * Filters accounts by search text (email or username).
+     * Filters accounts by search text: email or username.
      *
      * @param searchText Text to filter by (case-insensitive, partial match)
      * @return Specification for filtering accounts
@@ -21,7 +21,7 @@ public class AccountSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Apply email/username search if provided
+            // Apply search if provided
             if (searchText != null && !searchText.trim().isEmpty()) {
                 String pattern = "%" + searchText.trim().toLowerCase() + "%";
 

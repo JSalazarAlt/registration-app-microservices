@@ -22,7 +22,7 @@ import com.suyos.authservice.model.Account;
 import com.suyos.authservice.model.TokenType;
 import com.suyos.authservice.repository.AccountRepository;
 import com.suyos.authservice.specification.AccountSpecification;
-import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.dto.response.PagedResponse;
 import com.suyos.common.event.AccountEmailUpdateEvent;
 import com.suyos.common.event.AccountUsernameUpdateEvent;
 
@@ -64,7 +64,7 @@ public class AccountService {
      * @param searchText Optional text to filter by
      * @return Paginated response of all accounts
      */
-    public PagedResponseDTO<AccountResponse> getAllAccounts(
+    public PagedResponse<AccountResponse> getAllAccounts(
         int page,
         int size,
         String sortBy,
@@ -94,8 +94,8 @@ public class AccountService {
                 .map(accountMapper::toResponse)
                 .toList();
 
-        // Build paginated response of all account
-        PagedResponseDTO<AccountResponse> response = PagedResponseDTO.<AccountResponse>builder()
+        // Build paginated response of all accounts
+        PagedResponse<AccountResponse> response = PagedResponse.<AccountResponse>builder()
                 .content(accountResponses)
                 .currentPage(accountPage.getNumber())
                 .totalPages(accountPage.getTotalPages())
@@ -104,6 +104,9 @@ public class AccountService {
                 .first(accountPage.isFirst())
                 .last(accountPage.isLast())
                 .build();
+        
+        // Log accounts retrieval success
+        log.info("event=all_accounts_retrieved page={} size={} search_text={}", page, size, searchText);
         
         // Return paginated response of all accounts
         return response;
@@ -122,7 +125,7 @@ public class AccountService {
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
         // Log account retrieval success
-        log.info("event=account_retrieved_by_id account_id={}", account.getId());
+        log.info("event=account_retrieved account_id={}", account.getId());
 
         // Map account response from account
         AccountResponse accountResponse = accountMapper.toResponse(account);
@@ -144,7 +147,7 @@ public class AccountService {
                 .orElseThrow(() -> new AccountNotFoundException("email=" + email));
         
         // Log account retrieval success
-        log.info("event=account_retrieved_by_email account_id={} email={}", account.getId(), account.getEmail());
+        log.info("event=account_retrieved account_id={} email={}", account.getId(), account.getEmail());
 
         // Map account response from account
         AccountResponse accountResponse = accountMapper.toResponse(account);
@@ -166,7 +169,7 @@ public class AccountService {
                 .orElseThrow(() -> new AccountNotFoundException("username=" + username));
         
         // Log account retrieval success
-        log.info("event=account_retrieved_by_username account_id={} username={}", account.getId(), account.getUsername());
+        log.info("event=account_retrieved account_id={} username={}", account.getId(), account.getUsername());
         
         // Map account response from account
         AccountResponse accountResponse = accountMapper.toResponse(account);
