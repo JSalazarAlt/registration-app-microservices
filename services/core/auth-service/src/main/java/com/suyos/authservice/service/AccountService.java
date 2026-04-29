@@ -54,8 +54,8 @@ public class AccountService {
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves a paginated response of all accounts, optionally filtered by
-     * search text (username or email).
+     * Gets a paginated response of all accounts, optionally filtered by
+     * search text: username or email.
      * 
      * @param page Zero-based page index
      * @param size Page size
@@ -85,7 +85,7 @@ public class AccountService {
         // Create pageable request with dynamic sorting
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Retrieve all accounts filtered by search specification
+        // Find all accounts filtered by search specification
         Page<Account> accountPage = accountRepository.findAll(spec, pageable);
         
         // Map account responses from accounts
@@ -113,14 +113,14 @@ public class AccountService {
     }
 
     /**
-     * Retrieves an account by its ID.
+     * Gets an account by its ID.
      * 
-     * @param id Account ID to search for
+     * @param id ID of the account to retrieve
      * @return Account response
      * @throws AccountNotFoundException If account is not found
      */
     public AccountResponse getAccountById(UUID id) {
-        // Retrieve account by ID
+        // Find account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
@@ -135,14 +135,14 @@ public class AccountService {
     }
 
     /**
-     * Retrieves an account by its email.
+     * Gets an account by its email.
      * 
-     * @param email Email to search for
+     * @param email Email of the account to retrieve
      * @return Account response
      * @throws AccountNotFoundException If account is not found
      */
     public AccountResponse getAccountByEmail(String email) {
-        // Retrieve account by email
+        // Find account by email
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AccountNotFoundException("email=" + email));
         
@@ -157,14 +157,14 @@ public class AccountService {
     }
 
     /**
-     * Retrieves an account by its username.
+     * Gets an account by its username.
      * 
-     * @param username Username to search for
+     * @param username Username of the account to retrieve
      * @return Account response
      * @throws AccountNotFoundException If account is not found
      */
     public AccountResponse getAccountByUsername(String username) {
-        // Retrieve account by username
+        // Find account by username
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new AccountNotFoundException("username=" + username));
         
@@ -185,7 +185,7 @@ public class AccountService {
     /**
      * Updates an account by its ID.
      * 
-     * @param id Account ID to update
+     * @param id ID of the account to update
      * @param request Account's new username and/or new email
      * @return Updated account response
      * @throws AccountNotFoundException If account is not found
@@ -194,7 +194,7 @@ public class AccountService {
         // Log account update attempt
         log.info("event=account_update_attempt account_id={}", id);
 
-        // Retrieve account by ID
+        // Find account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
@@ -257,10 +257,10 @@ public class AccountService {
         log.info("event=account_updated account_id={}", updatedAccount.getId());
 
         // Map account response from updated account
-        AccountResponse updatedAccountResponse = accountMapper.toResponse(updatedAccount);
+        AccountResponse accountResponse = accountMapper.toResponse(updatedAccount);
 
         // Return updated account response
-        return updatedAccountResponse;
+        return accountResponse;
     }
 
     // ----------------------------------------------------------------
@@ -270,7 +270,7 @@ public class AccountService {
     /**
      * Soft deletes an account by its ID.
      * 
-     * @param id Account ID to soft delete
+     * @param id ID of the account to soft delete
      * @return Soft-deleted account response
      * @throws AccountNotFoundException If account is not found
      */
@@ -278,7 +278,7 @@ public class AccountService {
         // Log account soft deletion attempt
         log.info("event=account_soft_deletion_attempt account_id={}", id);
 
-        // Retrieve account by ID
+        // Find account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
         
@@ -290,7 +290,7 @@ public class AccountService {
         Account softDeletedAccount = accountRepository.save(account);
 
         // Map account response from soft-deleted account
-        AccountResponse softDeletedAccountResponse = accountMapper.toResponse(softDeletedAccount);
+        AccountResponse accountResponse = accountMapper.toResponse(softDeletedAccount);
 
         // Revoke all valid refresh tokens linked to account
         tokenService.revokeAllTokensByAccountIdAndType(softDeletedAccount.getId(), TokenType.REFRESH);
@@ -299,7 +299,7 @@ public class AccountService {
         log.info("event=account_soft_deleted account_id={}", softDeletedAccount.getId());
 
         // Return soft-deleted account response
-        return softDeletedAccountResponse;
+        return accountResponse;
     }
 
     // ----------------------------------------------------------------
@@ -307,14 +307,14 @@ public class AccountService {
     // ----------------------------------------------------------------
 
     /**
-     * Locks an account by ID.
+     * Locks an account by its ID.
      * 
-     * @param id Account ID to lock
+     * @param id ID of the account to lock
      * @return Account response
      * @throws AccountNotFoundException If account is not found
      */
     public AccountResponse lockAccountById(UUID id) {
-        // Retrieve account by ID
+        // Find account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
@@ -329,21 +329,21 @@ public class AccountService {
         log.info("event=account_locked account_id={}", lockedAccount.getId());
 
         // Map account response from locked account
-        AccountResponse lockedAccountResponse = accountMapper.toResponse(lockedAccount);
+        AccountResponse accountResponse = accountMapper.toResponse(lockedAccount);
 
         // Return locked account response
-        return lockedAccountResponse;
+        return accountResponse;
     }
 
     /**
-     * Unlocks an account by ID.
+     * Unlocks an account by its ID.
      * 
-     * @param id Account ID to unlock
+     * @param id ID of the account to unlock
      * @return Account response
      * @throws AccountNotFoundException If account is not found
      */
     public AccountResponse unlockAccountById(UUID id) {
-        // Retrieve account by ID
+        // Find account by ID
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + id));
 
@@ -358,10 +358,10 @@ public class AccountService {
         log.info("event=account_unlocked account_id={}", unlockedAccount.getId());
 
         // Map account response from unlocked account
-        AccountResponse unlockedAccountResponse = accountMapper.toResponse(unlockedAccount);
+        AccountResponse accountResponse = accountMapper.toResponse(unlockedAccount);
 
         // Return account response
-        return unlockedAccountResponse;
+        return accountResponse;
     }
     
     // ----------------------------------------------------------------
@@ -371,11 +371,11 @@ public class AccountService {
     /**
      * Updates last logout timestamp for an account by ID.
      * 
-     * @param id Account ID to update
+     * @param id ID of the account to update
      * @throws AccountNotFoundException If account is not found
      */
     public void updateLastLogout(UUID accountId) {
-        // Retrieve account by ID
+        // Find account by ID
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("account_id=" + accountId));
         

@@ -35,10 +35,10 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @Slf4j
 public class UserService {
+
+    private final UserMapper userMapper;
     
     private final UserRepository userRepository;
-    
-    private final UserMapper userMapper;
 
     private final ProcessedEventRepository processedEventRepository;
 
@@ -47,8 +47,8 @@ public class UserService {
     // ----------------------------------------------------------
 
     /**
-     * Retrieves a paginated response of all users, optionally filtered by
-     * search text (username, email, first name or last name).
+     * Gets a paginated response of all users, optionally filtered by search
+     * text: username, email, first name, or last name.
      * 
      * @param page Zero-based page index
      * @param size Page size
@@ -78,18 +78,18 @@ public class UserService {
         // Create pageable request with dynamic sorting
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Retrieve all users filtered by search specification
+        // Find all users filtered by search specification
         Page<User> userPage = userRepository.findAll(spec, pageable);
         
         // Map users responses from users
-        List<UserResponse> userProfiles = userPage.getContent()
+        List<UserResponse> userResponses = userPage.getContent()
             .stream()
             .map(userMapper::toResponse)
             .toList();
 
         // Build paginated response of all users
-        PagedResponse<UserResponse> response = PagedResponse.<UserResponse>builder()
-                .content(userProfiles)
+        PagedResponse<UserResponse> pagedResponse = PagedResponse.<UserResponse>builder()
+                .content(userResponses)
                 .currentPage(userPage.getNumber())
                 .totalPages(userPage.getTotalPages())
                 .totalElements(userPage.getTotalElements())
@@ -102,18 +102,18 @@ public class UserService {
         log.info("event=all_users_retrieved page={} size={} search_text={}", page, size, searchText);
 
         // Return paginated response of all users
-        return response;
+        return pagedResponse;
     }
 
     /**
-     * Retrieves a user by its ID.
+     * Gets a user by its ID.
      * 
-     * @param id User ID to search for
+     * @param id ID of the user to retrieve
      * @return User response
      * @throws UserNotFoundException If user is not found
      */
     public UserResponse getUserById(UUID id) {
-        // Retrieve user by ID
+        // Find user by ID
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
         
@@ -128,14 +128,14 @@ public class UserService {
     }
 
     /**
-     * Retrieves a user by its account ID.
+     * Gets a user by its account ID.
      *
-     * @param accountId User ID to search for
+     * @param accountId Account ID of the user to retrieve
      * @return User response
      * @throws UserNotFoundException If user is not found
      */
     public UserResponse getUserByAccountId(UUID accountId) {
-        // Retrieve user by account ID
+        // Find user by account ID
         User user = userRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
 
@@ -188,10 +188,10 @@ public class UserService {
         log.info("event=user_created user_id={} account_id={}", createdUser.getId(), createdUser.getAccountId());
 
         // Map user response from created user
-        UserResponse createdUserResponse = userMapper.toResponse(createdUser);
+        UserResponse userResponse = userMapper.toResponse(createdUser);
 
         // Return created user response
-        return createdUserResponse;
+        return userResponse;
     }
 
     // ----------------------------------------------------------
@@ -201,7 +201,7 @@ public class UserService {
     /**
      * Updates a user by its ID.
      *
-     * @param id User ID to update
+     * @param id ID of the user to update
      * @param request User update data
      * @return Updated user response
      * @throws UserNotFoundException If user is not found
@@ -210,11 +210,11 @@ public class UserService {
         // Log user update attempt
         log.info("event=user_update_attempt user_id={}", id);
 
-        // Look up user by ID
+        // Find user by ID
         User user = userRepository.findById(id)
             .orElseThrow(() -> new UserNotFoundException("user_id=" + id));
         
-        // Update user fields using mapper
+        // Update user from request
         userMapper.updateFromRequest(user, request);
 
         // Persist updated user
@@ -231,22 +231,22 @@ public class UserService {
     }
 
     /**
-     * Updates a user by account ID.
+     * Updates a user by its account ID.
      *
-     * @param accountId Account ID associated with the user
-     * @param request User's update data
-     * @return Updated user's profile information
-     * @throws UserNotFoundException If user not found
+     * @param accountId Account ID of the user to update
+     * @param request User update data
+     * @return Updated user response
+     * @throws UserNotFoundException If user is not found
      */
     public UserResponse updateUserByAccountId(UUID accountId, UserUpdateRequest request) {
         // Log user update attempt
         log.info("event=user_update_attempt account_id={}", accountId);
 
-        // Look up user by account ID
+        // Find user by account ID
         User user = userRepository.findByAccountId(accountId)
             .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
         
-        // Update user fields using mapper
+        // Update user from request
         userMapper.updateFromRequest(user, request);
 
         // Persist updated user
@@ -255,29 +255,29 @@ public class UserService {
         // Log user update success
         log.info("event=user_updated account_id={}", updatedUser.getAccountId());
 
-        // Map user's profile information from updated user
-        UserResponse userProfile = userMapper.toResponse(updatedUser);
+        // Map user response from updated user
+        UserResponse userResponse = userMapper.toResponse(updatedUser);
 
-        // Return updated user's profile
-        return userProfile;
+        // Return updated user response
+        return userResponse;
     }
 
     // ----------------------------------------------------------
-    // SOFT-DELETION
+    // SOFT DELETION
     // ----------------------------------------------------------
 
     /**
-     * Soft-deletes a user by account ID.
+     * Soft deletes a user by its account ID.
      *
-     * @param accountId Account ID associated with the user
-     * @return Updated user's profile information
-     * @throws UserNotFoundException If user not found
+     * @param accountId Account ID of the user to soft delete
+     * @return Soft deleted user response
+     * @throws UserNotFoundException If user is not found
      */
     public UserResponse softDeleteUserByAccountId(UUID accountId) {
-        // Log user soft-deletion attempt
+        // Log user soft deletion attempt
         log.info("event=user_soft_deletion_attempt account_id={}", accountId);
 
-        // Look up user by account ID
+        // Find user by account ID
         User user = userRepository.findByAccountId(accountId)
             .orElseThrow(() -> new UserNotFoundException("account_id=" + accountId));
         
@@ -291,11 +291,11 @@ public class UserService {
         // Log user soft deletion success
         log.info("event=user_soft_deleted account_id={}", softDeletedUser.getAccountId());
 
-        // Map user's profile information from updated user
-        UserResponse userProfile = userMapper.toResponse(softDeletedUser);
+        // Map user response from updated user
+        UserResponse userResponse = userMapper.toResponse(softDeletedUser);
 
         // Return soft deleted user's profile
-        return userProfile;
+        return userResponse;
     }
 
     // ----------------------------------------------------------
@@ -306,25 +306,24 @@ public class UserService {
      * Updates a user's email (triggered by Auth Service).
      * 
      * @param event Account ID associated with the user and new email address
-     * @throws UserNotFoundException If user not found
+     * @throws UserNotFoundException If user is not found
      */
     public void mirrorEmailUpdate(AccountEmailUpdateEvent event) {
         // Log email mirror attempt
         log.info("event=email_mirror_attempt account_id={}", event.getAccountId());
-
+        
         // Ensure no duplicate event processing
         if (processedEventRepository.existsById(event.getId())) {
-            log.info("event=duplicate_event_ignored event_id={}", event.getId());
-            return;
+            throw new DuplicateEventException("event_id=" + event.getId());
         }
 
-        // Create new processed event
+        // Create processed event
         ProcessedEvent newEvent = new ProcessedEvent(event.getId(), event.getOccurredAt());
 
-        // Persist new processed event
+        // Persist created processed event
         processedEventRepository.save(newEvent);
         
-        // Look up user by account ID
+        // Find user by account ID
         User user = userRepository.findByAccountId(event.getAccountId())
             .orElseThrow(() -> new UserNotFoundException("account_id=" + event.getAccountId()));
         
@@ -342,25 +341,24 @@ public class UserService {
      * Updates a user's username (triggered by Auth Service).
      *
      * @param event Account ID associated with the user and new username
-     * @throws UserNotFoundException If user not found
+     * @throws UserNotFoundException If user is not found
      */
     public void mirrorUsernameUpdate(AccountUsernameUpdateEvent event) {
         // Log username mirror attempt
         log.info("event=username_mirror_attempt account_id={}", event.getAccountId());
 
-        // Ensure no duplicate event processing
+         // Ensure no duplicate event processing
         if (processedEventRepository.existsById(event.getId())) {
-            log.info("event=duplicate_event_ignored event_id={}", event.getId());
-            return;
+            throw new DuplicateEventException("event_id=" + event.getId());
         }
 
-        // Create new processed event
+        // Create processed event
         ProcessedEvent newEvent = new ProcessedEvent(event.getId(), event.getOccurredAt());
 
-        // Persist new processed event
+        // Persist created processed event
         processedEventRepository.save(newEvent);
 
-        // Look up user by account ID
+        // Find user by account ID
         User user = userRepository.findByAccountId(event.getAccountId())
             .orElseThrow(() -> new UserNotFoundException("account_id=" + event.getAccountId()));
         
