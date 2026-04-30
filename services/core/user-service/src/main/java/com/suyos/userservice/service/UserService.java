@@ -156,7 +156,7 @@ public class UserService {
     /**
      * Creates a new user.
      *
-     * @param event User registration data
+     * @param event Event metadata and data used to create a user
      * @return Created user response
      */
     public UserResponse createUser(UserCreationEvent event) {
@@ -202,7 +202,7 @@ public class UserService {
      * Updates a user by its ID.
      *
      * @param id ID of the user to update
-     * @param request User update data
+     * @param request Data used to update the user
      * @return Updated user response
      * @throws UserNotFoundException If user is not found
      */
@@ -234,7 +234,7 @@ public class UserService {
      * Updates a user by its account ID.
      *
      * @param accountId Account ID of the user to update
-     * @param request User update data
+     * @param request Data used to update the user
      * @return Updated user response
      * @throws UserNotFoundException If user is not found
      */
@@ -305,13 +305,13 @@ public class UserService {
     /**
      * Updates a user's email (triggered by Auth Service).
      * 
-     * @param event Account ID associated with the user and new email address
+     * @param event Event metadata, account ID of the user, and new email
      * @throws UserNotFoundException If user is not found
      */
     public void mirrorEmailUpdate(AccountEmailUpdateEvent event) {
         // Log email mirror attempt
         log.info("event=email_mirror_attempt account_id={}", event.getAccountId());
-        
+
         // Ensure no duplicate event processing
         if (processedEventRepository.existsById(event.getId())) {
             throw new DuplicateEventException("event_id=" + event.getId());
@@ -340,7 +340,7 @@ public class UserService {
     /**
      * Updates a user's username (triggered by Auth Service).
      *
-     * @param event Account ID associated with the user and new username
+     * @param event Event metadata, account ID of the user, and new username
      * @throws UserNotFoundException If user is not found
      */
     public void mirrorUsernameUpdate(AccountUsernameUpdateEvent event) {

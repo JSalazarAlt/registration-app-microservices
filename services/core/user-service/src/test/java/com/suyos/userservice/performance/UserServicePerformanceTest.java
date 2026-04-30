@@ -90,7 +90,7 @@ class UserServicePerformanceTest {
                     Instant requestStart = Instant.now();
                     
                     // Execute user fetch operation
-                    userService.findUserByAccountId(testUserId);
+                    userService.getUserByAccountId(testUserId);
                     successCount.incrementAndGet();
                     
                     // Return response time in milliseconds
@@ -286,7 +286,7 @@ class UserServicePerformanceTest {
             for (int i = 0; i < threads * requestsPerThread; i++) {
                 executor.submit(() -> {
                     try {
-                        userService.findUserByAccountId(testUserId);
+                        userService.getUserByAccountId(testUserId);
                         successCount.incrementAndGet();
                     } catch (Exception ignored) {
                         // Failures ignored for bottleneck analysis

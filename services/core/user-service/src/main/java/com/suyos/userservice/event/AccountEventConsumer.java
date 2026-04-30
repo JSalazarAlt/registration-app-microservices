@@ -11,32 +11,23 @@ import com.suyos.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Kafka consumer for account events.
- * 
- * <p>Listens to account-related events and updates user profiles.</p>
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class AccountEventConsumer {
 
-    /** Service for user business logic */
     private final UserService userService;
 
-    /** Kafka topic for user creation events */
     private static final String USER_CREATION_TOPIC = "user-creation";
 
-    /** Kafka topic for account username update events */
     private static final String ACCOUNT_USERNAME_UPDATE_TOPIC = "account-username-update";
 
-    /** Kafka topic for account email update events */
     private static final String ACCOUNT_EMAIL_UPDATE_TOPIC = "account-email-update";
 
     /**
-     * Handles user creation event from Auth Service.
+     * Handles user creation events from Auth Service.
      * 
-     * @param event Event's metadatada, account's information and user profile
+     * @param event Event metadatada, account's information, and user's profile
      */
     @KafkaListener(topics = USER_CREATION_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserCreation(UserCreationEvent event) {
@@ -53,13 +44,13 @@ public class AccountEventConsumer {
     }
 
     /**
-     * Handles account username update event from Auth Service.
+     * Handles username update events from Auth Service.
      * 
-     * @param event Event's metadatada, account ID and new username
+     * @param event Event metadata, account ID of the user, and new username
      */
     @KafkaListener(topics = ACCOUNT_USERNAME_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountUsernameUpdate(AccountUsernameUpdateEvent event) {
-        // Log account's username update event reception
+        // Log username update event reception
         log.info("event=kafka_username_update_event_reception account_id={}", event.getAccountId());
         
         // Update user's username
@@ -71,13 +62,13 @@ public class AccountEventConsumer {
     }
 
     /**
-     * Handles account email update event from Auth Service.
+     * Handles email update events from Auth Service.
      * 
-     * @param event Event's metadatada, account ID and new email
+     * @param event Event metadata, account ID of the user, and new email
      */
     @KafkaListener(topics = ACCOUNT_EMAIL_UPDATE_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     public void handleAccountEmailUpdate(AccountEmailUpdateEvent event) {
-        // Log account's email update event reception for debugging and monitoring
+        // Log email update event reception
         log.info("event=kafka_email_update_event_reception account_id={}", event.getAccountId());
         
         // Update user's email

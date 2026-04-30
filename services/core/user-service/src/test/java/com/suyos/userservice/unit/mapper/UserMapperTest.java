@@ -43,7 +43,7 @@ public class UserMapperTest {
                 .build();
         
         // Call user mapper to convert user creation event to user entity
-        User user = userMapper.toEntity(event);
+        User user = userMapper.createFromRequest(event);
 
         // Assert mapped fields are correct
         assertThat(user)
@@ -54,7 +54,7 @@ public class UserMapperTest {
                         User::getEmail,
                         User::getFirstName,
                         User::getLastName,
-                        User::getPhone
+                        User::getPhoneNumber
                 )
                 .containsExactly(
                         event.getAccountId(),
@@ -71,8 +71,8 @@ public class UserMapperTest {
         assertThat(user.getUpdatedAt()).isNull();
         assertThat(user.getTermsAcceptedAt()).isNull();
         assertThat(user.getPrivacyPolicyAcceptedAt()).isNull();
-        assertThat(user.getDeleted()).isNull();
-        assertThat(user.getDeletedAt()).isNull();
+        assertThat(user.getActive()).isNull();
+        assertThat(user.getSoftDeletedAt()).isNull();
     }
 
     /**
@@ -87,22 +87,22 @@ public class UserMapperTest {
                 .email("original@email.com")
                 .firstName("Test")
                 .lastName("User")
-                .phone("111111")
+                .phoneNumber("111111")
                 .accountId(UUID.randomUUID())
                 .build();
 
         // Build test user's update request
         UserUpdateRequest request = UserUpdateRequest.builder()
                 .firstName("Updated")
-                .phone("0987654321")
+                .phoneNumber("0987654321")
                 .build();
         
         // Call user mapper to update user from DTO
-        userMapper.updateUserFromDTO(request, testUser);
+        userMapper.updateFromRequest(testUser, request);
         
         // Assert only allowed fields are updated
         assertThat(testUser)
-                .extracting(User::getFirstName, User::getPhone)
+                .extracting(User::getFirstName, User::getPhoneNumber)
                 .containsExactly("Updated", "0987654321");
         
         // Assert other fields remain unchanged
@@ -150,14 +150,14 @@ public class UserMapperTest {
                         UserResponse::getEmail,
                         UserResponse::getFirstName,
                         UserResponse::getLastName,
-                        UserResponse::getPhone
+                        UserResponse::getPhoneNumber
                 )
                 .containsExactly(
                         testUser.getUsername(),
                         testUser.getEmail(),
                         testUser.getFirstName(),
                         testUser.getLastName(),
-                        testUser.getPhone()
+                        testUser.getPhoneNumber()
                 );
     }
         

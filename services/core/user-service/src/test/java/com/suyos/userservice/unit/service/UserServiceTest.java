@@ -144,7 +144,7 @@ class UserServiceTest {
 
         // Call service method to find all users with pagination
         PagedResponse<UserResponse> response =
-                userService.getAllUsers(0, 10, "username", "asc");
+                userService.getAllUsers(0, 10, "username", "asc", "test");
 
         // Assert expected user profiles are returned
 		assertThat(response).isNotNull();
@@ -169,7 +169,7 @@ class UserServiceTest {
                 .thenReturn(testUserProfile);
 
         // Call user service to find user by ID
-        UserResponse response = userService.findUserById(testUser.getId());
+        UserResponse response = userService.getUserById(testUser.getId());
 
         // Assert expected user's profile is returned
         assertThat(response)
@@ -194,7 +194,7 @@ class UserServiceTest {
                 .thenReturn(Optional.empty());
 
         // Verify user not found exception is thrown
-        assertThatThrownBy(() -> userService.findUserById(id))
+        assertThatThrownBy(() -> userService.getUserById(id))
             	.isInstanceOf(UserNotFoundException.class);
     }
 
@@ -212,7 +212,7 @@ class UserServiceTest {
                 .thenReturn(testUserProfile);
 
         // Call service method to find user by account ID
-        UserResponse response = userService.findUserByAccountId(testUser.getAccountId());
+        UserResponse response = userService.getUserByAccountId(testUser.getAccountId());
 
         // Assert expected user profile is returned
         assertThat(response)
@@ -242,7 +242,7 @@ class UserServiceTest {
 				.email(testUser.getEmail())
 				.firstName(testUser.getFirstName())
 				.lastName(testUser.getLastName())
-				.phoneNumber(testUser.getPhone())
+				.phoneNumber(testUser.getPhoneNumber())
                 .build();
 
 		// Mock processed event repository to check if event has been processed
@@ -250,7 +250,7 @@ class UserServiceTest {
                 .thenReturn(false);
 		
 		// Mock user mapper to return test user when mapping user creation event
-        when(userMapper.toEntity(event))
+        when(userMapper.createFromRequest(event))
                 .thenReturn(testUser);
 
 		// Mock user repository to return test user when saving new user
@@ -279,7 +279,7 @@ class UserServiceTest {
 
 		// Verify interactions
 		verify(processedEventRepository).save(any(ProcessedEvent.class));
-		verify(userMapper).toEntity(event);
+		verify(userMapper).createFromRequest(event);
 		verify(userRepository).save(testUser);
 		verify(userMapper).toResponse(testUser);
     }
@@ -298,7 +298,7 @@ class UserServiceTest {
 				.email(testUser.getEmail())
 				.firstName(testUser.getFirstName())
 				.lastName(testUser.getLastName())
-				.phoneNumber(testUser.getPhone())
+				.phoneNumber(testUser.getPhoneNumber())
                 .build();
 
 		// Mock processed event repository to indicate event has already been processed
@@ -335,10 +335,10 @@ class UserServiceTest {
 			User user = invocation.getArgument(1);
 
 			user.setFirstName(request.getFirstName());
-			user.setPhone(request.getPhone());
+			user.setPhoneNumber(request.getPhoneNumber());
 
 			return null;
-		}).when(userMapper).updateUserFromDTO(any(), any());
+		}).when(userMapper).updateFromRequest(any(), any());
 			
         // Mock user repository to return updated test user when updating test user
 		when(userRepository.save(testUser))
@@ -358,7 +358,7 @@ class UserServiceTest {
 		
 		// Verify interactions
 		verify(userRepository).findById(testUser.getId());
-		verify(userMapper).updateUserFromDTO(updateRequest, testUser);
+		verify(userMapper).updateFromRequest(testUser, updateRequest);
 		verify(userRepository).save(testUser);
 		verify(userMapper).toResponse(testUser);
     }
@@ -408,8 +408,8 @@ class UserServiceTest {
 		assertThat(response).isNotNull();
 
 		// Assert business logic side effects
-        assertThat(testUser.getDeletedAt())
-				.as("deletedAt should be set when user is soft-deleted")
+        assertThat(testUser.getSoftDeletedAt())
+				.as("softDeletedAt should be set when user is soft-deleted")
 				.isNotNull();
     }
 

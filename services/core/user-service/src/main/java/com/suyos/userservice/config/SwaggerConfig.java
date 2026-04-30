@@ -43,6 +43,8 @@ public class SwaggerConfig {
                         .description("Enter JWT token obtained from login endpoint"))
                 .addResponses("Unauthorized",
                     new ApiResponse().description("Invalid or missing JWT token"))
+                .addResponses("AccessDenied",
+                    new ApiResponse().description("Access denied"))
                 .addResponses("InternalError",
                     new ApiResponse().description("Internal server error")));
     }

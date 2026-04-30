@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.suyos.userservice.dto.request.UserUpdateRequest;
-import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.dto.response.UserResponse;
 import com.suyos.userservice.model.User;
 import com.suyos.userservice.repository.UserRepository;
 
@@ -50,16 +50,16 @@ class UserE2ETest {
             .email("e2e@example.com")
             .firstName("E2E")
             .lastName("Test")
-            .phone("1234567890")
+            .phoneNumber("1234567890")
             .termsAcceptedAt(Instant.now())
             .privacyPolicyAcceptedAt(Instant.now())
             .build();
         user = userRepository.save(user);
         
         // Get user by ID
-        ResponseEntity<UserProfileResponse> getResponse = restTemplate.getForEntity(
+        ResponseEntity<UserResponse> getResponse = restTemplate.getForEntity(
             "/api/v1/users/" + user.getId(),
-            UserProfileResponse.class
+            UserResponse.class
         );
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertEquals("e2euser", getResponse.getBody().getUsername());
@@ -70,19 +70,19 @@ class UserE2ETest {
             .lastName("Name")
             .build();
         
-        ResponseEntity<UserProfileResponse> updateResponse = restTemplate.exchange(
+        ResponseEntity<UserResponse> updateResponse = restTemplate.exchange(
             "/api/v1/users/" + user.getId(),
             HttpMethod.PUT,
             new HttpEntity<>(updateRequest),
-            UserProfileResponse.class
+            UserResponse.class
         );
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
         assertEquals("Updated", updateResponse.getBody().getFirstName());
         
         // Search user
-        ResponseEntity<UserProfileResponse[]> searchResponse = restTemplate.getForEntity(
+        ResponseEntity<UserResponse[]> searchResponse = restTemplate.getForEntity(
             "/api/v1/users/search?name=Updated",
-            UserProfileResponse[].class
+            UserResponse[].class
         );
         assertEquals(HttpStatus.OK, searchResponse.getStatusCode());
         assertTrue(searchResponse.getBody().length > 0);

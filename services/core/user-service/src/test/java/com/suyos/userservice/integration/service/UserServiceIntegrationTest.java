@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.suyos.userservice.dto.request.UserUpdateRequest;
-import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.dto.response.UserResponse;
 import com.suyos.userservice.model.User;
 import com.suyos.userservice.repository.UserRepository;
 import com.suyos.userservice.service.UserService;
@@ -59,7 +59,7 @@ class UserServiceIntegrationTest {
             .lastName("NewName")
             .build();
         
-        UserProfileResponse updated = userService.updateUserById(saved.getId(), request);
+        UserResponse updated = userService.updateUserById(saved.getId(), request);
         
         assertThat(updated.getFirstName()).isEqualTo("Updated");
         assertThat(updated.getLastName()).isEqualTo("NewName");

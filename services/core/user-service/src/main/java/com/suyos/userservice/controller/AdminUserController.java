@@ -18,19 +18,12 @@ import com.suyos.userservice.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.annotation.Secured;
 
 import lombok.RequiredArgsConstructor;
 
-/**
- * REST controller for user profile operations.
- *
- * <p>Handles user profile retrieval and update endpoints.</p>
- */
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -40,35 +33,32 @@ import lombok.RequiredArgsConstructor;
 )
 public class AdminUserController {
 
-    /** Service for user business logic */
     private final UserService userService;
 
     // ----------------------------------------------------------------
-    // LOOKUP
+    // RETRIEVAL
     // ----------------------------------------------------------------
 
     /**
-     * Retrieves a paginated list of all users.
+     * Gets a paginated response of all users, optionally filtered by search
+     * text: username, email, first name, or last name.
      *
      * @param page Zero-based page index
      * @param size Page size
      * @param sortBy Field to sort by
      * @param sortDir Sort direction (asc/desc)
-     * @return Paginated list of users' profiles with "200 OK" status
+     * @param searchText Optional text to filter by
+     * @return Paginated response of all users with "200 OK" status
      */
     @Secured("ROLE_ADMIN")
     @Operation(
-        summary = "Get all users",
-        description = "Retrieves a paginated list of users with sorting options",
+        description = "Gets a paginated response of all users optionally filtered by search text.",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "Users retrieved successfully",
-                content = @Content(schema = @Schema(implementation = PagedResponse.class))
-            ),
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid pagination or sort parameters"),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/AccessDenied"),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
     @GetMapping
@@ -79,7 +69,7 @@ public class AdminUserController {
         @Parameter(description = "Sort direction: asc or desc") @RequestParam(defaultValue = "desc") String sortDir,
         @Parameter(description = "Text to filter by") @RequestParam(required = false) String searchText
     ) {
-        // Find paginated list of users' profiles
+        // Get paginated response of all users
         PagedResponse<UserResponse> users = userService.getAllUsers(
             page,
             size,
@@ -88,41 +78,37 @@ public class AdminUserController {
             searchText
         );
 
-        // Return paginated list of users' profiles with "200 OK" status
+        // Return paginated response of all users with "200 OK" status
         return ResponseEntity.ok(users);
     }
 
     /**
-     * Retrieves a user by ID.
+     * Gets a user by its ID.
      *
-     * @param id User's ID to search for
-     * @return User's profile with "200 OK" status
+     * @param id ID of the user to retrieve
+     * @return User response with "200 OK" status
      */
     @Secured("ROLE_ADMIN")
     @Operation(
-        summary = "Get user by ID",
-        description = "Retrieves a user's profile using their ID.",
+        description = "Gets a user by its ID.",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "User retrieved successfully",
-                content = @Content(schema = @Schema(implementation = UserResponse.class))
-            ),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/AccessDenied"),
             @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(
-        @Parameter(description = "User's unique ID", required = true)
+        @Parameter(description = "ID of the user to retrieve", required = true)
         @PathVariable UUID id
     ) {
-        // Find user's profile by id
-        UserResponse userProfile = userService.getUserById(id);
+        // Get user by ID
+        UserResponse userResponse = userService.getUserById(id);
 
-        // Return user's profile with "200 OK" status
-        return ResponseEntity.ok(userProfile);
+        // Return user response with "200 OK" status
+        return ResponseEntity.ok(userResponse);
     }
 
     // ----------------------------------------------------------------
@@ -130,38 +116,33 @@ public class AdminUserController {
     // ----------------------------------------------------------------
 
     /**
-     * Updates a user by ID.
+     * Updates a user by its ID.
      *
-     * @param id User's ID to update
-     * @return User's profile with "200 OK" status
+     * @param id ID of the user to update
+     * @return Updated user response with "200 OK" status
      */
     @Secured("ROLE_ADMIN")
     @Operation(
-        summary = "Update user by ID",
-        description = "Updates a user's profile using their ID.",
+        description = "Updates a user by its ID.",
         responses = {
-            @ApiResponse(
-                responseCode = "200", description = "User profile updated successfully",
-                content = @Content(schema = @Schema(implementation = UserResponse.class))
-            ),
+            @ApiResponse(responseCode = "200", description = "User updated successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request body or validation error"),
-            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/AccessDenied"),
             @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalError")
         }
     )
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUserById(
-        @Parameter(description = "User's unique ID", required = true)
-        @PathVariable UUID id,
-        @RequestBody UserUpdateRequest userUpdateDTO
+        @Parameter(description = "ID of the user to update", required = true) @PathVariable UUID id,
+        @Parameter(description = "Updated user information") @RequestBody UserUpdateRequest request
     ) {
-        // Update user's profile by ID
-        UserResponse userProfile = userService.updateUserById(id, userUpdateDTO);
+        // Update user by ID
+        UserResponse userResponse = userService.updateUserById(id, request);
         
-        // Return updated user's profile with "200 OK" status
-        return ResponseEntity.ok(userProfile);
+        // Return updated user response with "200 OK" status
+        return ResponseEntity.ok(userResponse);
     }
 
 }

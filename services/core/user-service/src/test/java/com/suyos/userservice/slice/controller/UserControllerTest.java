@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -20,10 +19,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.suyos.common.dto.response.PagedResponseDTO;
+import com.suyos.common.dto.response.PagedResponse;
 import com.suyos.userservice.controller.UserController;
 import com.suyos.userservice.dto.request.UserUpdateRequest;
-import com.suyos.userservice.dto.response.UserProfileResponse;
+import com.suyos.userservice.dto.response.UserResponse;
 import com.suyos.userservice.service.UserService;
 
 /**
@@ -48,7 +47,7 @@ class UserControllerTest {
     private UserService userService;
     
     /** Test user's profile */
-    private UserProfileResponse userProfile;
+    private UserResponse userProfile;
     
     /** Test user's update request */
     private UserUpdateRequest updateRequest;
@@ -69,21 +68,20 @@ class UserControllerTest {
         accountId = UUID.randomUUID();
         
         // Build test user's profile
-        userProfile = UserProfileResponse.builder()
+        userProfile = UserResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
                 .firstName("Test")
                 .lastName("User")
-                .phone("1234567890")
-                .createdAt(Instant.now())
+                .phoneNumber("1234567890")
                 .build();
 
         // Build test user's update request
         updateRequest = UserUpdateRequest.builder()
                 .firstName("Updated")
                 .lastName("Name")
-                .phone("0987654321")
+                .phoneNumber("0987654321")
                 .build();
     }
 
@@ -97,7 +95,7 @@ class UserControllerTest {
     @WithMockUser(roles = "USER")
     void getUserById_Success() throws Exception {
         // Mock user service to return test user's profile user when searched by ID
-        when(userService.findUserById(userId)).thenReturn(userProfile);
+        when(userService.getUserById(userId)).thenReturn(userProfile);
 
         // Perform get user request
         mockMvc.perform(get("/api/users/{userId}", userId))
@@ -107,7 +105,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.firstName").value("Test"));
         
         // Verify interactions
-        verify(userService).findUserById(userId);
+        verify(userService).getUserById(userId);
     }
 
     /**
@@ -119,13 +117,13 @@ class UserControllerTest {
     @Test
     void updateUserById_Success() throws Exception {
         // Build updated profile
-        UserProfileResponse updatedProfile = UserProfileResponse.builder()
+        UserResponse updatedProfile = UserResponse.builder()
                 .id(userId)
                 .username("testuser")
                 .email("test@example.com")
                 .firstName("Updated")
                 .lastName("Name")
-                .phone("0987654321")
+                .phoneNumber("0987654321")
                 .build();
         
         // Mock service to return updated profile
@@ -149,7 +147,7 @@ class UserControllerTest {
     @Test
     void getProfileByAccountId_Success() throws Exception {
         // Mock service to return user profile
-        when(userService.findUserByAccountId(accountId)).thenReturn(userProfile);
+        when(userService.getUserByAccountId(accountId)).thenReturn(userProfile);
 
         // Perform get profile by account ID request
         mockMvc.perform(get("/api/v1/users/account/{accountId}", accountId))
@@ -157,7 +155,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.username").value("testuser"));
         
         // Verify service was called
-        verify(userService).findUserByAccountId(accountId);
+        verify(userService).getUserByAccountId(accountId);
     }
 
     /**
@@ -166,7 +164,7 @@ class UserControllerTest {
     @Test
     void updateProfileByAccountId_Success() throws Exception {
         // Build updated profile
-        UserProfileResponse updatedProfile = UserProfileResponse.builder()
+        UserResponse updatedProfile = UserResponse.builder()
                 .id(userId)
                 .firstName("Updated")
                 .lastName("Name")
@@ -192,8 +190,8 @@ class UserControllerTest {
     @Test
     void getAllUsersPaginated_Success() throws Exception {
         // Build paginated response
-        List<UserProfileResponse> users = Arrays.asList(userProfile);
-        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
+        List<UserResponse> users = Arrays.asList(userProfile);
+        PagedResponse<UserResponse> pagedResponse = PagedResponse.<UserResponse>builder()
                 .content(users)
                 .currentPage(0)
                 .totalPages(1)
@@ -204,7 +202,7 @@ class UserControllerTest {
                 .build();
         
         // Mock service to return paginated response
-        when(userService.findAllUsers(0, 10, "createdAt", "desc")).thenReturn(pagedResponse);
+        when(userService.getAllUsers(0, 10, "createdAt", "desc", null)).thenReturn(pagedResponse);
 
         // Perform get all users paginated request
         mockMvc.perform(get("/api/v1/users")
@@ -218,29 +216,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.totalElements").value(1));
         
         // Verify service was called
-        verify(userService).findAllUsers(0, 10, "createdAt", "desc");
-    }
-
-    /**
-     * Tests successful user search by name.
-     */
-    @Test
-    void searchUsersByName_Success() throws Exception {
-        // Build search results
-        List<UserProfileResponse> users = Arrays.asList(userProfile);
-        
-        // Mock service to return search results
-        when(userService.findUsersByName("Test")).thenReturn(users);
-
-        // Perform search users request
-        mockMvc.perform(get("/api/v1/users/search")
-                .param("name", "Test"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].firstName").value("Test"));
-        
-        // Verify service was called
-        verify(userService).findUsersByName("Test");
+        verify(userService).getAllUsers(0, 10, "createdAt", "desc", null);
     }
 
     /**
@@ -249,14 +225,14 @@ class UserControllerTest {
     @Test
     void getUserById_NotFound() throws Exception {
         // Mock service to throw exception
-        when(userService.findUserById(userId)).thenThrow(new RuntimeException("User not found"));
+        when(userService.getUserById(userId)).thenThrow(new RuntimeException("User not found"));
 
         // Perform get user request and expect error
         mockMvc.perform(get("/api/v1/users/{userId}", userId))
                 .andExpect(status().is5xxServerError());
         
         // Verify service was called
-        verify(userService).findUserById(userId);
+        verify(userService).getUserById(userId);
     }
 
     /**
@@ -283,14 +259,14 @@ class UserControllerTest {
     @Test
     void getProfileByAccountId_NotFound() throws Exception {
         // Mock service to throw exception
-        when(userService.findUserByAccountId(accountId)).thenThrow(new RuntimeException("User not found"));
+        when(userService.getUserByAccountId(accountId)).thenThrow(new RuntimeException("User not found"));
 
         // Perform get profile by account ID request and expect error
         mockMvc.perform(get("/api/v1/users/account/{accountId}", accountId))
                 .andExpect(status().is5xxServerError());
         
         // Verify service was called
-        verify(userService).findUserByAccountId(accountId);
+        verify(userService).getUserByAccountId(accountId);
     }
 
     /**
@@ -312,31 +288,12 @@ class UserControllerTest {
     }
 
     /**
-     * Tests user search with no results.
-     */
-    @Test
-    void searchUsersByName_NoResults() throws Exception {
-        // Mock service to return empty list
-        when(userService.findUsersByName("NonExistent")).thenReturn(List.of());
-
-        // Perform search users request
-        mockMvc.perform(get("/api/v1/users/search")
-                .param("name", "NonExistent"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
-        
-        // Verify service was called
-        verify(userService).findUsersByName("NonExistent");
-    }
-
-    /**
      * Tests paginated user retrieval with empty results.
      */
     @Test
     void getAllUsersPaginated_EmptyResults() throws Exception {
         // Build empty paginated response
-        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
+        PagedResponse<UserResponse> pagedResponse = PagedResponse.<UserResponse>builder()
                 .content(List.of())
                 .currentPage(0)
                 .totalPages(0)
@@ -347,7 +304,7 @@ class UserControllerTest {
                 .build();
         
         // Mock service to return empty paginated response
-        when(userService.findAllUsers(0, 10, "createdAt", "desc")).thenReturn(pagedResponse);
+        when(userService.getAllUsers(0, 10, "createdAt", "desc", null)).thenReturn(pagedResponse);
 
         // Perform get all users paginated request
         mockMvc.perform(get("/api/v1/users")
@@ -361,7 +318,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.totalElements").value(0));
         
         // Verify service was called
-        verify(userService).findAllUsers(0, 10, "createdAt", "desc");
+        verify(userService).getAllUsers(0, 10, "createdAt", "desc", null);
     }
 
     /**
@@ -370,7 +327,7 @@ class UserControllerTest {
     @Test
     void updateUserById_InvalidData() throws Exception {
         UserUpdateRequest invalidDTO = UserUpdateRequest.builder()
-                .phone("invalid")  // Invalid phone format
+                .phoneNumber("invalid")  // Invalid phone format
                 .build();
 
         mockMvc.perform(put("/api/v1/users/{userId}", userId)
@@ -384,8 +341,8 @@ class UserControllerTest {
      */
     @Test
     void getAllUsersPaginated_CustomParams() throws Exception {
-        List<UserProfileResponse> users = Arrays.asList(userProfile);
-        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
+        List<UserResponse> users = Arrays.asList(userProfile);
+        PagedResponse<UserResponse> pagedResponse = PagedResponse.<UserResponse>builder()
                 .content(users)
                 .currentPage(2)
                 .totalPages(5)
@@ -395,7 +352,7 @@ class UserControllerTest {
                 .last(false)
                 .build();
 
-        when(userService.findAllUsers(2, 10, "username", "asc")).thenReturn(pagedResponse);
+        when(userService.getAllUsers(2, 10, "username", "asc", null)).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/v1/users")
                 .param("page", "2")
@@ -406,7 +363,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.currentPage").value(2))
                 .andExpect(jsonPath("$.totalPages").value(5));
 
-        verify(userService).findAllUsers(2, 10, "username", "asc");
+        verify(userService).getAllUsers(2, 10, "username", "asc", null);
     }
 
 
@@ -416,8 +373,8 @@ class UserControllerTest {
      */
     @Test
     void getAllUsersPaginated_DefaultParams() throws Exception {
-        List<UserProfileResponse> users = Arrays.asList(userProfile);
-        PagedResponseDTO<UserProfileResponse> pagedResponse = PagedResponseDTO.<UserProfileResponse>builder()
+        List<UserResponse> users = Arrays.asList(userProfile);
+        PagedResponse<UserResponse> pagedResponse = PagedResponse.<UserResponse>builder()
                 .content(users)
                 .currentPage(0)
                 .totalPages(1)
@@ -427,27 +384,13 @@ class UserControllerTest {
                 .last(true)
                 .build();
 
-        when(userService.findAllUsers(0, 10, "createdAt", "desc")).thenReturn(pagedResponse);
+        when(userService.getAllUsers(0, 10, "createdAt", "desc", null)).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/v1/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
 
-        verify(userService).findAllUsers(0, 10, "createdAt", "desc");
-    }
-
-    /**
-     * Tests search with empty query.
-     */
-    @Test
-    void searchUsersByName_EmptyQuery() throws Exception {
-        when(userService.findUsersByName("")).thenReturn(List.of());
-
-        mockMvc.perform(get("/api/v1/users/search")
-                .param("name", ""))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
+        verify(userService).getAllUsers(0, 10, "createdAt", "desc", "");
     }
     
 }

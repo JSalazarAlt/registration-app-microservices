@@ -3,15 +3,12 @@ package com.suyos.userservice.integration.repository;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -81,22 +78,11 @@ class UserRepositoryTest {
                 .email(email)
                 .firstName(firstName)
                 .lastName(lastName)
-                .phone("1234567890")
+                .phoneNumber("1234567890")
                 .termsAcceptedAt(Instant.now())
                 .privacyPolicyAcceptedAt(Instant.now())
                 .build();
         return testUser;
-    }
-
-    /**
-     * Searches users by first and last name.
-     *
-     * @param firstName First name search term
-     * @param lastName Last name search term
-     * @return List of matching users
-     */
-    private List<User> searchByName(String firstName, String lastName) {
-        return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(firstName, lastName);
     }
 
     // ----------------------------------------------------------------
@@ -133,93 +119,6 @@ class UserRepositoryTest {
 
         // Find user by account ID
         Optional<User> result = userRepository.findByAccountId(nonExistentAccountId);
-
-        // Verify no user is found
-        assertThat(result).isEmpty();
-    }
-
-    /**
-     * Tests successful user search by exact and partial name matches (case-insensitive).
-     */
-    @ParameterizedTest
-    @DisplayName("Should find user by exact and partial name matches (case-insensitive)")
-    @ValueSource(strings = {"test", "Test", "TEST", "tes", "st"})
-    void findByName_FirstNamePartialMatches(String searchTerm) {
-        // Search by full or partial first name match
-        List<User> result = searchByName(searchTerm, searchTerm);
-
-        // Verify user is found
-        assertThat(result)
-                .hasSize(1)
-                .extracting("firstName")
-                .contains("Test");
-    }
-
-    /**
-     * Tests successful user search by last name partial match.
-     */
-    @Test
-    @DisplayName("Should find user by last name partial match")
-    void findByName_LastNamePartialMatch() {
-        // Search by full or partial last name match
-        List<User> result = searchByName("usr", "usr");
-        
-        // Verify user is found
-        assertThat(result)
-                .hasSize(1)
-                .extracting("lastName")
-                .contains("User");
-    }
-
-    /**
-     * Tests that search returns empty list for non-matching search terms.
-     */
-    @Test
-    @DisplayName("Should return empty list for non-matching search terms")
-    void findByName_NotFound() {
-        // Search by full or partial name match
-        List<User> result = searchByName("nonexistent", "notfound");
-
-        // Verify no user is found
-        assertThat(result).isEmpty();
-    }
-
-    /**
-     * Tests that multiple users are returned when multiple match search criteria.
-     */
-    @Test
-    @DisplayName("Should return multiple users when multiple match search criteria")
-    void findByName_MultipleMatches() {
-        // Create new test user with overlapping name
-        User secondUser = createTestUser(
-            UUID.randomUUID(), 
-            "anotheruser", 
-            "another@example.com", 
-            "Test", 
-            "Another"
-        );
-
-        // Persist new test user
-        userRepository.save(secondUser);
-
-        // Search by full or partial name match
-        List<User> result = searchByName("Test", "Test");
-
-        // Verify both test users are found
-        assertThat(result)
-                .hasSize(2)
-                .extracting("firstName")
-                .allMatch(name -> name.equals("Test"));
-    }
-
-    /**
-     * Tests that search returns empty list for empty search string.
-     */
-    @Test
-    @DisplayName("Should return empty list for empty search string")
-    void findByName_EmptySearchString() {
-        // Search by name full or partial match
-        List<User> result = searchByName("", "");
 
         // Verify no user is found
         assertThat(result).isEmpty();
@@ -263,7 +162,7 @@ class UserRepositoryTest {
      */
     @Test
     @DisplayName("Should persist user without phone number")
-    void saveUser_WithoutPhone() {
+    void saveUser_WithoutphoneNumber() {
         // Create new test user without phone number
         User newUser = User.builder()
                 .accountId(UUID.randomUUID())
@@ -280,7 +179,7 @@ class UserRepositoryTest {
 
         // Verify new test user is persisted and phone number is null
         assertThat(savedUser.getId()).isNotNull();
-        assertThat(savedUser.getPhone()).isNull();
+        assertThat(savedUser.getPhoneNumber()).isNull();
     }
 
     // ----------------------------------------------------------------

@@ -186,7 +186,7 @@ public class AccountService {
      * Updates an account by its ID.
      * 
      * @param id ID of the account to update
-     * @param request Account's new username and/or new email
+     * @param request New username and/or email to update the account
      * @return Updated account response
      * @throws AccountNotFoundException If account is not found
      */
