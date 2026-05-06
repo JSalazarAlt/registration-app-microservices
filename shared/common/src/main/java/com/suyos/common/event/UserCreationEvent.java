@@ -32,13 +32,6 @@ public class UserCreationEvent {
     private Instant occurredAt;
 
     // ----------------------------------------------------------------
-    // RELATIONSHIPS
-    // ----------------------------------------------------------------
-
-    /** Unique identifier linking to account */
-    private UUID accountId;
-
-    // ----------------------------------------------------------------
     // ACCOUNT'S INFORMATION
     // ----------------------------------------------------------------
 
@@ -69,5 +62,12 @@ public class UserCreationEvent {
     
     /** Preferred timezone */
     private String timezone;
+
+    // ----------------------------------------------------------------
+    // RELATIONSHIPS
+    // ----------------------------------------------------------------
+
+    /** Unique identifier linking to account */
+    private UUID accountId;
     
 }

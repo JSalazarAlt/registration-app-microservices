@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from '../../security/auth/jwt-auth.guards';
+import { JwtAuthGuard } from '../../config/security/auth/jwt-auth.guards';
 import { JwtModule } from '@nestjs/jwt';
 import * as fs from 'fs';
 
@@ -14,10 +14,13 @@ import * as fs from 'fs';
  * refresh operations.
  */
 @Module({
-    imports: [  HttpModule, 
-                    JwtModule.register({publicKey: fs.readFileSync('keys/public.pem'),
-                                        signOptions: { algorithm: 'RS256' },})
-                 ],
+    imports: [  
+        HttpModule, 
+        JwtModule.register({
+            publicKey: fs.readFileSync('keys/public.pem'),
+            signOptions: { algorithm: 'RS256' },
+        })
+    ],
     controllers: [AuthController],
     providers: [AuthService, JwtAuthGuard],
 })

@@ -3,7 +3,7 @@ import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { RegistrationDTO } from './dto/registration.dto';
-import { JwtAuthGuard } from '../../security/auth/jwt-auth.guards';
+import { JwtAuthGuard } from '../../config/security/auth/jwt-auth.guards';
 import type { Request } from 'express';
 import { EmailVerificationTokenDTO } from './dto/email-verification-token.dto';
 

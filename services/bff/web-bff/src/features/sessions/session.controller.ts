@@ -1,5 +1,5 @@
 import { Controller, Get, Put, Body, UseGuards, Req, Delete, HttpCode } from '@nestjs/common';
-import { JwtAuthGuard } from '../../security/auth/jwt-auth.guards';
+import { JwtAuthGuard } from '../../config/security/auth/jwt-auth.guards';
 import { SessionService } from './session.service';
 
 @Controller('api/v1/sessions')

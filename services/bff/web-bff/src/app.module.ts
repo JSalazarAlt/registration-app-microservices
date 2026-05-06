@@ -3,10 +3,10 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './features/auth/auth.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './features/user/user.module';
-import { HomeModule } from './features/home/home.module';
-import { ProfileModule } from './features/profile/profile.module';
+import { HomeModule } from './bff/home/home.module';
+import { ProfileModule } from './bff/profile/profile.module';
 import { SessionModule } from './features/sessions/session.module';
 
 @Module({
@@ -19,7 +19,7 @@ import { SessionModule } from './features/sessions/session.module';
         ProfileModule,
         SessionModule
     ],
-    controllers: [AppController],
-    providers: [AppService],
+    controllers: [AppController], // controllers: [AppController],
+    providers: [AppService], // providers: [AppService],
 })
 export class AppModule {}
