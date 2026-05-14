@@ -1,8 +1,3 @@
-
-/**
- * 
- */
-
 export interface RegistrationRequest {
     
     // ----------------------------------------------------------------
@@ -30,6 +25,16 @@ export interface AuthenticationRequest {
 
     identifier: string;
     password: string;
+
+}
+
+export interface OAuth2AuthenticationRequest {
+
+        email: string;
+        name: string;
+        provider: string;
+        providerId: string;
+        deviceName: string;
 
 }
 

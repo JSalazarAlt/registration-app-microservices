@@ -1,12 +1,12 @@
-// integrations/auth-service/auth.mapper.ts
-
-import { LoginDTO } from '../../modules/auth/dto/login.dto';
-import { RegistrationDTO } from '../../modules/auth/dto/registration.dto';
+import { RegistrationDTO } from '../../../modules/auth/dto/registration.dto';
+import { LoginDTO } from '../../../modules/auth/dto/login.dto';
+import { OAuth2LoginDTO } from '../../../modules/auth/dto/oauth2-login.dto';
 
 import {
-    AuthenticationRequest,
     RegistrationRequest,
-    AuthenticationResponse,
+    AuthenticationRequest,
+    OAuth2AuthenticationRequest,
+    AuthenticationResponse
 } from './auth.types';
 
 export class AuthMapper {
@@ -15,14 +15,14 @@ export class AuthMapper {
     // BFF REQUESTS → AUTH MICROSERVICE REQUESTS
     // ----------------------------------------------------------------
 
-    static toLoginRequest(dto: LoginDTO): AuthenticationRequest {
+    static toAuthenticationRequest(dto: LoginDTO): AuthenticationRequest {
         return {
             identifier: dto.identifier,
             password: dto.password,
         };
     }
 
-    static toRegisterRequest(dto: RegistrationDTO): RegistrationRequest {
+    static toRegistrationRequest(dto: RegistrationDTO): RegistrationRequest {
         return {
             username: dto.username,
             email: dto.email,
@@ -34,6 +34,17 @@ export class AuthMapper {
             locale: dto.locale,
             timezone: dto.timezone
         };
+    }
+
+    static toOAuth2AuthenticationRequest(dto: OAuth2LoginDTO): OAuth2AuthenticationRequest {
+        return {
+            email: dto.email,
+            name: dto.name,
+            provider: dto.provider,
+            providerId: dto.providerId,
+            deviceName: dto.deviceName,
+        }
+
     }
 
     static toRefreshRequest(refreshToken: string) {

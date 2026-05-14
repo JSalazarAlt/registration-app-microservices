@@ -34,10 +34,6 @@ export class AuthController {
     /**
      * Handles login by forwarding credentials to the Auth microservice.
      *
-     * Forwards the login credentials to the Auth microservice, receives
-     * issued refresh and access tokens, stores the refresh token in an
-     * HTTP-only cookie, and returns the access token to the client.
-     *
      * @param loginData Login credentials (username/email and password)
      * @param res HTTP response used to set refresh token cookie
      * @returns Access token information and account identifier
@@ -144,16 +140,6 @@ export class AuthController {
     // ----------------------------------------------------------------
     // EMAIL MANAGEMENT
     // ----------------------------------------------------------------
-
-    @Post('email/verify')
-    @HttpCode(200)
-    async verifyEmail(@Body() emailVerificationTokenDTO: EmailVerificationTokenDTO) {
-        // Extract current refresh token from cookies
-        const refreshToken = emailVerificationTokenDTO.value;
-
-        // Return updated account's information
-        return await this.authService.verifyEmail(refreshToken);
-    }
 
     // ----------------------------------------------------------------
     // PASSWORD MANAGEMENT

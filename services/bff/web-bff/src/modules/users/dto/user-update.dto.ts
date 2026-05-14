@@ -9,25 +9,19 @@
 export class UserUpdateDTO {
     
     // ----------------------------------------------------------------
-    // USER'S PROFILE
+    // PROFILE
     // ----------------------------------------------------------------
 
-    /** First name */
-    firstName: string;
+    firstName!: string;
 
-    /** Last name */
-    lastName: string;
+    lastName!: string;
 
-    /** Phone number */
-    phone: string;
+    phone!: string;
+
+    profilePictureUrl!: string;
+
+    locale!: string;
     
-    /** Profile picture URL */
-    profilePictureUrl: string;
-    
-    /** Preferred language locale */
-    locale: string;
-    
-    /** Preferred timezone */
-    timezone: string;
+    timezone!: string;
 
 }

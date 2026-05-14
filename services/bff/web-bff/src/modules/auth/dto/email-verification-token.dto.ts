@@ -6,6 +6,6 @@
 export class EmailVerificationTokenDTO {
 
     /** Email verification token value */
-    value: string;
+    value!: string;
 
 }

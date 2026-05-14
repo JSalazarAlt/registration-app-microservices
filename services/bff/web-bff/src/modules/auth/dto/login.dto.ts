@@ -1,15 +1,12 @@
-/**
- * Data Transfer Object for account authentication requests.
- * 
- * Contains the account identifier and password used to authenticate the
- * user and establish a session.
- */
+import { IsString, IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
+
 export class LoginDTO {
     
-    /** Username or email */
-    identifier: string;
+    @IsString()
+    @IsNotEmpty()
+    identifier!: string;
 
-    /** Password */
-    password: string;
+    @IsString()
+    password!: string;
 
 }
