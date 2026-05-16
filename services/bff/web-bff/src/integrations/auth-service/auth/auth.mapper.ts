@@ -1,6 +1,6 @@
-import { RegistrationDTO } from '../../../modules/auth/dto/registration.dto';
-import { LoginDTO } from '../../../modules/auth/dto/login.dto';
-import { OAuth2LoginDTO } from '../../../modules/auth/dto/oauth2-login.dto';
+import { RegistrationRequestDTO } from '../../../modules/auth/dto/request/registration-request.dto';
+import { LoginRequestDTO } from '../../../modules/auth/dto/request/login-request.dto';
+import { OAuth2RequestDTO } from '../../../modules/auth/dto/request/oauth2-request.dto';
 
 import {
     RegistrationRequest,
@@ -15,14 +15,7 @@ export class AuthMapper {
     // BFF REQUESTS → AUTH MICROSERVICE REQUESTS
     // ----------------------------------------------------------------
 
-    static toAuthenticationRequest(dto: LoginDTO): AuthenticationRequest {
-        return {
-            identifier: dto.identifier,
-            password: dto.password,
-        };
-    }
-
-    static toRegistrationRequest(dto: RegistrationDTO): RegistrationRequest {
+    static toRegistrationRequest(dto: RegistrationRequestDTO): RegistrationRequest {
         return {
             username: dto.username,
             email: dto.email,
@@ -36,7 +29,14 @@ export class AuthMapper {
         };
     }
 
-    static toOAuth2AuthenticationRequest(dto: OAuth2LoginDTO): OAuth2AuthenticationRequest {
+    static toAuthenticationRequest(dto: LoginRequestDTO): AuthenticationRequest {
+        return {
+            identifier: dto.identifier,
+            password: dto.password,
+        };
+    }
+
+    static toOAuth2AuthenticationRequest(dto: OAuth2RequestDTO): OAuth2AuthenticationRequest {
         return {
             email: dto.email,
             name: dto.name,

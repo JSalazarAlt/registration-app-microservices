@@ -4,9 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, timeout, retry, catchError } from 'rxjs';
 import { AxiosError } from 'axios';
 
-import { LoginDTO } from '../../modules/auth/dto/login.dto';
-import { RegistrationDTO } from '../../modules/auth/dto/registration.dto';
+import { LoginRequestDTO } from '../../../modules/auth/dto/request/login-request.dto';
+import { RegistrationRequestDTO } from '../../../modules/auth/dto/request/registration-request.dto';
 import { AuthMapper } from './auth.mapper';
+import { OAuth2RequestDTO } from '../../../modules/auth/dto/request/oauth2-request.dto';
 
 @Injectable()
 export class AuthClient {
@@ -46,8 +47,8 @@ export class AuthClient {
      * @param dto 
      * @returns 
      */
-    async register(dto: RegistrationDTO) {
-        const request = AuthMapper.toRegisterRequest(dto);
+    async register(dto: RegistrationRequestDTO) {
+        const request = AuthMapper.toRegistrationRequest(dto);
         const data = await this.post(
             '/api/auth/register',
             request,
@@ -61,8 +62,27 @@ export class AuthClient {
      * @param dto 
      * @returns 
      */
-    async login(dto: LoginDTO) {
-        const request = AuthMapper.toLoginRequest(dto);
+    async login(dto: LoginRequestDTO) {
+        const request = AuthMapper.toAuthenticationRequest(dto);
+        const data = await this.post(
+            '/api/auth/login',
+            request,
+            'login'
+        );
+        return AuthMapper.toAuthTokensResponse(data);
+    }
+
+    // ----------------------------------------------------------------
+    // TRADITIONAL REGISTRATION AND LOGIN
+    // ----------------------------------------------------------------
+
+    /**
+     * 
+     * @param dto 
+     * @returns 
+     */
+    async processGoogleOAuth2Account(dto: OAuth2RequestDTO) {
+        const request = AuthMapper.toOAuth2AuthenticationRequest(dto);
         const data = await this.post(
             '/api/auth/login',
             request,

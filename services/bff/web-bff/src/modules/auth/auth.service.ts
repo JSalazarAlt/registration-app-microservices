@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { LoginDTO } from './dto/login.dto';
-import { RegistrationDTO } from './dto/registration.dto';
-import { AuthClient } from '../../integrations/auth-service/auth.client';
+import { LoginDTO } from './dto/request/login-request.dto';
+import { RegistrationDTO } from './dto/request/registration-request.dto';
+import { AuthClient } from '../../integrations/auth-service/auth/auth.client';
 
 /**
  * Service for authentication-related operations.

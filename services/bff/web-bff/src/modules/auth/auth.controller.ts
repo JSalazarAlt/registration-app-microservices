@@ -1,11 +1,11 @@
 import { Controller, Post, Get, Body, Param, HttpCode, Req, Res, UseGuards, UnauthorizedException, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
-import { LoginDTO } from './dto/login.dto';
-import { RegistrationDTO } from './dto/registration.dto';
+import { LoginRequestDTO } from './dto/request/login-request.dto';
+import { RegistrationRequestDTO } from './dto/request/registration-request.dto';
+import { EmailVerificationRequestDTO } from './dto/request/email-verification-request.dto';
 import { JwtAuthGuard } from '../../config/security/auth/jwt-auth.guards';
 import type { Request } from 'express';
-import { EmailVerificationTokenDTO } from './dto/email-verification-token.dto';
 
 /**
  * Controller handling authentication-related endpoints.
@@ -27,7 +27,7 @@ export class AuthController {
     
     @Post('register')
     @HttpCode(201)
-    async register(@Body() registerData: RegistrationDTO) {
+    async register(@Body() registerData: RegistrationRequestDTO) {
         return this.authService.register(registerData);
     }
 
@@ -42,7 +42,7 @@ export class AuthController {
      */
     @Post('login')
     @HttpCode(200)
-    async login(@Body() loginData: LoginDTO, @Res({ passthrough: true }) res: Response) {
+    async login(@Body() loginData: LoginRequestDTO, @Res({ passthrough: true }) res: Response) {
         // Perform login via AuthService
         const response = await this.authService.login(loginData);
         
