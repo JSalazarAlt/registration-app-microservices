@@ -1,16 +1,12 @@
+// ----------------------------------------------------------------
+// TRADITIONAL REGISTRATION AND LOGIN
+// ----------------------------------------------------------------
+
 export interface RegistrationRequest {
-    
-    // ----------------------------------------------------------------
-    // ACCOUNT'S CREDENTIALS
-    // ----------------------------------------------------------------
     
     username: string;
     email: string;
     password: string;
-
-    // ----------------------------------------------------------------
-    // USER'S PROFILE
-    // ----------------------------------------------------------------
 
     firstName: string;
     lastName: string;
@@ -27,6 +23,10 @@ export interface AuthenticationRequest {
     password: string;
 
 }
+
+// ----------------------------------------------------------------
+// GOOGLE OAUTH2 REGISTRATION AND LOGIN
+// ----------------------------------------------------------------
 
 export interface OAuth2AuthenticationRequest {
 
@@ -48,12 +48,20 @@ export interface AuthenticationResponse {
 
 }
 
+// ----------------------------------------------------------------
+// LOGOUT
+// ----------------------------------------------------------------
+
 export interface DeauthenticationRequest {
 
     /** Value of refresh token */
     value: string;
 
 }
+
+// ----------------------------------------------------------------
+// TOKEN REFRESH
+// ----------------------------------------------------------------
 
 export interface RefreshTokenRequest {
 
@@ -62,9 +70,17 @@ export interface RefreshTokenRequest {
 
 }
 
+// ----------------------------------------------------------------
+// EMAIL MANAGEMENT
+// ----------------------------------------------------------------
+
 export interface EmailVerificationRequest {
 
     /** Value of email verification token */
     value: string;
     
 }
+
+// ----------------------------------------------------------------
+// PASSWORD  MANAGEMENT
+// ----------------------------------------------------------------
